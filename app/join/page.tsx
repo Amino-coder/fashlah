@@ -1,0 +1,106 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase, ensureUser } from "@/lib/supabase";
+import { STR, AVATARS } from "@/lib/i18n";
+import { usePrefs } from "@/lib/usePrefs";
+
+export default function JoinSession() {
+  const { lang, dark, ready } = usePrefs();
+  const t = STR[lang];
+  const router = useRouter();
+
+  const [code, setCode] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [emoji, setEmoji] = useState("🦊");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!ready) return null;
+
+  async function handleJoin() {
+    setLoading(true);
+    setError(null);
+    try {
+      const userId = await ensureUser(lang);
+
+      const { data: session, error: sessErr } = await supabase
+        .from("sessions")
+        .select("id, code, status, max_players")
+        .eq("code", code.toUpperCase())
+        .single();
+      if (sessErr || !session) throw new Error(t.errorNotFound);
+      if (session.status !== "waiting") throw new Error(t.errorGeneric);
+
+      const { count } = await supabase
+        .from("players")
+        .select("id", { count: "exact", head: true })
+        .eq("session_id", session.id);
+      if ((count ?? 0) >= session.max_players) throw new Error(t.errorGeneric);
+
+      const { error: playerErr } = await supabase.from("players").upsert(
+        {
+          session_id: session.id,
+          user_id: userId,
+          nickname: nickname || t.appName,
+          avatar_emoji: emoji,
+          is_host: false,
+        },
+        { onConflict: "session_id,user_id" }
+      );
+      if (playerErr) throw playerErr;
+
+      router.push(`/session/${session.code}`);
+    } catch (e: any) {
+      setError(e.message || t.errorGeneric);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div dir={t.dir} className={dark ? "dark" : ""} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)" }}>
+      <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px" }}>
+        <h1 className="font-display" style={{ fontSize: 24, fontWeight: 800, marginBottom: 20 }}>{t.joinSession}</h1>
+
+        <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+          <label className="font-body" style={{ fontWeight: 700, fontSize: 14, color: "var(--ink-soft)" }}>{t.codeLabel}</label>
+          <input
+            value={code} onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 6))} placeholder={t.codePh}
+            className="font-mono"
+            style={{ width: "100%", marginTop: 8, padding: 14, borderRadius: 14, border: "2px solid var(--ring)", background: "transparent", color: "var(--ink)", fontSize: 22, textAlign: "center", letterSpacing: "0.3em", outline: "none" }}
+          />
+        </div>
+
+        <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+          <label className="font-body" style={{ fontWeight: 700, fontSize: 14, color: "var(--ink-soft)" }}>{t.nickname}</label>
+          <input
+            value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder={t.nicknamePh}
+            style={{ width: "100%", marginTop: 8, padding: "12px 14px", borderRadius: 14, border: "2px solid var(--ring)", background: "transparent", color: "var(--ink)", fontSize: 15, outline: "none" }}
+          />
+        </div>
+
+        <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+          {AVATARS.map((em) => (
+            <button
+              key={em} onClick={() => setEmoji(em)}
+              className={`chip ${emoji === em ? "active" : ""}`} style={{ fontSize: 19, padding: "10px 13px" }}
+            >
+              {em}
+            </button>
+          ))}
+        </div>
+
+        {error && <p style={{ color: "#FF2E93", fontWeight: 700, marginBottom: 12 }}>{error}</p>}
+
+        <button
+          onClick={handleJoin} disabled={loading || code.length < 4 || !nickname}
+          className="btn-primary font-display" style={{ padding: 18, fontSize: 17, width: "100%" }}
+        >
+          {loading ? t.loading : t.joinBtn}
+        </button>
+      </div>
+    </div>
+  );
+}
