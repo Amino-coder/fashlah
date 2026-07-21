@@ -1,22 +1,41 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase, ensureUser } from "@/lib/supabase";
 import Blobs from "@/components/Blobs";
 import { STR, AVATARS } from "@/lib/i18n";
 import { usePrefs } from "@/lib/usePrefs";
 
-export default function JoinSession() {
+export default function JoinSessionPage() {
+  // useSearchParams() requires a Suspense boundary in Next's app router.
+  return (
+    <Suspense fallback={null}>
+      <JoinSession />
+    </Suspense>
+  );
+}
+
+function JoinSession() {
   const { lang, dark, ready } = usePrefs();
   const t = STR[lang];
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [code, setCode] = useState("");
+  const [codeFromLink, setCodeFromLink] = useState(false);
   const [nickname, setNickname] = useState("");
   const [emoji, setEmoji] = useState("🦊");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fromUrl = searchParams.get("code");
+    if (fromUrl) {
+      setCode(fromUrl.toUpperCase().slice(0, 6));
+      setCodeFromLink(true);
+    }
+  }, [searchParams]);
 
   if (!ready) return null;
 
@@ -78,14 +97,32 @@ export default function JoinSession() {
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
         <h1 className="font-display" style={{ fontSize: 24, fontWeight: 800, marginBottom: 20 }}>{t.joinSession}</h1>
 
-        <div className="card" style={{ padding: 20, marginBottom: 16 }}>
-          <label className="font-body" style={{ fontWeight: 700, fontSize: 14, color: "var(--ink-soft)" }}>{t.codeLabel}</label>
-          <input
-            value={code} onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 6))} placeholder={t.codePh}
-            className="font-mono"
-            style={{ width: "100%", marginTop: 8, padding: 14, borderRadius: 14, border: "2px solid var(--ring)", background: "transparent", color: "var(--ink)", fontSize: 22, textAlign: "center", letterSpacing: "0.3em", outline: "none" }}
-          />
-        </div>
+        {codeFromLink ? (
+          <div className="card" style={{ padding: 20, marginBottom: 16, textAlign: "center" }}>
+            <p className="font-body" style={{ fontWeight: 700, fontSize: 13, color: "var(--ink-soft)" }}>
+              {lang === "ar" ? "بتنضم لجلسة" : "Joining session"}
+            </p>
+            <p className="font-mono" style={{ fontSize: 26, fontWeight: 700, letterSpacing: "0.2em", marginTop: 6 }}>
+              {code}
+            </p>
+            <button
+              onClick={() => setCodeFromLink(false)}
+              className="font-body"
+              style={{ marginTop: 10, fontSize: 12, color: "var(--ink-soft)", background: "none", border: "none", textDecoration: "underline" }}
+            >
+              {lang === "ar" ? "مو هالجلسة؟ غيّر الكود" : "Not this session? Change code"}
+            </button>
+          </div>
+        ) : (
+          <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+            <label className="font-body" style={{ fontWeight: 700, fontSize: 14, color: "var(--ink-soft)" }}>{t.codeLabel}</label>
+            <input
+              value={code} onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 6))} placeholder={t.codePh}
+              className="font-mono"
+              style={{ width: "100%", marginTop: 8, padding: 14, borderRadius: 14, border: "2px solid var(--ring)", background: "transparent", color: "var(--ink)", fontSize: 22, textAlign: "center", letterSpacing: "0.3em", outline: "none" }}
+            />
+          </div>
+        )}
 
         <div className="card" style={{ padding: 20, marginBottom: 16 }}>
           <label className="font-body" style={{ fontWeight: 700, fontSize: 14, color: "var(--ink-soft)" }}>{t.nickname}</label>

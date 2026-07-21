@@ -163,8 +163,8 @@ export default function WaitingRoom() {
                 <a
                   href={`https://wa.me/?text=${encodeURIComponent(
                     lang === "ar"
-                      ? `🌿 انضم لجلستي على بقدونس! الكود: ${session.code}\n${typeof window !== "undefined" ? window.location.origin : ""}/join`
-                      : `🌿 Join my Bagdoonis session! Code: ${session.code}\n${typeof window !== "undefined" ? window.location.origin : ""}/join`
+                      ? `🌿 انضم لجلستي على بقدونس!\n${typeof window !== "undefined" ? window.location.origin : ""}/join?code=${session.code}`
+                      : `🌿 Join my Bagdoonis session!\n${typeof window !== "undefined" ? window.location.origin : ""}/join?code=${session.code}`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
