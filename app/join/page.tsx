@@ -39,17 +39,29 @@ export default function JoinSession() {
         .eq("session_id", session.id);
       if ((count ?? 0) >= session.max_players) throw new Error(t.errorGeneric);
 
-      const { error: playerErr } = await supabase.from("players").upsert(
-        {
-          session_id: session.id,
-          user_id: userId,
-          nickname: nickname || t.appName,
-          avatar_emoji: emoji,
-          is_host: false,
-        },
-        { onConflict: "session_id,user_id" }
-      );
-      if (playerErr) throw playerErr;
+      const { error: playerErr } = await supabase.from("players").insert({
+        session_id: session.id,
+        user_id: userId,
+        nickname: nickname || t.appName,
+        avatar_emoji: emoji,
+        is_host: false,
+      });
+      if (playerErr) {
+        if (playerErr.code === "23505") {
+          // Already a member of this session (e.g. rejoining after a reload)
+          // — update their nickname/avatar instead of failing. This is a
+          // plain UPDATE, not an upsert, so it doesn't hit the same
+          // RLS/ON CONFLICT visibility problem a first-time join would.
+          const { error: updateErr } = await supabase
+            .from("players")
+            .update({ nickname: nickname || t.appName, avatar_emoji: emoji })
+            .eq("session_id", session.id)
+            .eq("user_id", userId);
+          if (updateErr) throw updateErr;
+        } else {
+          throw playerErr;
+        }
+      }
 
       router.push(`/session/${session.code}`);
     } catch (e: any) {
