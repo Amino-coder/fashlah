@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase, ensureUser, generateRoomCode } from "@/lib/supabase";
+import Blobs from "@/components/Blobs";
 import { STR } from "@/lib/i18n";
 import { usePrefs } from "@/lib/usePrefs";
 
@@ -80,8 +81,9 @@ export default function CreateSession() {
   }
 
   return (
-    <div dir={t.dir} className={dark ? "dark" : ""} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)" }}>
-      <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px" }}>
+    <div dir={t.dir} className={dark ? "dark" : ""} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
+      <Blobs />
+      <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
         <h1 className="font-display" style={{ fontSize: 24, fontWeight: 800, marginBottom: 20 }}>{t.startSession}</h1>
 
         <div className="card" style={{ padding: 20, marginBottom: 16 }}>

@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { STR } from "@/lib/i18n";
 import { usePrefs } from "@/lib/usePrefs";
 import Mascot from "@/components/Mascot";
+import Blobs from "@/components/Blobs";
 import Round1 from "@/components/rounds/Round1";
 import type { PlayerRow, SessionRow } from "@/lib/types";
 
@@ -78,8 +79,9 @@ export default function WaitingRoom() {
   }
 
   return (
-    <div dir={t.dir} className={dark ? "dark" : ""} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)" }}>
-      <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px" }}>
+    <div dir={t.dir} className={dark ? "dark" : ""} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
+      <Blobs />
+      <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
         {error && <p style={{ color: "#FF2E93", fontWeight: 700 }}>{error}</p>}
 
         {session && session.status === "in_progress" && myPlayer && (

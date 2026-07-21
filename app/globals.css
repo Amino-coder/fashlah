@@ -10,7 +10,14 @@
   --ink: #17122B;
   --ink-soft: #6b6280;
   --ring: rgba(23, 18, 43, 0.08);
+  --pink: #FF2E93;
+  --yellow: #FFD400;
+  --mint: #2EE6A6;
+  --purple: #7C3AED;
 }
+
+.blob { position: absolute; border-radius: 50%; filter: blur(50px); opacity: 0.35; z-index: 0; animation: drift 14s ease-in-out infinite; pointer-events: none; }
+@keyframes drift { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(20px,-24px) scale(1.08); } }
 
 .dark {
   --bg: #140F29;

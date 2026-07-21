@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Moon, Sun } from "lucide-react";
 import Mascot from "@/components/Mascot";
+import Blobs from "@/components/Blobs";
 import { STR } from "@/lib/i18n";
 import { usePrefs } from "@/lib/usePrefs";
 
@@ -16,9 +17,10 @@ export default function Home() {
     <div
       dir={t.dir}
       className={dark ? "dark" : ""}
-      style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)" }}
+      style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}
     >
-      <div style={{ maxWidth: 480, margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column", padding: "24px 24px 40px" }}>
+      <Blobs />
+      <div style={{ maxWidth: 480, margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column", padding: "24px 24px 40px", position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
           <button onClick={() => setLang(lang === "ar" ? "en" : "ar")} className="chip" style={{ padding: "6px 14px", fontSize: 13 }}>
             {lang === "ar" ? "EN" : "AR"}
