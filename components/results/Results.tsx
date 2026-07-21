@@ -58,19 +58,7 @@ function Confetti() {
   );
 }
 
-function ShareSlide({ lang, whatsappHref, code }: { lang: Lang; whatsappHref: string; code: string }) {
-  const [copied, setCopied] = useState(false);
-
-  async function copyCode() {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    } catch {
-      // Clipboard API unavailable (rare) — nothing destructive to fall back to.
-    }
-  }
-
+function ShareSlide({ lang, whatsappHref }: { lang: Lang; whatsappHref: string }) {
   // position:relative + a higher z-index than the tap-to-navigate overlay
   // (zIndex 1) and the arrow buttons (zIndex 2), so these buttons — which
   // live inside the slide content, a normal non-positioned element — don't
@@ -100,17 +88,6 @@ function ShareSlide({ lang, whatsappHref, code }: { lang: Lang; whatsappHref: st
         >
           💬 {lang === "ar" ? "شارك على واتساب" : "Share on WhatsApp"}
         </a>
-
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            copyCode();
-          }}
-          className="font-mono"
-          style={{ ...btnStyle, background: "rgba(255,255,255,0.15)", color: "white" }}
-        >
-          {copied ? (lang === "ar" ? "✅ انتسخ!" : "✅ Copied!") : `📋 ${code}`}
-        </button>
 
         <a
           href="/"
@@ -361,7 +338,7 @@ export default function Results({
       const whatsappHref = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
 
       return (
-        <ShareSlide lang={lang} whatsappHref={whatsappHref} code={session.code} />
+        <ShareSlide lang={lang} whatsappHref={whatsappHref} />
       );
     },
   });

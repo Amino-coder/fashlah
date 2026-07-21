@@ -22,6 +22,7 @@ export default function WaitingForResults({
   const [debug, setDebug] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [attempted, setAttempted] = useState(false);
+  const [stuck, setStuck] = useState(false);
 
   const everyoneDone = players.length > 0 && players.every((p) => p.current_round >= 4);
 
@@ -32,8 +33,8 @@ export default function WaitingForResults({
   async function tryFetchResults() {
     setBusy(true);
     setAttempted(true);
+    setStuck(false);
     try {
-      log("Checking for existing results…");
       const { data: existing, error: existingErr } = await supabase
         .from("game_history")
         .select("summary")
@@ -45,23 +46,21 @@ export default function WaitingForResults({
       if (existingErr) log(`Read error: ${existingErr.message} (code ${existingErr.code})`);
 
       if (existing?.summary) {
-        log("Found existing results.");
         setSummary(existing.summary);
         setBusy(false);
         return;
       }
 
-      log("No results yet — calling the scoring engine…");
       const res = await fetch("/api/score", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ session_id: session.id }),
       });
       const body = await res.json().catch(() => ({}));
-      log(`Scoring engine responded: ${res.status} ${JSON.stringify(body)}`);
 
       if (!res.ok) {
-        log("Scoring engine returned an error — stopping here.");
+        log(`Scoring engine error: ${res.status} ${JSON.stringify(body)}`);
+        setStuck(true);
         setBusy(false);
         return;
       }
@@ -76,16 +75,17 @@ export default function WaitingForResults({
           .maybeSingle();
         if (error) log(`Poll ${attempt + 1} error: ${error.message}`);
         if (data?.summary) {
-          log("Results found after scoring.");
           setSummary(data.summary);
           setBusy(false);
           return;
         }
         await new Promise((r) => setTimeout(r, 600));
       }
-      log("Still nothing after polling — see errors above, or try again.");
+      log("No results after polling — scoring may have failed silently.");
+      setStuck(true);
     } catch (e: any) {
       log(`Unexpected error: ${e?.message || String(e)}`);
+      setStuck(true);
     } finally {
       setBusy(false);
     }
@@ -114,30 +114,34 @@ export default function WaitingForResults({
         {doneCount} / {players.length} {lang === "ar" ? "خلصوا" : "finished"}
       </p>
 
-      {everyoneDone && (
-        <button
-          onClick={tryFetchResults}
-          disabled={busy}
-          className="btn-primary font-display"
-          style={{ padding: "12px 24px", fontSize: 14, marginTop: 20 }}
-        >
-          {busy ? (lang === "ar" ? "جاري التحقق..." : "Checking...") : (lang === "ar" ? "تحقق من النتائج" : "Check for results")}
-        </button>
-      )}
-
-      {debug.length > 0 && (
-        <div
-          className="font-mono"
-          style={{
-            marginTop: 24, textAlign: "start", fontSize: 11, background: "var(--card)",
-            border: "1px solid var(--ring)", borderRadius: 12, padding: 12, color: "var(--ink-soft)",
-            maxHeight: 220, overflowY: "auto",
-          }}
-        >
-          {debug.map((line, i) => (
-            <div key={i} style={{ marginBottom: 4 }}>{line}</div>
-          ))}
-        </div>
+      {stuck && (
+        <>
+          <p style={{ color: "#FF2E93", fontWeight: 700, marginTop: 16, fontSize: 13 }}>
+            {lang === "ar" ? "صار خطأ، جرب مرة ثانية" : "Something went wrong — try again"}
+          </p>
+          <button
+            onClick={tryFetchResults}
+            disabled={busy}
+            className="btn-primary font-display"
+            style={{ padding: "12px 24px", fontSize: 14, marginTop: 12 }}
+          >
+            {busy ? (lang === "ar" ? "جاري التحقق..." : "Checking...") : (lang === "ar" ? "حاول مرة ثانية" : "Try again")}
+          </button>
+          {debug.length > 0 && (
+            <div
+              className="font-mono"
+              style={{
+                marginTop: 20, textAlign: "start", fontSize: 11, background: "var(--card)",
+                border: "1px solid var(--ring)", borderRadius: 12, padding: 12, color: "var(--ink-soft)",
+                maxHeight: 200, overflowY: "auto",
+              }}
+            >
+              {debug.map((line, i) => (
+                <div key={i} style={{ marginBottom: 4 }}>{line}</div>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

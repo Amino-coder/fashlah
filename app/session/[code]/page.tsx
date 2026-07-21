@@ -24,6 +24,7 @@ export default function WaitingRoom() {
   const [userId, setUserId] = useState<string | null>(null);
   const [msgIdx, setMsgIdx] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const myPlayer = players.find((p) => p.user_id === userId) || null;
   const isHost = !!(session && userId && session.host_user_id === userId);
@@ -144,6 +145,38 @@ export default function WaitingRoom() {
             <div className="card" style={{ padding: 18, marginBottom: 16, textAlign: "center" }}>
               <p className="font-body" style={{ fontSize: 13, color: "var(--ink-soft)", fontWeight: 700 }}>{t.roomCode}</p>
               <p className="font-mono" style={{ fontSize: 32, fontWeight: 700, letterSpacing: "0.2em" }}>{session.code}</p>
+
+              <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+                <button
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(session.code);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 1800);
+                    } catch {}
+                  }}
+                  className="btn-ghost font-body"
+                  style={{ flex: 1, padding: "10px", fontSize: 13 }}
+                >
+                  {copied ? (lang === "ar" ? "✅ انتسخ!" : "✅ Copied!") : `📋 ${lang === "ar" ? "نسخ الكود" : "Copy code"}`}
+                </button>
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(
+                    lang === "ar"
+                      ? `🌿 انضم لجلستي على بقدونس! الكود: ${session.code}\n${typeof window !== "undefined" ? window.location.origin : ""}/join`
+                      : `🌿 Join my Bagdoonis session! Code: ${session.code}\n${typeof window !== "undefined" ? window.location.origin : ""}/join`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-body"
+                  style={{
+                    flex: 1, padding: "10px", fontSize: 13, borderRadius: 999, fontWeight: 700,
+                    background: "#25D366", color: "white", textAlign: "center", textDecoration: "none",
+                  }}
+                >
+                  💬 {lang === "ar" ? "واتساب" : "WhatsApp"}
+                </a>
+              </div>
             </div>
 
             <div className="card" style={{ padding: 18, marginBottom: 20 }}>
