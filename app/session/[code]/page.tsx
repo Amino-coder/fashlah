@@ -87,7 +87,7 @@ export default function WaitingRoom() {
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
         {error && <p style={{ color: "#FF2E93", fontWeight: 700 }}>{error}</p>}
 
-        {session && session.status === "in_progress" && myPlayer && (
+        {session && session.status !== "waiting" && myPlayer && (
           <>
             {myPlayer.current_round === 1 && (
               <Round1
@@ -132,7 +132,7 @@ export default function WaitingRoom() {
           </>
         )}
 
-        {session && session.status !== "in_progress" && (
+        {session && session.status === "waiting" && (
           <>
             <div style={{ textAlign: "center", marginBottom: 20 }}>
               <Mascot mood="wink" size={70} className="bounce" />
