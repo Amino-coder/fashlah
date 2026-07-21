@@ -46,7 +46,7 @@ export default function Round1({
         return;
       }
 
-      const ordered = seededShuffle(qData as QuestionRow[], `${session.id}-round1`);
+      const ordered = seededShuffle(qData as QuestionRow[], `${session.id}-round1`).slice(0, 10);
 
       const { data: existingAnswers } = await supabase
         .from("answers")
