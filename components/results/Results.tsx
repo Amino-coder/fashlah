@@ -331,12 +331,15 @@ export default function Results({
           const isBack = clickX < rect.width * 0.35;
           setSlide((s) => (isBack ? Math.max(0, s - 1) : Math.min(total - 1, s + 1)));
         }}
-        style={{ position: "absolute", inset: 0, top: 30, cursor: "pointer" }}
+        style={{ position: "absolute", inset: 0, top: 30, cursor: "pointer", zIndex: 1 }}
       />
 
-      <div style={{ position: "absolute", bottom: 20, insetInlineStart: 0, insetInlineEnd: 0, display: "flex", justifyContent: "space-between", padding: "0 16px", pointerEvents: "none" }}>
+      <div style={{ position: "absolute", bottom: 20, left: 0, right: 0, display: "flex", justifyContent: "space-between", padding: "0 16px", pointerEvents: "none", zIndex: 2 }}>
         <button
-          onClick={() => setSlide((s) => Math.max(0, s - 1))}
+          onClick={(e) => {
+            e.stopPropagation();
+            setSlide((s) => Math.max(0, s - 1));
+          }}
           disabled={slide === 0}
           style={{
             pointerEvents: "auto", width: 40, height: 40, borderRadius: 999,
@@ -348,7 +351,10 @@ export default function Results({
           <ChevronLeft size={20} />
         </button>
         <button
-          onClick={() => setSlide((s) => Math.min(total - 1, s + 1))}
+          onClick={(e) => {
+            e.stopPropagation();
+            setSlide((s) => Math.min(total - 1, s + 1));
+          }}
           disabled={slide === total - 1}
           style={{
             pointerEvents: "auto", width: 40, height: 40, borderRadius: 999,
