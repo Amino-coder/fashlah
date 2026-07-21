@@ -66,7 +66,7 @@ create table questions (
   round         int not null check (round in (1,2,3)),   -- 1=self 2=friend_vote 3=bonus
   question_type text not null check (question_type in
                   ('self','friend_vote','this_or_that','emoji','ranking',
-                   'scale','yes_no','multiple_choice','randomizer','guess_percentage')),
+                   'scale','yes_no','multiple_choice','randomizer','guess_percentage','hot_take')),
   category      text,                           -- 'humor','ambition','chaos', etc — used by scoring engine
   difficulty    text default 'mixed' check (difficulty in ('funny','chaotic','deep','mixed')),
   text_ar       text not null,
@@ -121,6 +121,22 @@ create table players (
 );
 
 create index idx_players_session on players(session_id);
+
+-- ----------------------------------------------------------------------------
+-- HOT TAKE RESPONSES  (Round 3 — agree/disagree, deliberately readable by
+-- name/avatar per response, unlike `votes` which is never individually
+-- readable. This is intentional per the brief: Results shows who agreed
+-- with what.)
+-- ----------------------------------------------------------------------------
+create table hot_take_responses (
+  id            uuid primary key default gen_random_uuid(),
+  session_id    uuid references sessions(id) on delete cascade,
+  player_id     uuid references players(id) on delete cascade,
+  question_id   uuid references questions(id),
+  stance        text not null check (stance in ('agree','disagree')),
+  answered_at   timestamptz default now(),
+  unique(player_id, question_id)
+);
 
 -- ----------------------------------------------------------------------------
 -- ANSWERS  (Round 1 — self answers)
@@ -285,6 +301,7 @@ alter table sessions enable row level security;
 alter table players enable row level security;
 alter table answers enable row level security;
 alter table votes enable row level security;
+alter table hot_take_responses enable row level security;
 alter table scores enable row level security;
 alter table award_results enable row level security;
 alter table compatibility enable row level security;
@@ -294,14 +311,37 @@ alter table game_history enable row level security;
 create policy "users_self" on users
   for all using (id = auth.uid());
 
+-- Groups: anyone can read (name/emoji only, nothing sensitive); only the
+-- creator can insert/update their own group.
+create policy "groups_read" on groups for select using (true);
+create policy "groups_self_insert" on groups for insert with check (created_by = auth.uid());
+create policy "groups_self_update" on groups for update using (created_by = auth.uid());
+
 -- Anyone can read a session by code (needed to join); only the host can update it.
 create policy "sessions_read" on sessions for select using (true);
 create policy "sessions_host_write" on sessions for update using (host_user_id = auth.uid());
 create policy "sessions_host_insert" on sessions for insert with check (host_user_id = auth.uid());
 
 -- Players can see other players in their own session only.
+-- (Uses a SECURITY DEFINER helper rather than a subquery on `players` itself
+-- to avoid Postgres' "infinite recursion detected in policy" error — a
+-- policy on a table can't safely subquery that same table directly.)
+create or replace function public.is_session_member(_session_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from players
+    where session_id = _session_id
+      and user_id = auth.uid()
+  );
+$$;
+
 create policy "players_same_session" on players for select using (
-  session_id in (select session_id from players where user_id = auth.uid())
+  is_session_member(session_id)
 );
 create policy "players_self_insert" on players for insert with check (user_id = auth.uid());
 create policy "players_self_update" on players for update using (user_id = auth.uid());
@@ -322,7 +362,23 @@ create policy "answers_self_read" on answers for select using (
 create policy "votes_self_write" on votes for insert with check (
   voter_player_id in (select id from players where user_id = auth.uid())
 );
+create policy "votes_self_update" on votes for update using (
+  voter_player_id in (select id from players where user_id = auth.uid())
+);
 create policy "votes_no_direct_read" on votes for select using (false);
+
+-- Hot take responses: the opposite privacy model from votes — any member of
+-- the session can read every response, names/avatars included, since
+-- Results is meant to show who agreed with what.
+create policy "hot_take_responses_session_read" on hot_take_responses for select using (
+  is_session_member(session_id)
+);
+create policy "hot_take_responses_self_write" on hot_take_responses for insert with check (
+  player_id in (select id from players where user_id = auth.uid())
+);
+create policy "hot_take_responses_self_update" on hot_take_responses for update using (
+  player_id in (select id from players where user_id = auth.uid())
+);
 
 -- Scores, awards, compatibility, history: readable by any player in that session.
 create policy "scores_session_read" on scores for select using (
@@ -334,8 +390,8 @@ create policy "award_results_session_read" on award_results for select using (
 create policy "compatibility_session_read" on compatibility for select using (
   session_id in (select session_id from players where user_id = auth.uid())
 );
-create policy "game_history_group_read" on game_history for select using (
-  group_id in (select group_id from groups where created_by = auth.uid())
+create policy "game_history_session_read" on game_history for select using (
+  session_id in (select session_id from players where user_id = auth.uid())
 );
 
 -- Reference data (questions, packs, awards, templates, formulas) is public
@@ -352,6 +408,25 @@ create policy "packs_public_read" on question_packs for select using (is_active 
 create policy "awards_public_read" on awards for select using (enabled = true);
 create policy "templates_public_read" on result_templates for select using (enabled = true);
 create policy "formulas_public_read" on score_formulas for select using (enabled = true);
+
+-- ============================================================================
+-- RPC: get_vote_tallies — the only sanctioned way to read vote data.
+-- Returns aggregate counts per (question, voted-for player); never exposes
+-- who voted for whom. Gated to members of the session being queried.
+-- ============================================================================
+create or replace function public.get_vote_tallies(_session_id uuid)
+returns table(question_id uuid, voted_for_player_id uuid, vote_count bigint)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select v.question_id, v.voted_for_player_id, count(*) as vote_count
+  from votes v
+  where v.session_id = _session_id
+    and public.is_session_member(_session_id)
+  group by v.question_id, v.voted_for_player_id;
+$$;
 
 -- ============================================================================
 -- REALTIME

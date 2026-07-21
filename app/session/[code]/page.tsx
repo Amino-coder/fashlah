@@ -11,6 +11,7 @@ import Blobs from "@/components/Blobs";
 import Round1 from "@/components/rounds/Round1";
 import Round2 from "@/components/rounds/Round2";
 import Round3 from "@/components/rounds/Round3";
+import WaitingForResults from "@/components/results/WaitingForResults";
 import type { PlayerRow, SessionRow } from "@/lib/types";
 
 export default function WaitingRoom() {
@@ -126,11 +127,7 @@ export default function WaitingRoom() {
               />
             )}
             {myPlayer.current_round >= 4 && (
-              <div style={{ padding: "40px 24px" }}>
-                <div className="btn-ghost font-display" style={{ padding: 18, fontSize: 15, textAlign: "center" }}>
-                  {t.comingSoon}
-                </div>
-              </div>
+              <WaitingForResults session={session} player={myPlayer} players={players} lang={lang} />
             )}
           </>
         )}
