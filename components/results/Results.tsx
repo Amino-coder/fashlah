@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer } from "recharts";
 import { supabase } from "@/lib/supabase";
 import type { Lang } from "@/lib/i18n";
@@ -323,15 +324,41 @@ export default function Results({
         ))}
       </div>
 
-      <div style={{ position: "absolute", inset: 0, top: 30 }}>
-        <div
-          style={{ position: "absolute", inset: 0, insetInlineEnd: "65%" }}
+      <div
+        onClick={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const clickX = e.clientX - rect.left;
+          const isBack = clickX < rect.width * 0.35;
+          setSlide((s) => (isBack ? Math.max(0, s - 1) : Math.min(total - 1, s + 1)));
+        }}
+        style={{ position: "absolute", inset: 0, top: 30, cursor: "pointer" }}
+      />
+
+      <div style={{ position: "absolute", bottom: 20, insetInlineStart: 0, insetInlineEnd: 0, display: "flex", justifyContent: "space-between", padding: "0 16px", pointerEvents: "none" }}>
+        <button
           onClick={() => setSlide((s) => Math.max(0, s - 1))}
-        />
-        <div
-          style={{ position: "absolute", inset: 0, insetInlineStart: "35%" }}
+          disabled={slide === 0}
+          style={{
+            pointerEvents: "auto", width: 40, height: 40, borderRadius: 999,
+            background: "rgba(255,255,255,0.2)", border: "none", color: "white",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            opacity: slide === 0 ? 0.3 : 1,
+          }}
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <button
           onClick={() => setSlide((s) => Math.min(total - 1, s + 1))}
-        />
+          disabled={slide === total - 1}
+          style={{
+            pointerEvents: "auto", width: 40, height: 40, borderRadius: 999,
+            background: "rgba(255,255,255,0.2)", border: "none", color: "white",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            opacity: slide === total - 1 ? 0.3 : 1,
+          }}
+        >
+          <ChevronRight size={20} />
+        </button>
       </div>
 
       <div
