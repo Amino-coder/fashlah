@@ -25,6 +25,8 @@ export const STR: Record<Lang, Record<string, string>> = {
     errorNotFound: "ما لقينا هالجلسة، تأكد من الكود",
     comingSoon: "الجولات الجاية قيد التطوير 🌿",
     round1Title: "الجولة ١: عنك",
+    round2Title: "الجولة ٢: صوّتوا لأصحابكم",
+    round2Sub: "مين الأغلب يسوي كذا؟",
   },
   en: {
     dir: "ltr",
@@ -50,6 +52,8 @@ export const STR: Record<Lang, Record<string, string>> = {
     errorNotFound: "Couldn't find that session, check the code",
     comingSoon: "Gameplay rounds are still in progress 🌿",
     round1Title: "Round 1: About You",
+    round2Title: "Round 2: Vote for Friends",
+    round2Sub: "Who's most likely to...",
   },
 };
 
