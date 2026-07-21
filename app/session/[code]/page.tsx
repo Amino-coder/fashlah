@@ -10,6 +10,7 @@ import Mascot from "@/components/Mascot";
 import Blobs from "@/components/Blobs";
 import Round1 from "@/components/rounds/Round1";
 import Round2 from "@/components/rounds/Round2";
+import Round3 from "@/components/rounds/Round3";
 import type { PlayerRow, SessionRow } from "@/lib/types";
 
 export default function WaitingRoom() {
@@ -112,7 +113,19 @@ export default function WaitingRoom() {
                 }
               />
             )}
-            {myPlayer.current_round >= 3 && (
+            {myPlayer.current_round === 3 && (
+              <Round3
+                session={session}
+                player={myPlayer}
+                lang={lang}
+                onAdvance={() =>
+                  setPlayers((prev) =>
+                    prev.map((p) => (p.id === myPlayer.id ? { ...p, current_round: 4 } : p))
+                  )
+                }
+              />
+            )}
+            {myPlayer.current_round >= 4 && (
               <div style={{ padding: "40px 24px" }}>
                 <div className="btn-ghost font-display" style={{ padding: 18, fontSize: 15, textAlign: "center" }}>
                   {t.comingSoon}

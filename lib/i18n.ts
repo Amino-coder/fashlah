@@ -27,6 +27,9 @@ export const STR: Record<Lang, Record<string, string>> = {
     round1Title: "الجولة ١: عنك",
     round2Title: "الجولة ٢: صوّتوا لأصحابكم",
     round2Sub: "مين الأغلب يسوي كذا؟",
+    round3Title: "الجولة ٣: آراء جريئة",
+    agree: "أوافق",
+    disagree: "ما أوافق",
   },
   en: {
     dir: "ltr",
@@ -54,6 +57,9 @@ export const STR: Record<Lang, Record<string, string>> = {
     round1Title: "Round 1: About You",
     round2Title: "Round 2: Vote for Friends",
     round2Sub: "Who's most likely to...",
+    round3Title: "Round 3: Hot Takes",
+    agree: "Agree",
+    disagree: "Disagree",
   },
 };
 
