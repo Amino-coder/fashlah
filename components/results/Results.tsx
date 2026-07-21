@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer } from "recharts";
 import { supabase } from "@/lib/supabase";
@@ -54,6 +54,73 @@ function Confetti() {
           {p.emoji}
         </div>
       ))}
+    </>
+  );
+}
+
+function ShareSlide({ lang, whatsappHref, code }: { lang: Lang; whatsappHref: string; code: string }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copyCode() {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // Clipboard API unavailable (rare) — nothing destructive to fall back to.
+    }
+  }
+
+  // position:relative + a higher z-index than the tap-to-navigate overlay
+  // (zIndex 1) and the arrow buttons (zIndex 2), so these buttons — which
+  // live inside the slide content, a normal non-positioned element — don't
+  // get click-intercepted by the full-screen tap layer sitting above it.
+  const btnStyle: CSSProperties = {
+    position: "relative", zIndex: 3,
+    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+    padding: "14px 26px", borderRadius: 999, fontWeight: 800, fontSize: 15,
+    border: "none", width: "100%",
+  };
+
+  return (
+    <>
+      <span style={{ fontSize: 56, display: "block", marginBottom: 14 }}>🌿</span>
+      <h2 className="font-display" style={{ fontSize: 24, fontWeight: 800, marginBottom: 24 }}>
+        {lang === "ar" ? "خلصنا! شكرًا للعب 🎉" : "That's a wrap! Thanks for playing 🎉"}
+      </h2>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%", maxWidth: 280 }}>
+        <a
+          href={whatsappHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="font-display"
+          style={{ ...btnStyle, background: "#25D366", color: "white", textDecoration: "none" }}
+        >
+          💬 {lang === "ar" ? "شارك على واتساب" : "Share on WhatsApp"}
+        </a>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            copyCode();
+          }}
+          className="font-mono"
+          style={{ ...btnStyle, background: "rgba(255,255,255,0.15)", color: "white" }}
+        >
+          {copied ? (lang === "ar" ? "✅ انتسخ!" : "✅ Copied!") : `📋 ${code}`}
+        </button>
+
+        <a
+          href="/"
+          onClick={(e) => e.stopPropagation()}
+          className="font-display"
+          style={{ ...btnStyle, background: "white", color: "var(--purple)", textDecoration: "none" }}
+        >
+          {lang === "ar" ? "رجوع للرئيسية" : "Back Home"}
+        </a>
+      </div>
     </>
   );
 }
@@ -285,24 +352,18 @@ export default function Results({
 
   slides.push({
     key: "share",
-    render: () => (
-      <>
-        <span style={{ fontSize: 56, display: "block", marginBottom: 14 }}>🌿</span>
-        <h2 className="font-display" style={{ fontSize: 24, fontWeight: 800, marginBottom: 20 }}>
-          {lang === "ar" ? "خلصنا! شكرًا للعب 🎉" : "That's a wrap! Thanks for playing 🎉"}
-        </h2>
-        <a
-          href="/"
-          className="font-display"
-          style={{
-            display: "inline-block", background: "white", color: "var(--purple)",
-            padding: "14px 30px", borderRadius: 999, fontWeight: 800, fontSize: 15,
-          }}
-        >
-          {lang === "ar" ? "رجوع للرئيسية" : "Back Home"}
-        </a>
-      </>
-    ),
+    render: () => {
+      const appUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const shareText =
+        lang === "ar"
+          ? `🌿 خلصت ألعب بقدونس مع أصحابي! جربوها: ${appUrl}`
+          : `🌿 Just played Bagdoonis with my friends! Try it: ${appUrl}`;
+      const whatsappHref = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+
+      return (
+        <ShareSlide lang={lang} whatsappHref={whatsappHref} code={session.code} />
+      );
+    },
   });
 
   const total = slides.length;
