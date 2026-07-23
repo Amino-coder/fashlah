@@ -46,7 +46,21 @@ export default function Round4({
         return;
       }
 
-      const ordered = seededShuffle(qData as QuestionRow[], `${session.id}-round4`).slice(0, 8);
+      // Fixed composition (not a random mix of the whole pool): exactly 4
+      // Would You Rather, then exactly 3 fill-in-the-blank, text always
+      // last. Each half is shuffled independently so which 4/3 show up
+      // still varies session to session.
+      const allQuestions = qData as QuestionRow[];
+      const wyrPool = seededShuffle(
+        allQuestions.filter((q) => q.question_type === "this_or_that"),
+        `${session.id}-round4-wyr`
+      ).slice(0, 4);
+      const textPool = seededShuffle(
+        allQuestions.filter((q) => q.question_type === "open_text"),
+        `${session.id}-round4-text`
+      ).slice(0, 3);
+      const ordered = [...wyrPool, ...textPool];
+
       if (cancelled) return;
       setQuestions(ordered);
       setLoading(false);
