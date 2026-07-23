@@ -10,7 +10,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 // call this at once, only the first one actually computes anything.
 
 type Option = { id: string; emoji?: string; text_ar?: string; text_en?: string; trait_weights?: Record<string, number> };
-type QuestionRow = { id: string; category: string | null; round: number; options: Option[] };
+type QuestionRow = { id: string; category: string | null; round: number; options: Option[]; text_ar: string; text_en: string };
 type AnswerRow = { player_id: string; question_id: string; selected_option_id: string | null };
 type VoteRow = { question_id: string; voter_player_id: string; voted_for_player_id: string };
 type PlayerRow = { id: string; nickname: string; avatar_emoji: string; joined_at: string };
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
     const questionIds = Array.from(new Set([...answerList.map((a) => a.question_id), ...voteList.map((v) => v.question_id)]));
     const { data: questions } = await supabaseAdmin
       .from("questions")
-      .select("id, category, round, options")
+      .select("id, category, round, options, text_ar, text_en")
       .in("id", questionIds.length > 0 ? questionIds : ["00000000-0000-0000-0000-000000000000"]);
     const questionById = new Map<string, QuestionRow>((questions || []).map((q: QuestionRow) => [q.id, q]));
 
@@ -113,14 +113,14 @@ export async function POST(req: NextRequest) {
     // even for categories that didn't appear in this session's random subset.
     const { data: allR2Questions } = await supabaseAdmin
       .from("questions")
-      .select("id, category, round, options")
+      .select("id, category, round, options, text_ar, text_en")
       .eq("pack_id", session.pack_id)
       .eq("round", 2);
     const r2QuestionByCategory = new Map<string, QuestionRow>((allR2Questions || []).map((q: QuestionRow) => [q.category || "", q]));
 
     const { data: allR1Questions } = await supabaseAdmin
       .from("questions")
-      .select("id, category, round, options")
+      .select("id, category, round, options, text_ar, text_en")
       .eq("pack_id", session.pack_id)
       .eq("round", 1);
     const r1QuestionByCategory = new Map<string, QuestionRow>((allR1Questions || []).map((q: QuestionRow) => [q.category || "", q]));
@@ -359,6 +359,55 @@ export async function POST(req: NextRequest) {
     }
 
     // ---------------------------------------------------------------------
+    // 6.5. VOTE REVEALS — shared cards every player sees identically (not
+    // personalized), one per player in the session (6 players -> 6 cards,
+    // 4 players -> 4 cards). Picks whichever Round 2 prompts this session
+    // actually saw and ranks them by how lopsided the result was (winner's
+    // share of the vote), so the most dramatic/unanimous ones surface first.
+    // ---------------------------------------------------------------------
+    const votesByQuestion = new Map<string, VoteRow[]>();
+    for (const v of voteList) {
+      if (!votesByQuestion.has(v.question_id)) votesByQuestion.set(v.question_id, []);
+      votesByQuestion.get(v.question_id)!.push(v);
+    }
+
+    const voteReveals = Array.from(votesByQuestion.entries())
+      .map(([questionId, qVotes]) => {
+        const q = questionById.get(questionId);
+        if (!q || q.round !== 2) return null;
+
+        const tally = new Map<string, number>();
+        for (const v of qVotes) tally.set(v.voted_for_player_id, (tally.get(v.voted_for_player_id) || 0) + 1);
+
+        let winnerId: string | null = null;
+        let winnerVotes = 0;
+        for (const [pid, count] of tally) {
+          if (count > winnerVotes) { winnerVotes = count; winnerId = pid; }
+        }
+        if (!winnerId) return null;
+        const winner = playerList.find((p) => p.id === winnerId);
+        if (!winner) return null;
+
+        const totalVotes = qVotes.length;
+        const breakdown = playerList
+          .map((p) => ({ player_id: p.id, nickname: p.nickname, avatar_emoji: p.avatar_emoji, votes: tally.get(p.id) || 0 }))
+          .sort((a, b) => b.votes - a.votes);
+
+        return {
+          text_ar: q.text_ar,
+          text_en: q.text_en,
+          winner: { player_id: winner.id, nickname: winner.nickname, avatar_emoji: winner.avatar_emoji },
+          winner_votes: winnerVotes,
+          total_votes: totalVotes,
+          share: winnerVotes / totalVotes,
+          breakdown,
+        };
+      })
+      .filter((r): r is NonNullable<typeof r> => r !== null)
+      .sort((a, b) => b.share - a.share || b.total_votes - a.total_votes)
+      .slice(0, playerList.length);
+
+    // ---------------------------------------------------------------------
     // 7. Cache everything into game_history so re-opening Results is free
     // ---------------------------------------------------------------------
     const summary = {
@@ -373,6 +422,7 @@ export async function POST(req: NextRequest) {
         awards: awardsByPlayer[p.id] || [],
         best_match: bestMatchByPlayer[p.id],
       })),
+      vote_reveals: voteReveals,
       computed_at: new Date().toISOString(),
     };
 

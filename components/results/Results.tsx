@@ -108,7 +108,15 @@ export default function Results({
   player,
   lang,
 }: {
-  summary: { players: PlayerSummary[] };
+  summary: {
+    players: PlayerSummary[];
+    vote_reveals?: {
+      text_ar: string; text_en: string;
+      winner: { player_id: string; nickname: string; avatar_emoji: string };
+      winner_votes: number; total_votes: number; share: number;
+      breakdown: { player_id: string; nickname: string; avatar_emoji: string; votes: number }[];
+    }[];
+  };
   session: SessionRow;
   player: PlayerRow;
   lang: Lang;
@@ -240,6 +248,46 @@ export default function Results({
           </div>
         </>
       ),
+    });
+  }
+
+  if (summary.vote_reveals && summary.vote_reveals.length > 0) {
+    summary.vote_reveals.forEach((reveal, i) => {
+      const isUnanimous = reveal.winner_votes === reveal.total_votes && reveal.total_votes > 1;
+      const pct = Math.round(reveal.share * 100);
+      slides.push({
+        key: `vote-reveal-${i}`,
+        render: () => (
+          <>
+            {isUnanimous && <Confetti />}
+            <p className="font-body" style={{ fontSize: 13, fontWeight: 700, opacity: 0.8, marginBottom: 10 }}>
+              {lang === "ar" ? "الأغلبية قالت..." : "The group has spoken..."}
+            </p>
+            <h3 className="font-display" style={{ fontSize: 20, fontWeight: 800, marginBottom: 20, lineHeight: 1.4 }}>
+              {lang === "ar" ? reveal.text_ar : reveal.text_en}
+            </h3>
+
+            <span style={{ fontSize: 64, display: "block", marginBottom: 8 }}>{reveal.winner.avatar_emoji}</span>
+            <h2 className="font-display" style={{ fontSize: 26, fontWeight: 800 }}>{reveal.winner.nickname}</h2>
+            <p className="font-mono" style={{ fontSize: 16, fontWeight: 700, marginTop: 6, opacity: 0.9 }}>
+              {isUnanimous
+                ? (lang === "ar" ? "بالإجماع! 🎉" : "Unanimous! 🎉")
+                : `${pct}% (${reveal.winner_votes}/${reveal.total_votes})`}
+            </p>
+
+            {reveal.breakdown.length > 1 && (
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", marginTop: 22 }}>
+                {reveal.breakdown.map((b) => (
+                  <div key={b.player_id} style={{ display: "flex", flexDirection: "column", alignItems: "center", opacity: b.player_id === reveal.winner.player_id ? 1 : 0.55 }}>
+                    <span style={{ fontSize: 22 }}>{b.avatar_emoji}</span>
+                    <span className="font-body" style={{ fontSize: 10, fontWeight: 700 }}>{b.votes}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        ),
+      });
     });
   }
 
