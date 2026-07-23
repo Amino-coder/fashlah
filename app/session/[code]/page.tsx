@@ -69,6 +69,20 @@ export default function WaitingRoom() {
     return () => { supabase.removeChannel(channel); };
   }, [session?.id]);
 
+  // Trap the phone/browser back gesture while in a live session, so it
+  // doesn't yank people out of the game entirely (the reported problem).
+  // Pushes an extra history entry, then re-pushes on every back attempt —
+  // a back press just keeps them on this same page instead of exiting.
+  useEffect(() => {
+    if (!session?.id) return;
+    window.history.pushState(null, "", window.location.href);
+    const handlePopState = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [session?.id]);
+
   useEffect(() => {
     const iv = setInterval(() => setMsgIdx((i) => (i + 1) % loadingMsgs.length), 2400);
     return () => clearInterval(iv);

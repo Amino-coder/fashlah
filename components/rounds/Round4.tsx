@@ -141,9 +141,27 @@ export default function Round4({
           className="card"
           style={{ padding: 26, textAlign: "center" }}
         >
-          <p className="font-body" style={{ color: "var(--ink-soft)", fontWeight: 700, fontSize: 13, marginBottom: 6 }}>
-            {idx + 1} / {questions.length}
-          </p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative", marginBottom: 6 }}>
+            {idx > 0 && (
+              <button
+                onClick={() => {
+                  setIdx((i) => i - 1);
+                  setSelected(null);
+                  setTextValue("");
+                }}
+                className="font-body"
+                style={{
+                  position: "absolute", insetInlineStart: 0, background: "none", border: "none",
+                  color: "var(--ink-soft)", fontSize: 12, fontWeight: 700, padding: "4px 8px",
+                }}
+              >
+                {lang === "ar" ? "‹ السابق" : "‹ Previous"}
+              </button>
+            )}
+            <p className="font-body" style={{ color: "var(--ink-soft)", fontWeight: 700, fontSize: 13 }}>
+              {idx + 1} / {questions.length}
+            </p>
+          </div>
 
           {isOpenText ? (
             <>
