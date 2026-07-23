@@ -125,6 +125,9 @@ export default function Results({
   const [hotTakes, setHotTakes] = useState<
     { question_ar: string; question_en: string; emoji?: string; agree: PlayerRow[]; disagree: PlayerRow[] }[] | null
   >(null);
+  const [textAnswers, setTextAnswers] = useState<
+    { question_ar: string; question_en: string; emoji?: string; responses: { player: PlayerRow; text: string }[] }[] | null
+  >(null);
 
   const me = summary.players.find((p) => p.player_id === player.id) || summary.players[0];
 
@@ -161,6 +164,47 @@ export default function Results({
         };
       });
       if (!cancelled) setHotTakes(grouped);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [session.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: responses } = await supabase
+        .from("text_responses")
+        .select("question_id, player_id, response_text")
+        .eq("session_id", session.id);
+      if (!responses || responses.length === 0) {
+        if (!cancelled) setTextAnswers([]);
+        return;
+      }
+      const questionIds = Array.from(new Set(responses.map((r: any) => r.question_id)));
+      const { data: questions } = await supabase
+        .from("questions")
+        .select("id, text_ar, text_en, options")
+        .in("id", questionIds);
+
+      const { data: allPlayers } = await supabase.from("players").select("*").eq("session_id", session.id);
+
+      const grouped = (questions || []).map((q: any) => {
+        const forThis = responses.filter((r: any) => r.question_id === q.id);
+        const withPlayers = forThis
+          .map((r: any) => {
+            const p = (allPlayers || []).find((pl: PlayerRow) => pl.id === r.player_id);
+            return p ? { player: p, text: r.response_text } : null;
+          })
+          .filter((x: any): x is { player: PlayerRow; text: string } => x !== null);
+        return {
+          question_ar: q.text_ar,
+          question_en: q.text_en,
+          emoji: q.options?.[0]?.emoji,
+          responses: withPlayers,
+        };
+      });
+      if (!cancelled) setTextAnswers(grouped);
     })();
     return () => {
       cancelled = true;
@@ -372,6 +416,36 @@ export default function Results({
           </div>
         </>
       ),
+    });
+  }
+
+  if (textAnswers && textAnswers.length > 0) {
+    textAnswers.forEach((ta, i) => {
+      slides.push({
+        key: `text-answer-${i}`,
+        render: () => (
+          <>
+            <p className="font-body" style={{ fontSize: 13, fontWeight: 700, opacity: 0.8, marginBottom: 10 }}>
+              {lang === "ar" ? "شنو قالوا..." : "What everyone said..."}
+            </p>
+            {ta.emoji && <span style={{ fontSize: 34, display: "block", marginBottom: 8 }}>{ta.emoji}</span>}
+            <h3 className="font-display" style={{ fontSize: 18, fontWeight: 800, marginBottom: 20, lineHeight: 1.5 }}>
+              {lang === "ar" ? ta.question_ar : ta.question_en}
+            </h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%", textAlign: "start" }}>
+              {ta.responses.map((r, j) => (
+                <div key={j} style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(255,255,255,0.12)", borderRadius: 14, padding: "10px 14px" }}>
+                  <span style={{ fontSize: 20 }}>{r.player.avatar_emoji}</span>
+                  <div>
+                    <p className="font-body" style={{ fontSize: 11, fontWeight: 700, opacity: 0.75 }}>{r.player.nickname}</p>
+                    <p className="font-body" style={{ fontSize: 13, fontWeight: 600 }}>{r.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ),
+      });
     });
   }
 

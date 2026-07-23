@@ -24,7 +24,7 @@ export default function WaitingForResults({
   const [attempted, setAttempted] = useState(false);
   const [stuck, setStuck] = useState(false);
 
-  const everyoneDone = players.length > 0 && players.every((p) => p.current_round >= 4);
+  const everyoneDone = players.length > 0 && players.every((p) => p.current_round >= 5);
 
   function log(line: string) {
     setDebug((d) => [...d, line]);
@@ -102,7 +102,7 @@ export default function WaitingForResults({
     return <Results summary={summary} session={session} player={player} lang={lang} />;
   }
 
-  const doneCount = players.filter((p) => p.current_round >= 4).length;
+  const doneCount = players.filter((p) => p.current_round >= 5).length;
 
   return (
     <div style={{ padding: "40px 24px", textAlign: "center" }}>

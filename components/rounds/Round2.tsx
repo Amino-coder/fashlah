@@ -52,7 +52,7 @@ export default function Round2({
         return;
       }
 
-      const ordered = seededShuffle(qData as QuestionRow[], `${session.id}-round2`).slice(0, 13);
+      const ordered = seededShuffle(qData as QuestionRow[], `${session.id}-round2`).slice(0, 6);
       if (cancelled) return;
       setQuestions(ordered);
       setLoading(false);

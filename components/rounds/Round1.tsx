@@ -7,6 +7,17 @@ import { seededShuffle } from "@/lib/seededShuffle";
 import type { Lang } from "@/lib/i18n";
 import type { AnswerRow, PlayerRow, QuestionRow, SessionRow } from "@/lib/types";
 
+const TRAIT_LABELS: Record<string, { ar: string; en: string; emoji: string }> = {
+  leadership: { ar: "القيادة", en: "Leadership", emoji: "👑" },
+  humor: { ar: "الفكاهة", en: "Humor", emoji: "😂" },
+  energy: { ar: "الطاقة", en: "Energy", emoji: "🔥" },
+  organization: { ar: "التنظيم", en: "Organization", emoji: "📋" },
+  adventure: { ar: "المغامرة", en: "Adventure", emoji: "🌎" },
+  kindness: { ar: "اللطف", en: "Kindness", emoji: "💛" },
+  confidence: { ar: "الثقة", en: "Confidence", emoji: "😎" },
+  responsibility: { ar: "المسؤولية", en: "Responsibility", emoji: "🎯" },
+};
+
 export default function Round1({
   session,
   player,
@@ -25,6 +36,8 @@ export default function Round1({
   const [selected, setSelected] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [teaserTrait, setTeaserTrait] = useState<string | null>(null);
+  const [traitTally, setTraitTally] = useState<Record<string, number>>({});
 
   // Load this round's questions + resume progress from any answers already
   // saved for this player (covers reload / reconnect mid-round).
@@ -46,7 +59,7 @@ export default function Round1({
         return;
       }
 
-      const ordered = seededShuffle(qData as QuestionRow[], `${session.id}-round1`).slice(0, 10);
+      const ordered = seededShuffle(qData as QuestionRow[], `${session.id}-round1`).slice(0, 5);
 
       const { data: existingAnswers } = await supabase
         .from("answers")
@@ -94,12 +107,32 @@ export default function Round1({
       { onConflict: "player_id,question_id" }
     );
 
+    // Tally trait_weights locally, just from this player's own picks — no
+    // group data needed — so we can flash a quick personal teaser the
+    // instant they finish, without waiting on anyone else.
+    const chosenOption = question.options.find((o) => o.id === optionId);
+    const nextTally = { ...traitTally };
+    if (chosenOption?.trait_weights) {
+      for (const [trait, weight] of Object.entries(chosenOption.trait_weights)) {
+        nextTally[trait] = (nextTally[trait] || 0) + weight;
+      }
+    }
+    setTraitTally(nextTally);
+
     setTimeout(async () => {
       if (idx + 1 < questions.length) {
         setIdx((i) => i + 1);
         setSelected(null);
       } else {
-        await advanceToRound2();
+        let top: string | null = null;
+        let topVal = -Infinity;
+        for (const [trait, val] of Object.entries(nextTally)) {
+          if (val > topVal) {
+            topVal = val;
+            top = trait;
+          }
+        }
+        setTeaserTrait(top);
       }
     }, 420);
   }
@@ -118,6 +151,24 @@ export default function Round1({
     return (
       <div style={{ padding: "40px 24px", textAlign: "center" }}>
         <p style={{ color: "#FF2E93", fontWeight: 700 }}>{error}</p>
+      </div>
+    );
+  }
+
+  if (teaserTrait) {
+    const t = TRAIT_LABELS[teaserTrait];
+    return (
+      <div className="screen-enter pop" style={{ padding: "60px 24px", textAlign: "center" }}>
+        <span style={{ fontSize: 56, display: "block", marginBottom: 14 }}>{t?.emoji || "✨"}</span>
+        <p className="font-body" style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>
+          {lang === "ar" ? "شكلك عندك..." : "Looks like you've got"}
+        </p>
+        <h2 className="font-display" style={{ fontSize: 26, fontWeight: 800, marginBottom: 28 }}>
+          {lang === "ar" ? `${t?.ar || teaserTrait} عالية 🔥` : `High ${t?.en || teaserTrait} 🔥`}
+        </h2>
+        <button onClick={advanceToRound2} className="btn-primary font-display" style={{ padding: "14px 30px", fontSize: 15 }}>
+          {lang === "ar" ? "يلا نكمل" : "Let's continue"}
+        </button>
       </div>
     );
   }

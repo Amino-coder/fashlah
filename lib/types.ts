@@ -38,7 +38,9 @@ export type QuestionType =
   | "yes_no"
   | "multiple_choice"
   | "randomizer"
-  | "guess_percentage";
+  | "guess_percentage"
+  | "hot_take"
+  | "open_text";
 
 export interface QuestionOption {
   id: string;
@@ -51,7 +53,7 @@ export interface QuestionOption {
 export interface QuestionRow {
   id: string;
   pack_id: string;
-  round: 1 | 2 | 3;
+  round: 1 | 2 | 3 | 4;
   question_type: QuestionType;
   category: string | null;
   difficulty: "funny" | "chaotic" | "deep" | "mixed";
@@ -69,6 +71,15 @@ export interface AnswerRow {
   question_id: string;
   selected_option_id: string | null;
   raw_value: unknown;
+  answered_at: string;
+}
+
+export interface TextResponseRow {
+  id: string;
+  session_id: string;
+  player_id: string;
+  question_id: string;
+  response_text: string;
   answered_at: string;
 }
 

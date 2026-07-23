@@ -63,10 +63,10 @@ create table question_packs (
 create table questions (
   id            uuid primary key default gen_random_uuid(),
   pack_id       uuid references question_packs(id) on delete cascade,
-  round         int not null check (round in (1,2,3)),   -- 1=self 2=friend_vote 3=bonus
+  round         int not null check (round in (1,2,3,4)),  -- 1=self 2=friend_vote 3=hot_take 4=wildcard
   question_type text not null check (question_type in
                   ('self','friend_vote','this_or_that','emoji','ranking',
-                   'scale','yes_no','multiple_choice','randomizer','guess_percentage','hot_take')),
+                   'scale','yes_no','multiple_choice','randomizer','guess_percentage','hot_take','open_text')),
   category      text,                           -- 'humor','ambition','chaos', etc — used by scoring engine
   difficulty    text default 'mixed' check (difficulty in ('funny','chaotic','deep','mixed')),
   text_ar       text not null,
@@ -134,6 +134,21 @@ create table hot_take_responses (
   player_id     uuid references players(id) on delete cascade,
   question_id   uuid references questions(id),
   stance        text not null check (stance in ('agree','disagree')),
+  answered_at   timestamptz default now(),
+  unique(player_id, question_id)
+);
+
+-- ----------------------------------------------------------------------------
+-- TEXT RESPONSES  (Round 4 — fill-in-the-blank, same "readable by any
+-- session member" privacy model as hot_take_responses, for the same reason:
+-- these are meant to be read aloud together at Results.)
+-- ----------------------------------------------------------------------------
+create table text_responses (
+  id            uuid primary key default gen_random_uuid(),
+  session_id    uuid references sessions(id) on delete cascade,
+  player_id     uuid references players(id) on delete cascade,
+  question_id   uuid references questions(id),
+  response_text text not null check (char_length(response_text) between 1 and 200),
   answered_at   timestamptz default now(),
   unique(player_id, question_id)
 );
@@ -302,6 +317,7 @@ alter table players enable row level security;
 alter table answers enable row level security;
 alter table votes enable row level security;
 alter table hot_take_responses enable row level security;
+alter table text_responses enable row level security;
 alter table scores enable row level security;
 alter table award_results enable row level security;
 alter table compatibility enable row level security;
@@ -377,6 +393,16 @@ create policy "hot_take_responses_self_write" on hot_take_responses for insert w
   player_id in (select id from players where user_id = auth.uid())
 );
 create policy "hot_take_responses_self_update" on hot_take_responses for update using (
+  player_id in (select id from players where user_id = auth.uid())
+);
+
+create policy "text_responses_session_read" on text_responses for select using (
+  is_session_member(session_id)
+);
+create policy "text_responses_self_write" on text_responses for insert with check (
+  player_id in (select id from players where user_id = auth.uid())
+);
+create policy "text_responses_self_update" on text_responses for update using (
   player_id in (select id from players where user_id = auth.uid())
 );
 
