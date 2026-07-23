@@ -28,6 +28,9 @@ export default function Round2({
   const [selected, setSelected] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [voteTally, setVoteTally] = useState<Record<string, number>>({});
+  const [teaserPlayerId, setTeaserPlayerId] = useState<string | null>(null);
+  const [teaserDone, setTeaserDone] = useState(false);
 
   // Votes have no read policy at all (not even for the voter's own vote —
   // see migration_004), so unlike Round 1 there's no way to resume from a
@@ -91,12 +94,32 @@ export default function Round2({
         .eq("voter_player_id", player.id);
     }
 
+    // Tally locally who *this player* voted for the most — purely their own
+    // picks, no group data needed, so a teaser can show instantly without
+    // waiting on anyone else.
+    const nextTally = { ...voteTally, [votedForPlayerId]: (voteTally[votedForPlayerId] || 0) + 1 };
+    setVoteTally(nextTally);
+
     setTimeout(async () => {
       if (idx + 1 < questions.length) {
         setIdx((i) => i + 1);
         setSelected(null);
       } else {
-        await advanceToRound3();
+        let top: string | null = null;
+        let topCount = 0;
+        for (const [pid, count] of Object.entries(nextTally)) {
+          if (count > topCount) {
+            topCount = count;
+            top = pid;
+          }
+        }
+        // Only worth a teaser if there's an actual pattern (voted for the
+        // same person 2+ times), otherwise skip straight to Round 3.
+        if (top && topCount >= 2) {
+          setTeaserPlayerId(top);
+        } else {
+          await advanceToRound3();
+        }
       }
     }, 420);
   }
@@ -115,6 +138,34 @@ export default function Round2({
     return (
       <div style={{ padding: "40px 24px", textAlign: "center" }}>
         <p style={{ color: "#FF2E93", fontWeight: 700 }}>{error}</p>
+      </div>
+    );
+  }
+
+  if (teaserPlayerId && !teaserDone) {
+    const isSelf = teaserPlayerId === player.id;
+    const target = players.find((p) => p.id === teaserPlayerId);
+    return (
+      <div className="screen-enter pop" style={{ padding: "60px 24px", textAlign: "center" }}>
+        <span style={{ fontSize: 56, display: "block", marginBottom: 14 }}>{isSelf ? "😏" : target?.avatar_emoji || "👀"}</span>
+        <p className="font-body" style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>
+          {lang === "ar" ? "لاحظنا شي..." : "We noticed something..."}
+        </p>
+        <h2 className="font-display" style={{ fontSize: 22, fontWeight: 800, marginBottom: 28, lineHeight: 1.5 }}>
+          {isSelf
+            ? (lang === "ar" ? "تصوّت لنفسك كثير 😏 واثق من نفسك زيادة؟" : "You vote for yourself a lot 😏 A little too confident?")
+            : (lang === "ar" ? `عندك ميول واضحة تجاه ${target?.nickname} 👀` : `You've clearly got a soft spot for ${target?.nickname} 👀`)}
+        </h2>
+        <button
+          onClick={async () => {
+            setTeaserDone(true);
+            await advanceToRound3();
+          }}
+          className="btn-primary font-display"
+          style={{ padding: "14px 30px", fontSize: 15 }}
+        >
+          {lang === "ar" ? "يلا نكمل" : "Let's continue"}
+        </button>
       </div>
     );
   }
