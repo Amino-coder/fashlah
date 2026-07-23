@@ -7,6 +7,19 @@ import Mascot from "@/components/Mascot";
 import Results from "@/components/results/Results";
 import type { PlayerRow, SessionRow } from "@/lib/types";
 
+const COMPUTING_MESSAGES_AR = [
+  "🌿 نحلل شخصياتكم...",
+  "🏆 نجهز الألقاب...",
+  "💌 نطابق أفضل الأصدقاء...",
+  "✨ نلمّع النتائج...",
+];
+const COMPUTING_MESSAGES_EN = [
+  "🌿 Analyzing your personalities...",
+  "🏆 Preparing the awards...",
+  "💌 Matching up best friends...",
+  "✨ Polishing your results...",
+];
+
 export default function WaitingForResults({
   session,
   player,
@@ -23,6 +36,7 @@ export default function WaitingForResults({
   const [busy, setBusy] = useState(false);
   const [attempted, setAttempted] = useState(false);
   const [stuck, setStuck] = useState(false);
+  const [msgIdx, setMsgIdx] = useState(0);
 
   const everyoneDone = players.length > 0 && players.every((p) => p.current_round >= 5);
 
@@ -98,21 +112,49 @@ export default function WaitingForResults({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [everyoneDone]);
 
+  // Cycle through fun "still working" messages while actively computing, so
+  // the screen is unmistakably alive rather than frozen.
+  useEffect(() => {
+    if (!busy) return;
+    const interval = setInterval(() => {
+      setMsgIdx((i) => (i + 1) % COMPUTING_MESSAGES_AR.length);
+    }, 1600);
+    return () => clearInterval(interval);
+  }, [busy]);
+
   if (summary) {
     return <Results summary={summary} session={session} player={player} lang={lang} />;
   }
 
   const doneCount = players.filter((p) => p.current_round >= 5).length;
+  const isComputing = everyoneDone && !stuck;
 
   return (
     <div style={{ padding: "40px 24px", textAlign: "center" }}>
-      <Mascot mood="wink" size={70} className="bounce" />
-      <p className="font-body" style={{ marginTop: 14, fontWeight: 700, color: "var(--ink-soft)" }}>
-        {lang === "ar" ? "بانتظار البقية يخلصون... 🌿" : "Waiting for the rest of the group... 🌿"}
-      </p>
-      <p className="font-body" style={{ marginTop: 6, fontSize: 13, color: "var(--ink-soft)" }}>
-        {doneCount} / {players.length} {lang === "ar" ? "خلصوا" : "finished"}
-      </p>
+      {isComputing ? (
+        <>
+          <div className="spinner" style={{ marginBottom: 18 }} />
+          <p className="font-body" style={{ fontWeight: 700, color: "var(--ink)", fontSize: 15, minHeight: 24 }}>
+            {lang === "ar" ? COMPUTING_MESSAGES_AR[msgIdx] : COMPUTING_MESSAGES_EN[msgIdx]}
+          </p>
+          <p className="font-body" style={{ marginTop: 8, fontSize: 12, color: "var(--ink-soft)" }}>
+            {lang === "ar" ? "الكل خلص! جاهزين خلال ثواني" : "Everyone's done! Ready in a few seconds"}
+          </p>
+        </>
+      ) : (
+        <>
+          <Mascot mood="wink" size={70} className="bounce" />
+          <p className="font-body" style={{ marginTop: 14, fontWeight: 700, color: "var(--ink-soft)" }}>
+            {lang === "ar" ? "بانتظار البقية يخلصون..." : "Waiting for the rest of the group..."}
+          </p>
+          <p className="font-body" style={{ marginTop: 10, fontSize: 13, color: "var(--ink-soft)" }}>
+            <span className="pulse-dot" /><span className="pulse-dot" /><span className="pulse-dot" />
+          </p>
+          <p className="font-body" style={{ marginTop: 6, fontSize: 13, color: "var(--ink-soft)" }}>
+            {doneCount} / {players.length} {lang === "ar" ? "خلصوا" : "finished"}
+          </p>
+        </>
+      )}
 
       {stuck && (
         <>
