@@ -7,6 +7,9 @@ import { seededShuffle } from "@/lib/seededShuffle";
 import type { Lang } from "@/lib/i18n";
 import type { PlayerRow, QuestionRow, SessionRow } from "@/lib/types";
 
+const NUDGES_AR = ["اكتب أطرف جواب عندك 😂", "الحين وقتك تكون مبدع 😂", "خله جواب يضحك الكل 👀"];
+const NUDGES_EN = ["Write your funniest answer 😂", "This is your time to be creative 😂", "Make it one that gets a reaction 👀"];
+
 export default function Round4({
   session,
   player,
@@ -134,6 +137,10 @@ export default function Round4({
   const progressPct = Math.round(((idx + (selected ? 1 : 0)) / questions.length) * 100);
   const isOpenText = q.question_type === "open_text";
   const promptEmoji = Array.isArray(q.options) && q.options.length > 0 ? q.options[0].emoji : undefined;
+  // Deterministic pick from the question id (stable across re-renders) —
+  // plain computation, not a hook, so it's safe to place after the early
+  // returns above.
+  const nudgeIdx = q.id.charCodeAt(0) % NUDGES_AR.length;
 
   return (
     <div className="screen-enter" style={{ padding: "12px 24px 32px" }}>
@@ -180,9 +187,12 @@ export default function Round4({
           {isOpenText ? (
             <>
               {promptEmoji && <span style={{ fontSize: 34, display: "block", marginBottom: 8 }}>{promptEmoji}</span>}
-              <h3 className="font-display" style={{ fontSize: 20, fontWeight: 800, margin: "6px 0 20px", lineHeight: 1.5 }}>
+              <h3 className="font-display" style={{ fontSize: 20, fontWeight: 800, margin: "6px 0 10px", lineHeight: 1.5 }}>
                 {lang === "ar" ? q.text_ar : q.text_en}
               </h3>
+              <p className="font-body" style={{ fontSize: 12, fontWeight: 700, color: "var(--pink)", marginBottom: 16 }}>
+                {lang === "ar" ? NUDGES_AR[nudgeIdx] : NUDGES_EN[nudgeIdx]}
+              </p>
               <input
                 value={textValue}
                 onChange={(e) => setTextValue(e.target.value)}
