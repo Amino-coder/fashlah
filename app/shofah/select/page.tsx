@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import NiqabGirl from "@/components/shofah/NiqabGirl";
@@ -16,8 +17,8 @@ type Choice = "girl" | "guy" | null;
 export default function ShofahSelect() {
   const { lang, dark, ready } = usePrefs();
   const t = SHOFAH_STR[lang as ShofahLang];
+  const router = useRouter();
   const [choice, setChoice] = useState<Choice>(null);
-  const [showNotice, setShowNotice] = useState(false);
 
   if (!ready) return null;
 
@@ -44,7 +45,7 @@ export default function ShofahSelect() {
       style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}
     >
       <Blobs />
-      <HomeButton label={t.backHome} />
+      <HomeButton label={t.backHome} href="/shofah" />
       <div style={{ maxWidth: 480, margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column", padding: "24px 24px 40px", position: "relative", zIndex: 1 }}>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 24 }}>
           <h1 className="font-display" style={{ fontSize: 24, fontWeight: 800, textAlign: "center", margin: 0 }}>
@@ -65,7 +66,7 @@ export default function ShofahSelect() {
 
         <button
           disabled={!choice}
-          onClick={() => setShowNotice(true)}
+          onClick={() => choice && router.push(`/shofah/create?character=${choice}`)}
           className="font-display"
           style={{
             padding: 18, fontSize: 18, borderRadius: 999, border: "none",
@@ -77,12 +78,6 @@ export default function ShofahSelect() {
         >
           {t.continueBtn}
         </button>
-
-        {showNotice && (
-          <p className="font-body" style={{ textAlign: "center", fontSize: 13, color: "var(--ink-soft)", marginTop: 12 }}>
-            {t.phase2Notice}
-          </p>
-        )}
       </div>
     </div>
   );
