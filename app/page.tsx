@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Users2 } from "lucide-react";
 import Mascot from "@/components/Mascot";
 import Blobs from "@/components/Blobs";
 import { STR } from "@/lib/i18n";
@@ -33,32 +33,90 @@ export default function Home() {
           </button>
         </div>
 
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 18 }}>
-          <Mascot size={110} mood="excited" className="bounce" />
-          <div>
-            <h1
-              className="font-display"
+        {/* Platform brand header */}
+        <div style={{ textAlign: "center", padding: "18px 0 8px" }}>
+          <h1
+            className="font-display"
+            style={{
+              fontSize: 34, fontWeight: 800, margin: 0,
+              background: "linear-gradient(135deg, #FF2E93, #7C3AED)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+            }}
+          >
+            {t.appName} 🌿
+          </h1>
+          <p className="font-body" style={{ fontSize: 14, color: "var(--ink-soft)", marginTop: 4, fontWeight: 600 }}>
+            {t.platformTagline}
+          </p>
+        </div>
+
+        {/* Main game card — Fashlah */}
+        <Link
+          href="/fashlah"
+          className="card pop"
+          style={{
+            display: "block", padding: 26, marginTop: 18, textAlign: "center",
+            textDecoration: "none", color: "var(--ink)", position: "relative", overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute", inset: 0, opacity: 0.08,
+              background: "linear-gradient(135deg, #FF2E93, #7C3AED)",
+            }}
+          />
+          <div style={{ position: "relative" }}>
+            <Mascot size={78} mood="excited" className="bounce" />
+            <h2 className="font-display" style={{ fontSize: 26, fontWeight: 800, margin: "10px 0 4px" }}>
+              {t.gameNameDisplay}
+            </h2>
+            <p className="font-body" style={{ fontSize: 14, color: "var(--ink-soft)", fontWeight: 600, marginBottom: 16 }}>
+              {t.gameTagline}
+            </p>
+            <span
+              className="btn-primary font-display"
+              style={{ display: "inline-block", padding: "12px 32px", fontSize: 15 }}
+            >
+              {t.playNow}
+            </span>
+          </div>
+        </Link>
+
+        {/* Game library */}
+        <div style={{ marginTop: 32 }}>
+          <h3 className="font-display" style={{ fontSize: 15, fontWeight: 800, color: "var(--ink-soft)", marginBottom: 12, letterSpacing: "0.02em" }}>
+            {t.gameLibrary}
+          </h3>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div
+              className="card"
               style={{
-                fontSize: 44, fontWeight: 800, margin: 0,
-                background: "linear-gradient(135deg, #FF2E93, #7C3AED)",
-                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                display: "flex", alignItems: "center", gap: 14, padding: "16px 18px",
+                opacity: 0.55,
               }}
             >
-              {t.appName} 🌿
-            </h1>
-            <p className="font-body" style={{ fontSize: 17, color: "var(--ink-soft)", marginTop: 8, fontWeight: 600 }}>
-              {t.tagline}
-            </p>
+              <div style={{
+                width: 46, height: 46, borderRadius: 16, background: "var(--ring)",
+                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0,
+              }}>
+                🤔
+              </div>
+              <div style={{ flex: 1, textAlign: lang === "ar" ? "right" : "left" }}>
+                <p className="font-body" style={{ fontWeight: 700, fontSize: 15 }}>{t.wouldYouRather}</p>
+              </div>
+              <span className="chip" style={{ fontSize: 11, padding: "5px 12px", pointerEvents: "none" }}>
+                {t.comingSoonBadge}
+              </span>
+            </div>
           </div>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <Link href="/create" className="btn-primary font-display" style={{ padding: 18, fontSize: 18, textAlign: "center", display: "block" }}>
-            {t.startSession}
-          </Link>
-          <Link href="/join" className="btn-ghost font-display" style={{ padding: 18, fontSize: 18, textAlign: "center", display: "block" }}>
-            {t.joinSession}
-          </Link>
+        <div style={{ flex: 1 }} />
+
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 24, opacity: 0.4 }}>
+          <Users2 size={13} />
+          <span className="font-body" style={{ fontSize: 12, fontWeight: 600 }}>{t.appName}</span>
         </div>
       </div>
     </div>

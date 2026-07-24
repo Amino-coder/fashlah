@@ -13,10 +13,10 @@ import { Home } from "lucide-react";
  * so no one accidentally bails out of a game in progress — only shown on
  * pre-game / lobby / error screens where leaving is a safe, expected action.
  */
-export default function HomeButton({ label }: { label: string }) {
+export default function HomeButton({ label, href = "/" }: { label: string; href?: string }) {
   return (
     <Link
-      href="/"
+      href={href}
       aria-label={label}
       title={label}
       style={{
