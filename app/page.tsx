@@ -7,6 +7,14 @@ import Blobs from "@/components/Blobs";
 import { STR } from "@/lib/i18n";
 import { usePrefs } from "@/lib/usePrefs";
 
+// Midpoint blend of the Bagdoonis wordmark gradient (#FF2E93 -> #7C3AED) —
+// a true magenta drawn directly from the brand gradient itself.
+const MAGENTA = "#BE34C0";
+
+// One distinct tint per library slot so each blurred placeholder reads as
+// "a specific unrevealed game" rather than a uniform gray block.
+const LIBRARY_COLORS = ["#FF2E93", "#7C3AED", "#2EE6A6", "#FFD400", MAGENTA, "#3B82F6"];
+
 export default function Home() {
   const { lang, setLang, dark, setDark, ready } = usePrefs();
   const t = STR[lang];
@@ -71,7 +79,7 @@ export default function Home() {
             </div>
             <h2 className="font-display" style={{ fontSize: 26, fontWeight: 800, margin: "10px 0 4px" }}>
               <span style={{ color: "var(--mint)" }}>{t.gameNamePart1}</span>
-              {t.gameNamePart2 && <span style={{ color: "var(--pink)" }}> {t.gameNamePart2}</span>}
+              {t.gameNamePart2 && <span style={{ color: MAGENTA, fontStyle: "italic" }}> {t.gameNamePart2}</span>}
             </h2>
             <p className="font-body" style={{ fontSize: 14, color: "var(--ink-soft)", fontWeight: 600, marginBottom: 16 }}>
               {t.gameTagline}
@@ -87,12 +95,17 @@ export default function Home() {
 
         {/* Game library */}
         <div style={{ marginTop: 32 }}>
-          <h3 className="font-display" style={{ fontSize: 15, fontWeight: 800, color: "var(--ink-soft)", marginBottom: 12, letterSpacing: "0.02em" }}>
-            {t.gameLibrary}
-          </h3>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+            <h3 className="font-display" style={{ fontSize: 15, fontWeight: 800, color: "var(--ink-soft)", letterSpacing: "0.02em", margin: 0 }}>
+              {t.gameLibrary}
+            </h3>
+            <span className="chip" style={{ fontSize: 11, padding: "5px 12px", pointerEvents: "none" }}>
+              {t.comingSoonBadge}
+            </span>
+          </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
-            {Array.from({ length: 6 }).map((_, i) => (
+            {LIBRARY_COLORS.map((color, i) => (
               <div
                 key={i}
                 className="card"
@@ -102,12 +115,12 @@ export default function Home() {
                   alignItems: "center",
                   justifyContent: "center",
                   filter: "blur(1.5px)",
-                  opacity: 0.35,
+                  opacity: 0.5,
                 }}
               >
                 <div style={{
                   width: 34, height: 34, borderRadius: 12,
-                  background: "var(--ink-soft)", opacity: 0.4,
+                  background: color, opacity: 0.55,
                 }} />
               </div>
             ))}

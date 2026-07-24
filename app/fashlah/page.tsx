@@ -8,6 +8,10 @@ import HomeButton from "@/components/HomeButton";
 import { STR } from "@/lib/i18n";
 import { usePrefs } from "@/lib/usePrefs";
 
+// Same derived magenta as the home page — midpoint of the Bagdoonis
+// wordmark gradient (#FF2E93 -> #7C3AED).
+const MAGENTA = "#BE34C0";
+
 export default function BagdoonisHome() {
   const { lang, setLang, dark, setDark, ready } = usePrefs();
   const t = STR[lang];
@@ -43,7 +47,7 @@ export default function BagdoonisHome() {
               style={{ fontSize: 44, fontWeight: 800, margin: 0 }}
             >
               <span style={{ color: "var(--mint)" }}>{t.gameNamePart1}</span>
-              {t.gameNamePart2 && <span style={{ color: "var(--pink)" }}> {t.gameNamePart2}</span>}
+              {t.gameNamePart2 && <span style={{ color: MAGENTA, fontStyle: "italic" }}> {t.gameNamePart2}</span>}
               {" 🌿"}
             </h1>
             <p className="font-body" style={{ fontSize: 17, color: "var(--ink-soft)", marginTop: 8, fontWeight: 600 }}>
