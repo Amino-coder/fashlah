@@ -78,6 +78,17 @@ body {
 @keyframes bounce { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-10px) rotate(2deg); } }
 .bounce { animation: bounce 2.4s ease-in-out infinite; }
 
+/* ---- Shofah character idle animations (namespaced, decoupled from Fashlah) ---- */
+@keyframes shofahTilt { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-3deg); } }
+.shofah-tilt { animation: shofahTilt 3.6s ease-in-out infinite; transform-origin: 50% 90%; }
+
+@keyframes shofahBlink { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+.shofah-blink { animation: shofahBlink 4.5s ease-in-out infinite; transform-origin: 70px 64px; }
+
+@keyframes shofahSmile { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(1.06); } }
+.shofah-smile { animation: shofahSmile 3s ease-in-out infinite; transform-origin: 70px 80px; }
+
+
 @keyframes popIn { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
 .pop { animation: popIn .35s cubic-bezier(.34,1.56,.64,1); }
 
