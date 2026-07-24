@@ -40,13 +40,11 @@ export default function BagdoonisHome() {
           <div>
             <h1
               className="font-display"
-              style={{
-                fontSize: 44, fontWeight: 800, margin: 0,
-                background: "linear-gradient(135deg, #FF2E93, #7C3AED)",
-                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-              }}
+              style={{ fontSize: 44, fontWeight: 800, margin: 0 }}
             >
-              {t.gameNameDisplay} 🌿
+              <span style={{ color: "var(--mint)" }}>{t.gameNamePart1}</span>
+              {t.gameNamePart2 && <span style={{ color: "var(--pink)" }}> {t.gameNamePart2}</span>}
+              {" 🌿"}
             </h1>
             <p className="font-body" style={{ fontSize: 17, color: "var(--ink-soft)", marginTop: 8, fontWeight: 600 }}>
               {t.gameTagline}

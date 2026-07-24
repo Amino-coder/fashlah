@@ -65,10 +65,13 @@ export default function Home() {
               background: "linear-gradient(135deg, #FF2E93, #7C3AED)",
             }}
           />
-          <div style={{ position: "relative" }}>
-            <Mascot size={78} mood="excited" className="bounce" />
+          <div style={{ position: "relative", textAlign: "center" }}>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <Mascot size={78} mood="excited" className="bounce" />
+            </div>
             <h2 className="font-display" style={{ fontSize: 26, fontWeight: 800, margin: "10px 0 4px" }}>
-              {t.gameNameDisplay}
+              <span style={{ color: "var(--mint)" }}>{t.gameNamePart1}</span>
+              {t.gameNamePart2 && <span style={{ color: "var(--pink)" }}> {t.gameNamePart2}</span>}
             </h2>
             <p className="font-body" style={{ fontSize: 14, color: "var(--ink-soft)", fontWeight: 600, marginBottom: 16 }}>
               {t.gameTagline}
@@ -88,27 +91,26 @@ export default function Home() {
             {t.gameLibrary}
           </h3>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <div
-              className="card"
-              style={{
-                display: "flex", alignItems: "center", gap: 14, padding: "16px 18px",
-                opacity: 0.55,
-              }}
-            >
-              <div style={{
-                width: 46, height: 46, borderRadius: 16, background: "var(--ring)",
-                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0,
-              }}>
-                🤔
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="card"
+                style={{
+                  aspectRatio: "1 / 1",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  filter: "blur(1.5px)",
+                  opacity: 0.35,
+                }}
+              >
+                <div style={{
+                  width: 34, height: 34, borderRadius: 12,
+                  background: "var(--ink-soft)", opacity: 0.4,
+                }} />
               </div>
-              <div style={{ flex: 1, textAlign: lang === "ar" ? "right" : "left" }}>
-                <p className="font-body" style={{ fontWeight: 700, fontSize: 15 }}>{t.wouldYouRather}</p>
-              </div>
-              <span className="chip" style={{ fontSize: 11, padding: "5px 12px", pointerEvents: "none" }}>
-                {t.comingSoonBadge}
-              </span>
-            </div>
+            ))}
           </div>
         </div>
 
