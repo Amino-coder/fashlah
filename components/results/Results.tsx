@@ -11,9 +11,9 @@ const TRAIT_LABELS: Record<string, { ar: string; en: string }> = {
   leadership: { ar: "القيادة", en: "Leadership" },
   humor: { ar: "الفكاهة", en: "Humor" },
   energy: { ar: "الطاقة", en: "Energy" },
-  organization: { ar: "التنظيم", en: "Organization" },
+  organization: { ar: "مهارة التنظيم", en: "Organization" },
   adventure: { ar: "المغامرة", en: "Adventure" },
-  kindness: { ar: "اللطف", en: "Kindness" },
+  kindness: { ar: "اللطافة", en: "Kindness" },
   confidence: { ar: "الثقة", en: "Confidence" },
   responsibility: { ar: "المسؤولية", en: "Responsibility" },
 };

@@ -1,9 +1,11 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase, ensureUser } from "@/lib/supabase";
 import Blobs from "@/components/Blobs";
+import HomeButton from "@/components/HomeButton";
 import { STR, AVATARS } from "@/lib/i18n";
 import { usePrefs } from "@/lib/usePrefs";
 
@@ -28,6 +30,7 @@ function JoinSession() {
   const [emoji, setEmoji] = useState("🦊");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sessionDead, setSessionDead] = useState(false);
 
   useEffect(() => {
     const fromUrl = searchParams.get("code");
@@ -42,6 +45,7 @@ function JoinSession() {
   async function handleJoin() {
     setLoading(true);
     setError(null);
+    setSessionDead(false);
     try {
       const userId = await ensureUser(lang);
 
@@ -51,7 +55,15 @@ function JoinSession() {
         .eq("code", code.toUpperCase())
         .single();
       if (sessErr || !session) throw new Error(t.errorNotFound);
-      if (session.status !== "waiting") throw new Error(t.errorGeneric);
+      if (session.status !== "waiting") {
+        // The most common real-world cause: this is an old join link whose
+        // session already started (or, once a "completed" status exists,
+        // already ended). Either way "change code" doesn't help — the fix
+        // is to start a fresh session, so flag it distinctly from a plain
+        // error so the UI can offer that path directly.
+        setSessionDead(true);
+        throw new Error(t.errorSessionStarted);
+      }
 
       const { count } = await supabase
         .from("players")
@@ -94,8 +106,9 @@ function JoinSession() {
   return (
     <div dir={t.dir} className={dark ? "dark" : ""} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
       <Blobs />
-      <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
-        <h1 className="font-display" style={{ fontSize: 24, fontWeight: 800, marginBottom: 20 }}>{t.joinSession}</h1>
+      <HomeButton label={t.backHome} />
+      <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px 24px 24px", position: "relative", zIndex: 1 }}>
+        <h1 className="font-display" style={{ fontSize: 24, fontWeight: 800, marginBottom: 20, marginTop: 40 }}>{t.joinSession}</h1>
 
         {codeFromLink ? (
           <div className="card" style={{ padding: 20, marginBottom: 16, textAlign: "center" }}>
@@ -143,7 +156,20 @@ function JoinSession() {
           ))}
         </div>
 
-        {error && <p style={{ color: "#FF2E93", fontWeight: 700, marginBottom: 12 }}>{error}</p>}
+        {error && (
+          <div style={{ marginBottom: 16 }}>
+            <p style={{ color: "#FF2E93", fontWeight: 700, marginBottom: sessionDead ? 10 : 0 }}>{error}</p>
+            {sessionDead && (
+              <Link
+                href="/create"
+                className="btn-primary font-display"
+                style={{ padding: 16, fontSize: 15, textAlign: "center", display: "block" }}
+              >
+                {t.startNewGame}
+              </Link>
+            )}
+          </div>
+        )}
 
         <button
           onClick={handleJoin} disabled={loading || code.length < 4 || !nickname}

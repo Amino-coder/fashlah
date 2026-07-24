@@ -23,9 +23,9 @@ insert into score_formulas (trait_key, name_ar, name_en, components) values
 ('leadership', 'القيادة', 'Leadership', '[{"source":"self_answers","weight":1}]'),
 ('humor', 'الفكاهة', 'Humor', '[{"source":"self_answers","weight":1}]'),
 ('energy', 'الطاقة', 'Energy', '[{"source":"self_answers","weight":1}]'),
-('organization', 'التنظيم', 'Organization', '[{"source":"self_answers","weight":1}]'),
+('organization', 'مهارة التنظيم', 'Organization', '[{"source":"self_answers","weight":1}]'),
 ('adventure', 'المغامرة', 'Adventure', '[{"source":"self_answers","weight":1}]'),
-('kindness', 'اللطف', 'Kindness', '[{"source":"self_answers","weight":1}]'),
+('kindness', 'اللطافة', 'Kindness', '[{"source":"self_answers","weight":1}]'),
 ('confidence', 'الثقة', 'Confidence', '[{"source":"self_answers","weight":1}]'),
 ('responsibility', 'المسؤولية', 'Responsibility', '[{"source":"self_answers","weight":1}]');
 
@@ -39,7 +39,7 @@ insert into awards (slug, emoji, name_ar, name_en, description_ar, description_e
  '{"type":"top_trait","trait_key":"leadership"}', 1),
 ('chaos_generator', '😂', 'صانع الفوضى', 'Chaos Generator', 'الأكثر تصويتًا لبدء الدراما', 'Most votes for starting group-chat drama',
  '{"type":"top_vote_category","category":"start_drama_gc"}', 2),
-('walking_wikipedia', '🧠', 'ويكيبيديا الماشية', 'Walking Wikipedia', 'أعلى نتيجة مسؤولية', 'Highest responsibility score',
+('walking_wikipedia', '🧠', 'ويكيبيديا', 'Walking Wikipedia', 'أعلى نتيجة مسؤولية', 'Highest responsibility score',
  '{"type":"top_trait","trait_key":"responsibility"}', 3),
 ('future_billionaire', '💰', 'مليونير المستقبل', 'Future Billionaire', 'الأكثر تصويتًا ليصير مليونير', 'Most votes to become a millionaire',
  '{"type":"top_vote_category","category":"become_millionaire"}', 4),

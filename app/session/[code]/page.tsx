@@ -8,6 +8,7 @@ import { STR } from "@/lib/i18n";
 import { usePrefs } from "@/lib/usePrefs";
 import Mascot from "@/components/Mascot";
 import Blobs from "@/components/Blobs";
+import HomeButton from "@/components/HomeButton";
 import Round1 from "@/components/rounds/Round1";
 import Round2 from "@/components/rounds/Round2";
 import Round3 from "@/components/rounds/Round3";
@@ -100,8 +101,9 @@ export default function WaitingRoom() {
   return (
     <div dir={t.dir} className={dark ? "dark" : ""} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
       <Blobs />
+      {(error || !session || session.status === "waiting") && <HomeButton label={t.backHome} />}
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
-        {error && <p style={{ color: "#FF2E93", fontWeight: 700 }}>{error}</p>}
+        {error && <p style={{ color: "#FF2E93", fontWeight: 700, marginTop: 40 }}>{error}</p>}
 
         {session && session.status !== "waiting" && myPlayer && (
           <>
@@ -162,7 +164,7 @@ export default function WaitingRoom() {
 
         {session && session.status === "waiting" && (
           <>
-            <div style={{ textAlign: "center", marginBottom: 20 }}>
+            <div style={{ textAlign: "center", marginBottom: 20, marginTop: 40 }}>
               <Mascot mood="wink" size={70} className="bounce" />
               <p className="font-body" style={{ marginTop: 10, color: "var(--ink-soft)", fontWeight: 600 }}>
                 {loadingMsgs[msgIdx]}

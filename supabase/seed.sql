@@ -252,7 +252,7 @@ insert into questions (pack_id, round, question_type, category, difficulty, text
  '[{"id":"a","emoji":"🙋","text_ar":"أرفع يدي أول واحد","text_en":"Raises hand first","trait_weights":{"confidence":0.5,"leadership":0.4}},
    {"id":"b","emoji":"👀","text_ar":"أتجنب أي تواصل بالعين","text_en":"Avoids eye contact","trait_weights":{}},
    {"id":"c","emoji":"🎯","text_ar":"أجاوب بس لو سألوني","text_en":"Answers only when called","trait_weights":{}},
-   {"id":"d","emoji":"🤫","text_ar":"أعرف كل شي بس ما أحچي","text_en":"Knows everything, says nothing","trait_weights":{}}]'),
+   {"id":"d","emoji":"🤫","text_ar":"أعرف كل شي بس ما أحكي","text_en":"Knows everything, says nothing","trait_weights":{}}]'),
 
 ('11111111-1111-1111-1111-111111111111', 1, 'self', 'aesthetic', 'mixed',
  'ستايلي…', 'My "aesthetic" is…', 1,
@@ -271,7 +271,7 @@ insert into questions (pack_id, round, question_type, category, difficulty, text
 ('11111111-1111-1111-1111-111111111111', 2, 'friend_vote', 'forget_own_number', 'funny', 'ينسى رقم جواله', 'Forget their own phone number', 0.8, '[]'),
 ('11111111-1111-1111-1111-111111111111', 2, 'friend_vote', 'start_business_no_plan', 'mixed', 'يفتح مشروع بدون خطة', 'Start a business with zero plan', 1, '[]'),
 ('11111111-1111-1111-1111-111111111111', 2, 'friend_vote', 'late_own_party', 'chaotic', 'يتأخر عن حفلته', 'Be late to their own party', 1, '[]'),
-('11111111-1111-1111-1111-111111111111', 2, 'friend_vote', 'cry_movie_deny', 'deep', 'يبچي بفلم وينكر', 'Cry during a movie and deny it', 0.8, '[]'),
+('11111111-1111-1111-1111-111111111111', 2, 'friend_vote', 'cry_movie_deny', 'deep', 'يبكي بفلم وينكر', 'Cry during a movie and deny it', 0.8, '[]'),
 ('11111111-1111-1111-1111-111111111111', 2, 'friend_vote', 'lost_with_gps', 'funny', 'يضيع وعنده خرائط', 'Get lost using GPS', 0.8, '[]'),
 ('11111111-1111-1111-1111-111111111111', 2, 'friend_vote', 'eat_pizza_alone', 'funny', 'ياكل بيتزا كاملة لحاله', 'Eat an entire pizza alone', 0.8, '[]'),
 ('11111111-1111-1111-1111-111111111111', 2, 'friend_vote', 'talk_out_of_trouble', 'mixed', 'يقنعك بأي شي', 'Talk their way out of trouble', 1, '[]'),
@@ -298,7 +298,7 @@ insert into questions (pack_id, round, question_type, category, difficulty, text
 ('11111111-1111-1111-1111-111111111111', 2, 'friend_vote', 'mom_dad_friend', 'mixed', 'يصير الأم أو الأب بالقروب', 'Become the "mom/dad friend" of the group', 1, '[]'),
 ('11111111-1111-1111-1111-111111111111', 2, 'friend_vote', 'random_tattoo', 'chaotic', 'يسوي وشم عشوائي بتحدي', 'Get a random tattoo on a dare', 0.8, '[]'),
 ('11111111-1111-1111-1111-111111111111', 2, 'friend_vote', 'win_without_trying', 'mixed', 'يفوز بدون لا يحاول', 'Win something without even trying', 0.8, '[]'),
-('11111111-1111-1111-1111-111111111111', 2, 'friend_vote', 'talk_in_sleep', 'funny', 'يحچي وهو نايم', 'Talk in their sleep', 0.6, '[]'),
+('11111111-1111-1111-1111-111111111111', 2, 'friend_vote', 'talk_in_sleep', 'funny', 'يحكي وهو نايم', 'Talk in their sleep', 0.6, '[]'),
 ('11111111-1111-1111-1111-111111111111', 2, 'friend_vote', 'stand_up_comedian', 'mixed', 'يصير كوميديان', 'Become a stand-up comedian', 1, '[]'),
 ('11111111-1111-1111-1111-111111111111', 2, 'friend_vote', 'lost_shortcut', 'chaotic', 'يضيع الكل بطريق مختصر', 'Get everyone lost on a "shortcut"', 0.8, '[]');
 
@@ -328,7 +328,7 @@ insert into questions (pack_id, round, question_type, category, difficulty, text
 ('11111111-1111-1111-1111-111111111111', 3, 'hot_take', 'food_opinions', 'funny',
  'البطاطس زينة بس أول ١٠ دقايق، بعدها الكل يكذب', 'Fries are only good in the first 10 minutes, everyone''s lying after that', 1, '[{"id":"a","emoji":"🍟"}]'),
 ('11111111-1111-1111-1111-111111111111', 3, 'hot_take', 'social_habits', 'funny',
- 'الحچي وقت الفلم شي حلو ومافيه مشكلة', 'Talking during a movie is actually fun and okay', 1, '[{"id":"a","emoji":"🍿"}]');
+ 'الحكي وقت الفلم شي حلو ومافيه مشكلة', 'Talking during a movie is actually fun and okay', 1, '[{"id":"a","emoji":"🍿"}]');
 
 
 -- ----------------------------------------------------------------------------
@@ -441,7 +441,7 @@ insert into questions (pack_id, round, question_type, category, difficulty, text
  'أغرب عذر استخدمته بحياتي هو ___', 'The weirdest excuse I''ve ever used is ___', 1, '[{"id":"a","emoji":"🎭"}]'),
 
 ('11111111-1111-1111-1111-111111111111', 4, 'open_text', 'aliens', 'chaotic',
- 'لو نزلت المخلوقات الفضائية باچر، أول شي بسويه هو ___', 'If aliens landed tomorrow, my first move would be to ___', 1, '[{"id":"a","emoji":"👽"}]');
+ 'لو نزلت المخلوقات الفضائية باكر، أول شي بسويه هو ___', 'If aliens landed tomorrow, my first move would be to ___', 1, '[{"id":"a","emoji":"👽"}]');
 
 -- ----------------------------------------------------------------------------
 -- SCORE FORMULAS — one per trait, purely from Round 1 trait_weights (no
@@ -451,9 +451,9 @@ insert into score_formulas (trait_key, name_ar, name_en, components) values
 ('leadership', 'القيادة', 'Leadership', '[{"source":"self_answers","weight":1}]'),
 ('humor', 'الفكاهة', 'Humor', '[{"source":"self_answers","weight":1}]'),
 ('energy', 'الطاقة', 'Energy', '[{"source":"self_answers","weight":1}]'),
-('organization', 'التنظيم', 'Organization', '[{"source":"self_answers","weight":1}]'),
+('organization', 'مهارة التنظيم', 'Organization', '[{"source":"self_answers","weight":1}]'),
 ('adventure', 'المغامرة', 'Adventure', '[{"source":"self_answers","weight":1}]'),
-('kindness', 'اللطف', 'Kindness', '[{"source":"self_answers","weight":1}]'),
+('kindness', 'اللطافة', 'Kindness', '[{"source":"self_answers","weight":1}]'),
 ('confidence', 'الثقة', 'Confidence', '[{"source":"self_answers","weight":1}]'),
 ('responsibility', 'المسؤولية', 'Responsibility', '[{"source":"self_answers","weight":1}]');
 
@@ -465,7 +465,7 @@ insert into awards (slug, emoji, name_ar, name_en, description_ar, description_e
  '{"type":"top_trait","trait_key":"leadership"}', 1),
 ('chaos_generator', '😂', 'صانع الفوضى', 'Chaos Generator', 'الأكثر تصويتًا لبدء الدراما', 'Most votes for starting group-chat drama',
  '{"type":"top_vote_category","category":"start_drama_gc"}', 2),
-('walking_wikipedia', '🧠', 'ويكيبيديا الماشية', 'Walking Wikipedia', 'أعلى نتيجة مسؤولية', 'Highest responsibility score',
+('walking_wikipedia', '🧠', 'ويكيبيديا', 'Walking Wikipedia', 'أعلى نتيجة مسؤولية', 'Highest responsibility score',
  '{"type":"top_trait","trait_key":"responsibility"}', 3),
 ('future_billionaire', '💰', 'مليونير المستقبل', 'Future Billionaire', 'الأكثر تصويتًا ليصير مليونير', 'Most votes to become a millionaire',
  '{"type":"top_vote_category","category":"become_millionaire"}', 4),

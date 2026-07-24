@@ -11,9 +11,9 @@ const TRAIT_LABELS: Record<string, { ar: string; en: string; emoji: string }> = 
   leadership: { ar: "القيادة", en: "Leadership", emoji: "👑" },
   humor: { ar: "الفكاهة", en: "Humor", emoji: "😂" },
   energy: { ar: "الطاقة", en: "Energy", emoji: "🔥" },
-  organization: { ar: "التنظيم", en: "Organization", emoji: "📋" },
+  organization: { ar: "مهارة التنظيم", en: "Organization", emoji: "📋" },
   adventure: { ar: "المغامرة", en: "Adventure", emoji: "🌎" },
-  kindness: { ar: "اللطف", en: "Kindness", emoji: "💛" },
+  kindness: { ar: "اللطافة", en: "Kindness", emoji: "💛" },
   confidence: { ar: "الثقة", en: "Confidence", emoji: "😎" },
   responsibility: { ar: "المسؤولية", en: "Responsibility", emoji: "🎯" },
 };

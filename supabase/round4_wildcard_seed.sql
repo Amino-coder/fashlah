@@ -105,4 +105,4 @@ insert into questions (pack_id, round, question_type, category, difficulty, text
  'أغرب عذر استخدمته بحياتي هو ___', 'The weirdest excuse I''ve ever used is ___', 1, '[{"id":"a","emoji":"🎭"}]'),
 
 ('11111111-1111-1111-1111-111111111111', 4, 'open_text', 'aliens', 'chaotic',
- 'لو نزلت المخلوقات الفضائية باچر، أول شي بسويه هو ___', 'If aliens landed tomorrow, my first move would be to ___', 1, '[{"id":"a","emoji":"👽"}]');
+ 'لو نزلت المخلوقات الفضائية باكر، أول شي بسويه هو ___', 'If aliens landed tomorrow, my first move would be to ___', 1, '[{"id":"a","emoji":"👽"}]');
