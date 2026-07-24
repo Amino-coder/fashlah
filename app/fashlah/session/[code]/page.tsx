@@ -101,7 +101,7 @@ export default function WaitingRoom() {
   return (
     <div dir={t.dir} className={dark ? "dark" : ""} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
       <Blobs />
-      {(error || !session || session.status === "waiting") && <HomeButton label={t.backHome} href="/bagdoonis" />}
+      {(error || !session || session.status === "waiting") && <HomeButton label={t.backHome} href="/fashlah" />}
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
         {error && <p style={{ color: "#FF2E93", fontWeight: 700, marginTop: 40 }}>{error}</p>}
 
