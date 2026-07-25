@@ -80,6 +80,17 @@ export default function ShofahLanding() {
         >
           {t.startGame}
         </Link>
+
+        <Link
+          href="/shofah/join"
+          className="font-body"
+          style={{
+            display: "block", textAlign: "center", padding: 14, fontSize: 14, fontWeight: 700,
+            color: "var(--ink-soft)", textDecoration: "underline", marginTop: 12,
+          }}
+        >
+          {t.joinSession}
+        </Link>
       </div>
     </div>
   );

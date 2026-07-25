@@ -64,6 +64,21 @@ export default function ShofahWaitingRoom() {
     return () => { supabase.removeChannel(channel); };
   }, [session?.id]);
 
+  // Polling fallback (every 4s while waiting) — self-heals if a realtime
+  // broadcast is ever missed, so the lobby doesn't get permanently stuck
+  // waiting on a page refresh.
+  useEffect(() => {
+    if (!session?.id || session.status !== "waiting") return;
+    const id = setInterval(async () => {
+      const { data: pl } = await supabase
+        .from("shofah_players").select("*").eq("session_id", session.id).order("joined_at", { ascending: true });
+      if (pl) setPlayers(pl as ShofahPlayerRow[]);
+      const { data: sess } = await supabase.from("shofah_sessions").select("*").eq("id", session.id).single();
+      if (sess) setSession(sess as ShofahSessionRow);
+    }, 4000);
+    return () => clearInterval(id);
+  }, [session?.id, session?.status]);
+
   // Same back-gesture trap used in Fashlah, so a stray back press doesn't
   // yank someone out of a live session.
   useEffect(() => {
@@ -86,12 +101,18 @@ export default function ShofahWaitingRoom() {
     const { error: rpErr } = await supabase.from("shofah_round_prompts").insert(rows);
     if (rpErr) return;
 
-    await supabase.from("shofah_sessions")
-      .update({
-        status: "in_progress", current_round: 1, round_phase: "answering",
-        phase_started_at: new Date().toISOString(), started_at: new Date().toISOString(),
-      })
-      .eq("id", session.id);
+    const nowIso = new Date().toISOString();
+    const { data: updated, error: updateErr } = await supabase
+      .from("shofah_sessions")
+      .update({ status: "in_progress", current_round: 1, round_phase: "answering", phase_started_at: nowIso, started_at: nowIso })
+      .eq("id", session.id)
+      .select()
+      .single();
+    if (updateErr) return;
+    // Don't wait on the realtime broadcast for the host's own action —
+    // apply it locally right away as a fallback in case realtime isn't
+    // configured for this table yet.
+    if (updated) setSession(updated as ShofahSessionRow);
   }
 
   return (
