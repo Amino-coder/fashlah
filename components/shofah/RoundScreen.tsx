@@ -33,6 +33,7 @@ export default function RoundScreen({
   const [answers, setAnswers] = useState<ShofahAnswerRow[]>([]);
   const [votes, setVotes] = useState<ShofahVoteRow[]>([]);
   const [draft, setDraft] = useState("");
+  const [selectedAnswerId, setSelectedAnswerId] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [winner, setWinner] = useState<{ nickname: string; avatar: string; text: string } | null>(null);
   const [winnerFetched, setWinnerFetched] = useState(false);
@@ -41,6 +42,8 @@ export default function RoundScreen({
   const scoringRef = useRef(false);
   const autoSubmitRef = useRef(false);
   const answeringDeadlineRef = useRef<number | null>(null);
+  const autoVoteRef = useRef(false);
+  const votingDeadlineRef = useRef<number | null>(null);
 
   // Filtered by round_number, not just "whatever's currently in state" —
   // this is what actually makes the round transition safe. React doesn't
@@ -75,7 +78,10 @@ export default function RoundScreen({
     scoringRef.current = false;
     autoSubmitRef.current = false;
     answeringDeadlineRef.current = null;
+    autoVoteRef.current = false;
+    votingDeadlineRef.current = null;
     setDraft("");
+    setSelectedAnswerId(null);
     setWinner(null);
     setWinnerFetched(false);
     setAnswers([]);
@@ -326,6 +332,25 @@ export default function RoundScreen({
     }
   }, [now, myAnswer, draft]);
 
+  // Same pattern for voting: if a player picked an answer but the timer
+  // ran out before they hit Submit, their selection still counts instead
+  // of silently vanishing.
+  useEffect(() => {
+    if (session.round_phase === "voting" && session.phase_started_at) {
+      votingDeadlineRef.current = new Date(session.phase_started_at).getTime() + VOTE_SECONDS * 1000;
+    }
+  }, [session.round_phase, session.phase_started_at]);
+
+  useEffect(() => {
+    if (autoVoteRef.current || myVote || !selectedAnswerId) return;
+    if (!votingDeadlineRef.current) return;
+    if (now >= votingDeadlineRef.current) {
+      autoVoteRef.current = true;
+      const target = shuffledAnswers.find((a) => a.id === selectedAnswerId);
+      if (target) castVote(target.id, target.player_id);
+    }
+  }, [now, myVote, selectedAnswerId]);
+
   async function submitAnswer() {
     if (!myPlayerId || !draft.trim() || myAnswer) return;
     await supabase.from("shofah_answers").insert({
@@ -539,16 +564,17 @@ export default function RoundScreen({
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {shuffledAnswers.map((a) => {
               const isMine = a.player_id === myPlayerId;
-              const isSelected = myVote?.answer_id === a.id;
+              const isCommitted = myVote?.answer_id === a.id;
+              const isSelected = !myVote && selectedAnswerId === a.id;
               return (
                 <button
                   key={a.id}
-                  onClick={() => castVote(a.id, a.player_id)}
+                  onClick={() => !myVote && !isMine && setSelectedAnswerId(a.id)}
                   disabled={!!myVote || isMine}
                   className="card"
                   style={{
                     padding: 16, textAlign: lang === "ar" ? "right" : "left", fontSize: 15,
-                    border: isSelected ? `3px solid ${ROSE}` : "3px solid transparent",
+                    border: (isSelected || isCommitted) ? `3px solid ${ROSE}` : "3px solid transparent",
                     opacity: isMine ? 0.45 : 1,
                     cursor: !myVote && !isMine ? "pointer" : "default",
                   }}
@@ -563,6 +589,20 @@ export default function RoundScreen({
               );
             })}
           </div>
+          {!myVote && (
+            <button
+              onClick={() => selectedAnswerId && castVote(selectedAnswerId, shuffledAnswers.find((a) => a.id === selectedAnswerId)?.player_id || "")}
+              disabled={!selectedAnswerId}
+              className="font-display"
+              style={{
+                padding: 14, fontSize: 15, borderRadius: 999, border: "none", color: "#fff",
+                background: selectedAnswerId ? `linear-gradient(135deg, ${ROSE}, ${WINE})` : "var(--ring)",
+                opacity: selectedAnswerId ? 1 : 0.6,
+              }}
+            >
+              {lang === "ar" ? "تأكيد التصويت" : "Submit Vote"}
+            </button>
+          )}
           <p className="font-body" style={{ textAlign: "center", fontSize: 12, color: "var(--ink-soft)" }}>
             {currentVotes.length}/{players.length} {lang === "ar" ? "صوّتوا" : "voted"}
           </p>
