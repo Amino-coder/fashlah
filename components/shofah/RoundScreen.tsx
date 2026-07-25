@@ -44,6 +44,7 @@ export default function RoundScreen({
   const [draft, setDraft] = useState("");
   const [now, setNow] = useState(() => Date.now());
   const [winner, setWinner] = useState<{ nickname: string; avatar: string; text: string } | null>(null);
+  const [winnerFetched, setWinnerFetched] = useState(false);
   const shuffledRef = useRef<ShofahAnswerRow[] | null>(null);
   const transitionedRef = useRef(false);
   const scoringRef = useRef(false);
@@ -81,6 +82,7 @@ export default function RoundScreen({
     scoringRef.current = false;
     setDraft("");
     setWinner(null);
+    setWinnerFetched(false);
     setAnswers([]);
     setVotes([]);
   }, [session.current_round]);
@@ -219,8 +221,20 @@ export default function RoundScreen({
   useEffect(() => {
     if (!isHost || session.round_phase !== "voting" || scoringRef.current) return;
     const everyoneVoted = players.length > 0 && currentVotes.length >= players.length;
-    if (remaining <= 0 || everyoneVoted) computeRoundResult();
-  }, [isHost, session.round_phase, remaining, currentVotes.length, players.length, session.id]);
+    if (remaining <= 0 || everyoneVoted) {
+      if (currentAnswers.length === 0) {
+        // Nobody answered this round at all — nothing to score or vote on.
+        // Skip straight to reveal instead of calling an API that can only
+        // fail (and would otherwise retry every tick).
+        scoringRef.current = true;
+        supabase.from("shofah_sessions")
+          .update({ round_phase: "reveal", phase_started_at: new Date().toISOString() })
+          .eq("id", session.id);
+      } else {
+        computeRoundResult();
+      }
+    }
+  }, [isHost, session.round_phase, remaining, currentVotes.length, currentAnswers.length, players.length, session.id]);
 
   // Every client (not just the host) fetches the winner's info once the
   // session enters the reveal phase, so this doesn't depend on whoever
@@ -235,10 +249,13 @@ export default function RoundScreen({
         .eq("session_id", session.id)
         .eq("round_number", session.current_round)
         .single();
-      if (cancelled || !data) return;
-      const p = (data as any).shofah_players;
-      const a = (data as any).shofah_answers;
-      setWinner({ nickname: p?.nickname ?? "?", avatar: p?.avatar_emoji ?? "🏆", text: a?.text ?? "" });
+      if (cancelled) return;
+      if (data) {
+        const p = (data as any).shofah_players;
+        const a = (data as any).shofah_answers;
+        setWinner({ nickname: p?.nickname ?? "?", avatar: p?.avatar_emoji ?? "🏆", text: a?.text ?? "" });
+      }
+      setWinnerFetched(true);
     })();
     return () => { cancelled = true; };
   }, [session.round_phase, session.id, session.current_round]);
@@ -275,6 +292,20 @@ export default function RoundScreen({
     if (!shuffledRef.current) shuffledRef.current = shuffle(currentAnswers);
     return shuffledRef.current;
   }, [session.round_phase, currentAnswers]);
+
+  // Auto-submit whatever's typed when the answering timer runs out — every
+  // client does this for itself (not host-only), matching "auto submit
+  // when timer ends" from the brief. If nothing was typed, nothing is
+  // submitted; that player just has no answer in the voting round.
+  const autoSubmitRef = useRef(false);
+  useEffect(() => {
+    if (session.round_phase !== "answering") { autoSubmitRef.current = false; return; }
+    if (autoSubmitRef.current || myAnswer || !draft.trim()) return;
+    if (remaining <= 0) {
+      autoSubmitRef.current = true;
+      submitAnswer();
+    }
+  }, [session.round_phase, remaining, myAnswer, draft]);
 
   async function submitAnswer() {
     if (!myPlayerId || !draft.trim() || myAnswer) return;
@@ -316,6 +347,11 @@ export default function RoundScreen({
         >
           {remaining > 0 ? remaining : (lang === "ar" ? "يلا!" : "Go!")}
         </div>
+        {remaining <= 0 && (
+          <div style={{ color: ROSE, height: 6 }}>
+            <span className="pulse-dot" /><span className="pulse-dot" /><span className="pulse-dot" />
+          </div>
+        )}
         {remaining <= 0 && isHost && (
           <button
             onClick={advancePastCountdown}
@@ -347,8 +383,19 @@ export default function RoundScreen({
             <p className="font-display" style={{ fontSize: 18, fontWeight: 800, margin: "6px 0" }}>{winner.nickname}</p>
             <p className="font-body" style={{ fontSize: 15, fontStyle: "italic", opacity: 0.85 }}>"{winner.text}"</p>
           </div>
+        ) : winnerFetched ? (
+          <p className="font-body" style={{ color: "var(--ink-soft)" }}>
+            {lang === "ar" ? "محد جاوب هالجولة 😅" : "Nobody answered this round 😅"}
+          </p>
         ) : (
-          <p className="font-body" style={{ color: "var(--ink-soft)" }}>{t.loading}</p>
+          <div style={{ color: "var(--ink-soft)", height: 20, display: "flex", alignItems: "center" }}>
+            <span className="pulse-dot" /><span className="pulse-dot" /><span className="pulse-dot" />
+          </div>
+        )}
+        {(winner || winnerFetched) && (
+          <div style={{ color: "var(--ink-soft)", height: 6 }}>
+            <span className="pulse-dot" /><span className="pulse-dot" /><span className="pulse-dot" />
+          </div>
         )}
         {scoringError && (
           <p className="font-body" style={{ fontSize: 12, color: ROSE, textAlign: "center" }}>{scoringError}</p>
@@ -463,6 +510,11 @@ export default function RoundScreen({
           <p className="font-display" style={{ textAlign: "center", fontSize: 20, fontWeight: 800, color: ROSE, margin: 0 }}>
             {t.voteHeader}
           </p>
+          {shuffledAnswers.length === 0 && (
+            <div style={{ textAlign: "center", color: "var(--ink-soft)" }}>
+              <span className="pulse-dot" /><span className="pulse-dot" /><span className="pulse-dot" />
+            </div>
+          )}
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {shuffledAnswers.map((a) => {
               const isMine = a.player_id === myPlayerId;
