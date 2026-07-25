@@ -10,6 +10,7 @@ import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import NiqabGirl from "@/components/shofah/NiqabGirl";
 import ShemaghGuy from "@/components/shofah/ShemaghGuy";
+import RoundScreen from "@/components/shofah/RoundScreen";
 import type { ShofahSessionRow, ShofahPlayerRow } from "@/lib/shofah-types";
 
 const ROSE = "#E63946";
@@ -77,8 +78,19 @@ export default function ShofahWaitingRoom() {
 
   async function startGame() {
     if (!session) return;
+    const { data: allPrompts } = await supabase.from("shofah_prompts").select("id").eq("active", true);
+    if (!allPrompts || allPrompts.length < 5) return;
+
+    const shuffled = [...allPrompts].sort(() => Math.random() - 0.5).slice(0, 5);
+    const rows = shuffled.map((p, i) => ({ session_id: session.id, round_number: i + 1, prompt_id: p.id }));
+    const { error: rpErr } = await supabase.from("shofah_round_prompts").insert(rows);
+    if (rpErr) return;
+
     await supabase.from("shofah_sessions")
-      .update({ status: "in_progress", current_round: 1, started_at: new Date().toISOString() })
+      .update({
+        status: "in_progress", current_round: 1, round_phase: "answering",
+        phase_started_at: new Date().toISOString(), started_at: new Date().toISOString(),
+      })
       .eq("id", session.id);
   }
 
@@ -90,12 +102,13 @@ export default function ShofahWaitingRoom() {
         {error && <p style={{ color: ROSE, fontWeight: 700, marginTop: 40 }}>{error}</p>}
 
         {session && session.status !== "waiting" && (
-          <div style={{ textAlign: "center", marginTop: 60 }}>
-            {session.character === "girl" ? <NiqabGirl size={110} /> : <ShemaghGuy size={110} />}
-            <p className="font-body" style={{ marginTop: 16, color: "var(--ink-soft)", fontWeight: 700 }}>
-              {t.roundsComingSoon}
-            </p>
-          </div>
+          <RoundScreen
+            session={session}
+            players={players}
+            myPlayerId={players.find((p) => p.user_id === userId)?.id ?? null}
+            isHost={isHost}
+            lang={lang as ShofahLang}
+          />
         )}
 
         {session && session.status === "waiting" && (

@@ -79,14 +79,17 @@ body {
 .bounce { animation: bounce 2.4s ease-in-out infinite; }
 
 /* ---- Shofah character idle animations (namespaced, decoupled from Fashlah) ---- */
-@keyframes shofahTilt { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-3deg); } }
-.shofah-tilt { animation: shofahTilt 3.6s ease-in-out infinite; transform-origin: 50% 90%; }
+@keyframes shofahFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.shofah-float { animation: shofahFloat 3s ease-in-out infinite; }
 
-@keyframes shofahBlink { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
-.shofah-blink { animation: shofahBlink 4.5s ease-in-out infinite; transform-origin: 70px 64px; }
+@keyframes shofahBlink { 0%, 88%, 100% { transform: scaleY(1); } 94% { transform: scaleY(0.05); } }
+.shofah-blink { animation: shofahBlink 4s ease-in-out infinite; transform-origin: 110px 90px; }
 
-@keyframes shofahSmile { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(1.06); } }
-.shofah-smile { animation: shofahSmile 3s ease-in-out infinite; transform-origin: 70px 80px; }
+@keyframes shofahSmile { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(1.08); } }
+.shofah-smile { animation: shofahSmile 2.8s ease-in-out infinite; transform-origin: 110px 120px; }
+
+@keyframes shofahHeartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+.shofah-heart { animation: shofahHeartbeat 1.4s ease-in-out infinite; }
 
 
 @keyframes popIn { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
