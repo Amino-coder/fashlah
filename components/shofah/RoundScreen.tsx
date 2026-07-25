@@ -174,8 +174,13 @@ export default function RoundScreen({
   async function advancePastAnswering() {
     if (transitionedRef.current) return;
     transitionedRef.current = true;
+    // If literally nobody answered, there's nothing to vote on — skip
+    // voting entirely rather than making everyone sit through a pointless
+    // 20-second timer staring at an empty list, and go straight to a
+    // flavorful "awkward silence" reveal.
+    const nextPhase = currentAnswers.length === 0 ? "reveal" : "voting";
     const { error } = await supabase.from("shofah_sessions")
-      .update({ round_phase: "voting", phase_started_at: new Date().toISOString() })
+      .update({ round_phase: nextPhase, phase_started_at: new Date().toISOString() })
       .eq("id", session.id);
     if (error) {
       transitionedRef.current = false;
@@ -387,10 +392,12 @@ export default function RoundScreen({
   if (session.round_phase === "reveal") {
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, marginTop: 40, textAlign: "center" }}>
-        <div style={{ fontSize: 60 }} className="pop">🎉</div>
-        <p className="font-display" style={{ fontSize: 22, fontWeight: 800, color: ROSE, margin: 0 }}>
-          🏆 {t.winnerHeader}
-        </p>
+        <div style={{ fontSize: 60 }} className="pop">{winnerFetched && !winner ? "😬" : "🎉"}</div>
+        {!(winnerFetched && !winner) && (
+          <p className="font-display" style={{ fontSize: 22, fontWeight: 800, color: ROSE, margin: 0 }}>
+            🏆 {t.winnerHeader}
+          </p>
+        )}
         {winner ? (
           <div className="card pop" style={{ padding: 20, textAlign: "center", maxWidth: 340 }}>
             <div style={{ fontSize: 40 }}>{winner.avatar}</div>
@@ -399,7 +406,7 @@ export default function RoundScreen({
           </div>
         ) : winnerFetched ? (
           <p className="font-body" style={{ color: "var(--ink-soft)" }}>
-            {lang === "ar" ? "محد جاوب هالجولة 😅" : "Nobody answered this round 😅"}
+            {lang === "ar" ? "هدوء يفشل... محد جاوب هالجولة!" : "Awkward silence... nobody answered this round!"}
           </p>
         ) : (
           <div style={{ color: "var(--ink-soft)", height: 20, display: "flex", alignItems: "center" }}>
