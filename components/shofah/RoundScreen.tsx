@@ -48,8 +48,26 @@ export default function RoundScreen({
   const transitionedRef = useRef(false);
   const scoringRef = useRef(false);
 
-  const myAnswer = answers.find((a) => a.player_id === myPlayerId);
-  const myVote = votes.find((v) => v.voter_player_id === myPlayerId);
+  // Filtered by round_number, not just "whatever's currently in state" —
+  // this is what actually makes the round transition safe. React doesn't
+  // guarantee one effect's setState is visible to another effect in the
+  // same batch, so clearing `answers` in a separate "reset" effect isn't
+  // enough on its own: the transition-check effect below can still run
+  // in that same batch using the pre-clear, stale answers.length from the
+  // previous round. Filtering by the row's own round_number field instead
+  // means stale leftover rows are simply never counted, no matter what
+  // order anything happens to run in.
+  const currentAnswers = useMemo(
+    () => answers.filter((a) => a.round_number === session.current_round),
+    [answers, session.current_round]
+  );
+  const currentVotes = useMemo(
+    () => votes.filter((v) => v.round_number === session.current_round),
+    [votes, session.current_round]
+  );
+
+  const myAnswer = currentAnswers.find((a) => a.player_id === myPlayerId);
+  const myVote = currentVotes.find((v) => v.voter_player_id === myPlayerId);
 
   // Reset per-round local state whenever the round number changes. Clearing
   // answers/votes SYNCHRONOUSLY here (not waiting on the async refetch
@@ -170,9 +188,9 @@ export default function RoundScreen({
 
   useEffect(() => {
     if (!isHost || session.round_phase !== "answering" || transitionedRef.current) return;
-    const everyoneAnswered = players.length > 0 && answers.length >= players.length;
+    const everyoneAnswered = players.length > 0 && currentAnswers.length >= players.length;
     if (remaining <= 0 || everyoneAnswered) advancePastAnswering();
-  }, [isHost, session.round_phase, remaining, answers.length, players.length, session.id]);
+  }, [isHost, session.round_phase, remaining, currentAnswers.length, players.length, session.id]);
 
   // Host-only: once voting closes, ask the server to tally votes, apply
   // scores, and flip the session into the reveal phase. This has to go
@@ -200,9 +218,9 @@ export default function RoundScreen({
 
   useEffect(() => {
     if (!isHost || session.round_phase !== "voting" || scoringRef.current) return;
-    const everyoneVoted = players.length > 0 && votes.length >= players.length;
+    const everyoneVoted = players.length > 0 && currentVotes.length >= players.length;
     if (remaining <= 0 || everyoneVoted) computeRoundResult();
-  }, [isHost, session.round_phase, remaining, votes.length, players.length, session.id]);
+  }, [isHost, session.round_phase, remaining, currentVotes.length, players.length, session.id]);
 
   // Every client (not just the host) fetches the winner's info once the
   // session enters the reveal phase, so this doesn't depend on whoever
@@ -254,9 +272,9 @@ export default function RoundScreen({
 
   const shuffledAnswers = useMemo(() => {
     if (session.round_phase !== "voting") return [];
-    if (!shuffledRef.current) shuffledRef.current = shuffle(answers);
+    if (!shuffledRef.current) shuffledRef.current = shuffle(currentAnswers);
     return shuffledRef.current;
-  }, [session.round_phase, answers]);
+  }, [session.round_phase, currentAnswers]);
 
   async function submitAnswer() {
     if (!myPlayerId || !draft.trim() || myAnswer) return;
@@ -423,7 +441,7 @@ export default function RoundScreen({
             </div>
           )}
           <p className="font-body" style={{ textAlign: "center", fontSize: 12, color: "var(--ink-soft)" }}>
-            {answers.length}/{players.length} {lang === "ar" ? "جاوبوا" : "answered"}
+            {currentAnswers.length}/{players.length} {lang === "ar" ? "جاوبوا" : "answered"}
           </p>
           {remaining <= 0 && isHost && (
             <button
@@ -473,7 +491,7 @@ export default function RoundScreen({
             })}
           </div>
           <p className="font-body" style={{ textAlign: "center", fontSize: 12, color: "var(--ink-soft)" }}>
-            {votes.length}/{players.length} {lang === "ar" ? "صوّتوا" : "voted"}
+            {currentVotes.length}/{players.length} {lang === "ar" ? "صوّتوا" : "voted"}
           </p>
           {scoringError && (
             <p className="font-body" style={{ fontSize: 12, color: ROSE, textAlign: "center" }}>{scoringError}</p>
