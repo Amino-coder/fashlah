@@ -166,6 +166,12 @@ export default function FinalConversation({
         })}
       </div>
 
+      {beats && visibleCount < totalMessages && (
+        <p className="font-body" style={{ textAlign: "center", fontSize: 11, color: "var(--ink-soft)", opacity: 0.6 }}>
+          {lang === "ar" ? "اضغظ اي مكان عشان تكمل" : "Tap anywhere to continue"}
+        </p>
+      )}
+
       {beats && visibleCount >= totalMessages && isHost && (
         <button
           onClick={(e) => { e.stopPropagation(); if (!advancedRef.current) { advancedRef.current = true; onDone(); } }}

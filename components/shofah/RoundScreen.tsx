@@ -90,6 +90,18 @@ export default function RoundScreen({
     setVotes([]);
   }, [session.current_round]);
 
+  // Reset scroll position and dismiss any open keyboard whenever the phase
+  // changes (e.g. answering -> voting). Without this, if a player is still
+  // focused on the answer textarea (keyboard open) right as the timer ends
+  // and the phase flips, the page's scroll position from the answering
+  // screen can carry over into the shorter voting screen, pushing the
+  // Submit button below the fold — it's still there, just invisible until
+  // manually scrolled to.
+  useEffect(() => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [session.round_phase]);
+
   // Fetch this round's prompt
   useEffect(() => {
     (async () => {

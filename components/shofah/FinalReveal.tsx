@@ -24,11 +24,17 @@ export default function FinalReveal({
   const [stage, setStage] = useState(0);
   const [winner, setWinner] = useState<ShofahPlayerRow | null>(null);
   const completedRef = useRef(false);
+  const winnerComputedRef = useRef(false);
 
   // Determine the overall winner: highest total_score, tie broken by most
-  // first-place round finishes.
+  // first-place round finishes. Computed exactly once — `players` is a prop
+  // that the parent refreshes every ~2.5s via polling, which would otherwise
+  // recreate this object on every poll and keep restarting the stage
+  // animation below before it ever finished (each restart only got as far
+  // as stage 1, since stage 2 needs 3s — longer than the poll interval).
   useEffect(() => {
-    if (players.length === 0) return;
+    if (players.length === 0 || winnerComputedRef.current) return;
+    winnerComputedRef.current = true;
     (async () => {
       const { data: results } = await supabase
         .from("shofah_round_results")
@@ -50,7 +56,10 @@ export default function FinalReveal({
     })();
   }, [players, session.id]);
 
-  // Staged drumroll: heart -> "thinking..." -> "the winner is..." -> reveal
+  // Staged drumroll: heart -> "thinking..." -> "the winner is..." -> reveal.
+  // Keyed off winner?.id (a stable string), not the winner object itself —
+  // belt and suspenders on top of the fetch-once guard above, in case
+  // `winner` ever legitimately gets recomputed for the same person.
   useEffect(() => {
     if (!winner) return;
     const timers = [
@@ -60,7 +69,7 @@ export default function FinalReveal({
       setTimeout(() => setStage(4), 6600),
     ];
     return () => timers.forEach(clearTimeout);
-  }, [winner]);
+  }, [winner?.id]);
 
   // Host-only: mark the session as completed once the reveal is showing.
   useEffect(() => {
