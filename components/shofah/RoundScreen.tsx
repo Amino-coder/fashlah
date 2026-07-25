@@ -14,6 +14,7 @@ const ROSE = "#E63946";
 const WINE = "#C2185B";
 const ANSWER_SECONDS = 30;
 const VOTE_SECONDS = 20;
+const COUNTDOWN_SECONDS = 5;
 const MAX_CHARS = 80;
 
 function shuffle<T>(arr: T[]): T[] {
@@ -90,12 +91,19 @@ export default function RoundScreen({
       .on("postgres_changes", { event: "*", schema: "public", table: "shofah_answers", filter: `session_id=eq.${session.id}` }, loadAll)
       .on("postgres_changes", { event: "*", schema: "public", table: "shofah_votes", filter: `session_id=eq.${session.id}` }, loadAll)
       .subscribe();
-    return () => { cancelled = true; supabase.removeChannel(channel); };
+
+    // Polling fallback, same reasoning as the lobby: don't let a missed
+    // realtime broadcast strand everyone on "2/2 answered" with a dead timer.
+    const pollId = setInterval(loadAll, 2500);
+
+    return () => { cancelled = true; supabase.removeChannel(channel); clearInterval(pollId); };
   }, [session.id, session.current_round]);
 
   // Countdown, anchored to phase_started_at so every client agrees
   useEffect(() => {
-    const duration = session.round_phase === "answering" ? ANSWER_SECONDS : VOTE_SECONDS;
+    const duration = session.round_phase === "answering" ? ANSWER_SECONDS
+      : session.round_phase === "voting" ? VOTE_SECONDS
+      : COUNTDOWN_SECONDS;
     function tick() {
       if (!session.phase_started_at) { setRemaining(duration); return; }
       const elapsed = (Date.now() - new Date(session.phase_started_at as string).getTime()) / 1000;
@@ -105,6 +113,18 @@ export default function RoundScreen({
     const id = setInterval(tick, 250);
     return () => clearInterval(id);
   }, [session.round_phase, session.phase_started_at]);
+
+  // Host-only: countdown -> answering once the 5-4-3-2-1 finishes
+  const countdownTransitionedRef = useRef(false);
+  useEffect(() => {
+    if (!isHost || session.round_phase !== "countdown" || countdownTransitionedRef.current) return;
+    if (remaining <= 0) {
+      countdownTransitionedRef.current = true;
+      supabase.from("shofah_sessions")
+        .update({ round_phase: "answering", phase_started_at: new Date().toISOString() })
+        .eq("id", session.id);
+    }
+  }, [isHost, session.round_phase, remaining, session.id]);
 
   // Host-only: advance answering -> voting once time's up or everyone submitted
   useEffect(() => {
@@ -149,6 +169,21 @@ export default function RoundScreen({
 
   const Character = session.character === "girl" ? NiqabGirl : ShemaghGuy;
   const promptText = prompt ? (lang === "ar" ? prompt.text_ar : prompt.text_en) : "";
+
+  if (session.round_phase === "countdown") {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, marginTop: 60 }}>
+        <Character size={130} />
+        <div
+          key={remaining}
+          className="font-display pop"
+          style={{ fontSize: 80, fontWeight: 800, color: ROSE, lineHeight: 1 }}
+        >
+          {remaining > 0 ? remaining : (lang === "ar" ? "يلا!" : "Go!")}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18, marginTop: 20 }}>
