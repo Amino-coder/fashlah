@@ -19,15 +19,6 @@ const REVEAL_SECONDS = 5;
 const MAX_CHARS = 80;
 const TOTAL_ROUNDS = 5;
 
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
 export default function RoundScreen({
   session, players, myPlayerId, isHost, lang,
 }: {
@@ -45,7 +36,7 @@ export default function RoundScreen({
   const [now, setNow] = useState(() => Date.now());
   const [winner, setWinner] = useState<{ nickname: string; avatar: string; text: string } | null>(null);
   const [winnerFetched, setWinnerFetched] = useState(false);
-  const shuffledRef = useRef<ShofahAnswerRow[] | null>(null);
+  const shuffleKeysRef = useRef<Map<string, number>>(new Map());
   const transitionedRef = useRef(false);
   const scoringRef = useRef(false);
   const autoSubmitRef = useRef(false);
@@ -79,7 +70,7 @@ export default function RoundScreen({
   // the PREVIOUS round's data, and the "everyone answered" check would
   // fire using that stale count.
   useEffect(() => {
-    shuffledRef.current = null;
+    shuffleKeysRef.current = new Map();
     transitionedRef.current = false;
     scoringRef.current = false;
     autoSubmitRef.current = false;
@@ -293,8 +284,12 @@ export default function RoundScreen({
 
   const shuffledAnswers = useMemo(() => {
     if (session.round_phase !== "voting") return [];
-    if (!shuffledRef.current) shuffledRef.current = shuffle(currentAnswers);
-    return shuffledRef.current;
+    for (const a of currentAnswers) {
+      if (!shuffleKeysRef.current.has(a.id)) shuffleKeysRef.current.set(a.id, Math.random());
+    }
+    return [...currentAnswers].sort(
+      (a, b) => shuffleKeysRef.current.get(a.id)! - shuffleKeysRef.current.get(b.id)!
+    );
   }, [session.round_phase, currentAnswers]);
 
   // Auto-submit whatever's typed when the answering timer runs out — every
