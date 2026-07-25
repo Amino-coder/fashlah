@@ -116,26 +116,44 @@ export default function RoundScreen({
 
   // Host-only: countdown -> answering once the 5-4-3-2-1 finishes
   const countdownTransitionedRef = useRef(false);
+  const [countdownError, setCountdownError] = useState<string | null>(null);
+
+  async function advancePastCountdown() {
+    if (countdownTransitionedRef.current) return;
+    countdownTransitionedRef.current = true;
+    const { error } = await supabase.from("shofah_sessions")
+      .update({ round_phase: "answering", phase_started_at: new Date().toISOString() })
+      .eq("id", session.id);
+    if (error) {
+      countdownTransitionedRef.current = false; // allow retry
+      setCountdownError(error.message);
+    }
+  }
+
   useEffect(() => {
     if (!isHost || session.round_phase !== "countdown" || countdownTransitionedRef.current) return;
-    if (remaining <= 0) {
-      countdownTransitionedRef.current = true;
-      supabase.from("shofah_sessions")
-        .update({ round_phase: "answering", phase_started_at: new Date().toISOString() })
-        .eq("id", session.id);
-    }
+    if (remaining <= 0) advancePastCountdown();
   }, [isHost, session.round_phase, remaining, session.id]);
 
   // Host-only: advance answering -> voting once time's up or everyone submitted
+  const [advanceError, setAdvanceError] = useState<string | null>(null);
+
+  async function advancePastAnswering() {
+    if (transitionedRef.current) return;
+    transitionedRef.current = true;
+    const { error } = await supabase.from("shofah_sessions")
+      .update({ round_phase: "voting", phase_started_at: new Date().toISOString() })
+      .eq("id", session.id);
+    if (error) {
+      transitionedRef.current = false;
+      setAdvanceError(error.message);
+    }
+  }
+
   useEffect(() => {
     if (!isHost || session.round_phase !== "answering" || transitionedRef.current) return;
     const everyoneAnswered = players.length > 0 && answers.length >= players.length;
-    if (remaining <= 0 || everyoneAnswered) {
-      transitionedRef.current = true;
-      supabase.from("shofah_sessions")
-        .update({ round_phase: "voting", phase_started_at: new Date().toISOString() })
-        .eq("id", session.id);
-    }
+    if (remaining <= 0 || everyoneAnswered) advancePastAnswering();
   }, [isHost, session.round_phase, remaining, answers.length, players.length, session.id]);
 
   // Voting completion is purely local — reveal/scoring is a later phase.
@@ -181,6 +199,20 @@ export default function RoundScreen({
         >
           {remaining > 0 ? remaining : (lang === "ar" ? "يلا!" : "Go!")}
         </div>
+        {remaining <= 0 && isHost && (
+          <button
+            onClick={advancePastCountdown}
+            className="font-body"
+            style={{ fontSize: 13, color: "var(--ink-soft)", background: "none", border: "none", textDecoration: "underline" }}
+          >
+            {lang === "ar" ? "متعلقين؟ اضغط للمتابعة" : "Stuck? Tap to continue"}
+          </button>
+        )}
+        {countdownError && (
+          <p className="font-body" style={{ fontSize: 12, color: ROSE, textAlign: "center", maxWidth: 260 }}>
+            {countdownError}
+          </p>
+        )}
       </div>
     );
   }
@@ -254,6 +286,18 @@ export default function RoundScreen({
           <p className="font-body" style={{ textAlign: "center", fontSize: 12, color: "var(--ink-soft)" }}>
             {answers.length}/{players.length} {lang === "ar" ? "جاوبوا" : "answered"}
           </p>
+          {remaining <= 0 && isHost && (
+            <button
+              onClick={advancePastAnswering}
+              className="font-body"
+              style={{ display: "block", margin: "0 auto", fontSize: 13, color: "var(--ink-soft)", background: "none", border: "none", textDecoration: "underline" }}
+            >
+              {lang === "ar" ? "متعلقين؟ اضغط للمتابعة" : "Stuck? Tap to continue"}
+            </button>
+          )}
+          {advanceError && (
+            <p className="font-body" style={{ fontSize: 12, color: ROSE, textAlign: "center" }}>{advanceError}</p>
+          )}
         </>
       )}
 
