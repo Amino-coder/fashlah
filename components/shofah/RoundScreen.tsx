@@ -172,7 +172,7 @@ export default function RoundScreen({
   }
 
   useEffect(() => {
-    if (!isHost || session.round_phase !== "countdown" || countdownTransitionedRef.current) return;
+    if (!isHost || session.current_round > TOTAL_ROUNDS || session.round_phase !== "countdown" || countdownTransitionedRef.current) return;
     if (remaining <= 0) advancePastCountdown();
   }, [isHost, session.round_phase, remaining, session.id]);
 
@@ -197,7 +197,7 @@ export default function RoundScreen({
   }
 
   useEffect(() => {
-    if (!isHost || session.round_phase !== "answering" || transitionedRef.current) return;
+    if (!isHost || session.current_round > TOTAL_ROUNDS || session.round_phase !== "answering" || transitionedRef.current) return;
     const everyoneAnswered = players.length > 0 && currentAnswers.length >= players.length;
     if (remaining <= 0 || everyoneAnswered) advancePastAnswering();
   }, [isHost, session.round_phase, remaining, currentAnswers.length, players.length, session.id]);
@@ -227,7 +227,7 @@ export default function RoundScreen({
   }
 
   useEffect(() => {
-    if (!isHost || session.round_phase !== "voting" || scoringRef.current) return;
+    if (!isHost || session.current_round > TOTAL_ROUNDS || session.round_phase !== "voting" || scoringRef.current) return;
     const everyoneVoted = players.length > 0 && currentVotes.length >= players.length;
     if (remaining <= 0 || everyoneVoted) {
       if (currentAnswers.length === 0) {
@@ -291,7 +291,7 @@ export default function RoundScreen({
   }, [session.current_round]);
 
   useEffect(() => {
-    if (!isHost || session.round_phase !== "reveal" || advancedPastRevealRef.current) return;
+    if (!isHost || session.current_round > TOTAL_ROUNDS || session.round_phase !== "reveal" || advancedPastRevealRef.current) return;
     if (remaining <= 0) advancePastReveal();
   }, [isHost, session.round_phase, remaining, session.id, session.current_round]);
 
