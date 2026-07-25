@@ -219,6 +219,15 @@ export default function RoundScreen({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18, marginTop: 20 }}>
+      <div className="font-body" style={{
+        fontSize: 10, fontFamily: "monospace", background: "rgba(0,0,0,0.05)", borderRadius: 8,
+        padding: 8, whiteSpace: "pre-wrap", wordBreak: "break-all", textAlign: "left", direction: "ltr",
+      }}>
+        DEBUG · phase={session.round_phase} round={session.current_round} myPlayerId={myPlayerId ?? "null"}{"\n"}
+        answers=[{answers.map(a => `{player:${a.player_id.slice(0, 8)}, text:"${a.text}"}`).join(", ")}]{"\n"}
+        players=[{players.map(p => `{id:${p.id.slice(0, 8)}, name:${p.nickname}}`).join(", ")}]
+      </div>
+
       <div style={{ textAlign: "center" }}>
         <span className="font-body" style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)" }}>
           {session.current_round} / 5
