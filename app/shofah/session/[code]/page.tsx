@@ -78,7 +78,7 @@ export default function ShofahWaitingRoom() {
       if (pl) setPlayers(pl as ShofahPlayerRow[]);
       const { data: sess } = await supabase.from("shofah_sessions").select("*").eq("id", session.id).single();
       if (sess) setSession(sess as ShofahSessionRow);
-    }, 2500);
+    }, 1200);
     return () => clearInterval(id);
   }, [session?.id]);
 

@@ -140,7 +140,7 @@ export default function RoundScreen({
 
     // Polling fallback, same reasoning as the lobby: don't let a missed
     // realtime broadcast strand everyone on "2/2 answered" with a dead timer.
-    const pollId = setInterval(loadAll, 2500);
+    const pollId = setInterval(loadAll, 1200);
 
     return () => { cancelled = true; supabase.removeChannel(channel); clearInterval(pollId); };
   }, [session.id, session.current_round]);
@@ -630,6 +630,14 @@ export default function RoundScreen({
           <p className="font-body" style={{ textAlign: "center", fontSize: 12, color: "var(--ink-soft)" }}>
             {currentVotes.length}/{players.length} {lang === "ar" ? "صوّتوا" : "voted"}
           </p>
+          {players.length > 0 && currentVotes.length >= players.length && (
+            <div style={{ textAlign: "center", color: "var(--ink-soft)", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+              <span className="font-body" style={{ fontSize: 12, fontWeight: 700 }}>
+                {lang === "ar" ? "جاري حساب النتائج..." : "Calculating results..."}
+              </span>
+              <div><span className="pulse-dot" /><span className="pulse-dot" /><span className="pulse-dot" /></div>
+            </div>
+          )}
           {scoringError && (
             <p className="font-body" style={{ fontSize: 12, color: ROSE, textAlign: "center" }}>{scoringError}</p>
           )}

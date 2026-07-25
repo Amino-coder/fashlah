@@ -10,6 +10,14 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 // shofah_round_results. If a result already exists (e.g. two clients both
 // detected "voting done" and both called this), the second call just
 // returns the existing result instead of re-scoring.
+//
+// Performance note: every DB call that doesn't depend on a previous call's
+// result runs in parallel via Promise.all. The original version awaited
+// each player's score fetch-then-update one at a time in a for loop —
+// for N players that's 2N sequential round-trips to the database from a
+// serverless function, which is exactly the kind of thing that makes a
+// "compute the round result" click feel sluggish. This version does the
+// same work in a small constant number of parallel batches instead.
 
 type AnswerRow = { id: string; player_id: string; text: string };
 type VoteRow = { answer_id: string };
@@ -24,7 +32,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "sessionId and roundNumber are required" }, { status: 400 });
     }
 
-    // Idempotency check
+    // Idempotency check — must happen first, before any writes.
     const { data: existing } = await supabaseAdmin
       .from("shofah_round_results")
       .select("*, shofah_answers(text)")
@@ -47,12 +55,13 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const { data: answers } = await supabaseAdmin
-      .from("shofah_answers").select("id, player_id, text")
-      .eq("session_id", sessionId).eq("round_number", roundNumber);
-    const { data: votes } = await supabaseAdmin
-      .from("shofah_votes").select("answer_id")
-      .eq("session_id", sessionId).eq("round_number", roundNumber);
+    // Answers and votes don't depend on each other — fetch both at once.
+    const [{ data: answers }, { data: votes }] = await Promise.all([
+      supabaseAdmin.from("shofah_answers").select("id, player_id, text")
+        .eq("session_id", sessionId).eq("round_number", roundNumber),
+      supabaseAdmin.from("shofah_votes").select("answer_id")
+        .eq("session_id", sessionId).eq("round_number", roundNumber),
+    ]);
 
     const answerRows = (answers as AnswerRow[]) || [];
     const voteRows = (votes as VoteRow[]) || [];
@@ -69,30 +78,40 @@ export async function POST(req: NextRequest) {
       .sort((a, b) => b.votes - a.votes)
       .map((entry, i) => ({ ...entry, points: POINTS_BY_RANK[i] ?? 1 }));
 
-    // Apply score increments
-    for (const entry of ranked) {
-      const { data: player } = await supabaseAdmin
-        .from("shofah_players").select("total_score").eq("id", entry.playerId).single();
-      const current = player?.total_score ?? 0;
-      await supabaseAdmin
-        .from("shofah_players").update({ total_score: current + entry.points }).eq("id", entry.playerId);
-    }
+    // Fetch every involved player's current score in ONE query instead of
+    // one query per player, then fire all the score updates in parallel.
+    const playerIds = ranked.map((r) => r.playerId);
+    const { data: currentPlayers } = await supabaseAdmin
+      .from("shofah_players").select("id, total_score").in("id", playerIds);
+    const scoreById = new Map((currentPlayers || []).map((p) => [p.id, p.total_score as number]));
+
+    await Promise.all(
+      ranked.map((entry) =>
+        supabaseAdmin.from("shofah_players")
+          .update({ total_score: (scoreById.get(entry.playerId) ?? 0) + entry.points })
+          .eq("id", entry.playerId)
+      )
+    );
 
     const winner = ranked[0];
-    const { error: insertErr } = await supabaseAdmin.from("shofah_round_results").insert({
-      session_id: sessionId, round_number: roundNumber,
-      winner_answer_id: winner.answerId, winner_player_id: winner.playerId,
-    });
+
+    // Insert the round result and flip the session into reveal phase in
+    // parallel — neither depends on the other.
+    const [{ error: insertErr }] = await Promise.all([
+      supabaseAdmin.from("shofah_round_results").insert({
+        session_id: sessionId, round_number: roundNumber,
+        winner_answer_id: winner.answerId, winner_player_id: winner.playerId,
+      }),
+      supabaseAdmin.from("shofah_sessions")
+        .update({ round_phase: "reveal", phase_started_at: new Date().toISOString() })
+        .eq("id", sessionId),
+    ]);
+
     // A duplicate-key error here just means another request beat us to it —
     // that's fine, not a real failure.
     if (insertErr && insertErr.code !== "23505") {
       return NextResponse.json({ error: insertErr.message }, { status: 500 });
     }
-
-    await supabaseAdmin
-      .from("shofah_sessions")
-      .update({ round_phase: "reveal", phase_started_at: new Date().toISOString() })
-      .eq("id", sessionId);
 
     return NextResponse.json({
       alreadyComputed: false,
