@@ -5,6 +5,8 @@ import { supabase } from "@/lib/supabase";
 import { SHOFAH_STR, ShofahLang } from "@/lib/shofah-i18n";
 import NiqabGirl from "./NiqabGirl";
 import ShemaghGuy from "./ShemaghGuy";
+import FinalConversation from "./FinalConversation";
+import FinalReveal from "./FinalReveal";
 import type {
   ShofahSessionRow, ShofahPlayerRow, ShofahPromptRow,
   ShofahAnswerRow, ShofahVoteRow,
@@ -370,14 +372,24 @@ export default function RoundScreen({
   const Character = session.character === "girl" ? NiqabGirl : ShemaghGuy;
   const promptText = prompt ? (lang === "ar" ? prompt.text_ar : prompt.text_en) : "";
 
-  // Past round 5 — the final conversation reveal is Phase 5, not built yet.
-  if (session.current_round > TOTAL_ROUNDS) {
+  // Past round 5: round 6 = final conversation, round 7+ = final reveal.
+  if (session.current_round === TOTAL_ROUNDS + 1) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, marginTop: 60, textAlign: "center" }}>
-        <Character size={110} />
-        <p className="font-body" style={{ color: "var(--ink-soft)", fontWeight: 700 }}>{t.gameOverSoon}</p>
-      </div>
+      <FinalConversation
+        session={session}
+        isHost={isHost}
+        lang={lang}
+        onDone={async () => {
+          await supabase.from("shofah_sessions")
+            .update({ current_round: TOTAL_ROUNDS + 2 })
+            .eq("id", session.id);
+        }}
+      />
     );
+  }
+
+  if (session.current_round > TOTAL_ROUNDS + 1) {
+    return <FinalReveal session={session} players={players} isHost={isHost} lang={lang} />;
   }
 
   if (session.round_phase === "countdown") {
