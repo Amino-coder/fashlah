@@ -26,6 +26,8 @@ export default function ShofahWaitingRoom() {
   const [userId, setUserId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
+  const [starting, setStarting] = useState(false);
 
   const isHost = !!(session && userId && session.host_user_id === userId);
 
@@ -90,9 +92,6 @@ export default function ShofahWaitingRoom() {
   }, [session?.id]);
 
   if (!ready) return null;
-
-  const [startError, setStartError] = useState<string | null>(null);
-  const [starting, setStarting] = useState(false);
 
   async function startGame() {
     if (!session) return;
