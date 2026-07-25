@@ -48,6 +48,8 @@ export default function RoundScreen({
   const shuffledRef = useRef<ShofahAnswerRow[] | null>(null);
   const transitionedRef = useRef(false);
   const scoringRef = useRef(false);
+  const autoSubmitRef = useRef(false);
+  const answeringDeadlineRef = useRef<number | null>(null);
 
   // Filtered by round_number, not just "whatever's currently in state" —
   // this is what actually makes the round transition safe. React doesn't
@@ -80,6 +82,8 @@ export default function RoundScreen({
     shuffledRef.current = null;
     transitionedRef.current = false;
     scoringRef.current = false;
+    autoSubmitRef.current = false;
+    answeringDeadlineRef.current = null;
     setDraft("");
     setWinner(null);
     setWinnerFetched(false);
@@ -297,15 +301,30 @@ export default function RoundScreen({
   // client does this for itself (not host-only), matching "auto submit
   // when timer ends" from the brief. If nothing was typed, nothing is
   // submitted; that player just has no answer in the voting round.
-  const autoSubmitRef = useRef(false);
+  //
+  // This deliberately does NOT check "is round_phase still answering" —
+  // that was the bug. The host's "advance to voting" write and this
+  // player's own auto-submit both trigger off the same remaining<=0
+  // instant; if the phase-change update reaches this browser first, the
+  // old check would see round_phase already flipped to "voting" and skip
+  // submitting entirely, silently dropping the draft. Instead, track the
+  // wall-clock deadline for THIS round's answering phase directly, so the
+  // submit still fires even if the displayed phase has already moved on.
+
   useEffect(() => {
-    if (session.round_phase !== "answering") { autoSubmitRef.current = false; return; }
+    if (session.round_phase === "answering" && session.phase_started_at) {
+      answeringDeadlineRef.current = new Date(session.phase_started_at).getTime() + ANSWER_SECONDS * 1000;
+    }
+  }, [session.round_phase, session.phase_started_at]);
+
+  useEffect(() => {
     if (autoSubmitRef.current || myAnswer || !draft.trim()) return;
-    if (remaining <= 0) {
+    if (!answeringDeadlineRef.current) return;
+    if (now >= answeringDeadlineRef.current) {
       autoSubmitRef.current = true;
       submitAnswer();
     }
-  }, [session.round_phase, remaining, myAnswer, draft]);
+  }, [now, myAnswer, draft]);
 
   async function submitAnswer() {
     if (!myPlayerId || !draft.trim() || myAnswer) return;
