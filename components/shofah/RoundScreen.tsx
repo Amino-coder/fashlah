@@ -279,9 +279,14 @@ export default function RoundScreen({
               </div>
             </div>
           ) : (
-            <p className="font-body" style={{ textAlign: "center", color: "var(--ink-soft)", fontWeight: 700 }}>
-              {lang === "ar" ? "تم الإرسال! بانتظار الباقين..." : "Submitted! Waiting for the others..."}
-            </p>
+            <div className="card" style={{ padding: 16, textAlign: "center" }}>
+              <p className="font-body" style={{ color: "var(--ink-soft)", fontWeight: 700, marginBottom: 8 }}>
+                {lang === "ar" ? "تم الإرسال! بانتظار الباقين..." : "Submitted! Waiting for the others..."}
+              </p>
+              <p className="font-body" style={{ fontSize: 13, fontStyle: "italic", opacity: 0.8 }}>
+                "{myAnswer.text}"
+              </p>
+            </div>
           )}
           <p className="font-body" style={{ textAlign: "center", fontSize: 12, color: "var(--ink-soft)" }}>
             {answers.length}/{players.length} {lang === "ar" ? "جاوبوا" : "answered"}
