@@ -91,28 +91,45 @@ export default function ShofahWaitingRoom() {
 
   if (!ready) return null;
 
+  const [startError, setStartError] = useState<string | null>(null);
+  const [starting, setStarting] = useState(false);
+
   async function startGame() {
     if (!session) return;
-    const { data: allPrompts } = await supabase.from("shofah_prompts").select("id").eq("active", true);
-    if (!allPrompts || allPrompts.length < 5) return;
+    setStarting(true);
+    setStartError(null);
+    try {
+      const { data: allPrompts, error: promptsErr } = await supabase
+        .from("shofah_prompts").select("id").eq("active", true);
+      if (promptsErr) throw promptsErr;
+      if (!allPrompts || allPrompts.length < 5) {
+        throw new Error(
+          `Only ${allPrompts?.length ?? 0} prompts found in shofah_prompts — need at least 5. Did shofah_seed.sql get run?`
+        );
+      }
 
-    const shuffled = [...allPrompts].sort(() => Math.random() - 0.5).slice(0, 5);
-    const rows = shuffled.map((p, i) => ({ session_id: session.id, round_number: i + 1, prompt_id: p.id }));
-    const { error: rpErr } = await supabase.from("shofah_round_prompts").insert(rows);
-    if (rpErr) return;
+      const shuffled = [...allPrompts].sort(() => Math.random() - 0.5).slice(0, 5);
+      const rows = shuffled.map((p, i) => ({ session_id: session.id, round_number: i + 1, prompt_id: p.id }));
+      const { error: rpErr } = await supabase.from("shofah_round_prompts").insert(rows);
+      if (rpErr) throw rpErr;
 
-    const nowIso = new Date().toISOString();
-    const { data: updated, error: updateErr } = await supabase
-      .from("shofah_sessions")
-      .update({ status: "in_progress", current_round: 1, round_phase: "answering", phase_started_at: nowIso, started_at: nowIso })
-      .eq("id", session.id)
-      .select()
-      .single();
-    if (updateErr) return;
-    // Don't wait on the realtime broadcast for the host's own action —
-    // apply it locally right away as a fallback in case realtime isn't
-    // configured for this table yet.
-    if (updated) setSession(updated as ShofahSessionRow);
+      const nowIso = new Date().toISOString();
+      const { data: updated, error: updateErr } = await supabase
+        .from("shofah_sessions")
+        .update({ status: "in_progress", current_round: 1, round_phase: "answering", phase_started_at: nowIso, started_at: nowIso })
+        .eq("id", session.id)
+        .select()
+        .single();
+      if (updateErr) throw updateErr;
+      // Don't wait on the realtime broadcast for the host's own action —
+      // apply it locally right away as a fallback in case realtime isn't
+      // configured for this table yet.
+      if (updated) setSession(updated as ShofahSessionRow);
+    } catch (e: any) {
+      setStartError(e.message || "Something went wrong starting the game.");
+    } finally {
+      setStarting(false);
+    }
   }
 
   return (
@@ -193,18 +210,25 @@ export default function ShofahWaitingRoom() {
             </div>
 
             {isHost ? (
-              <button
-                disabled={players.length < 2}
-                onClick={startGame}
-                className="font-display"
-                style={{
-                  padding: 18, fontSize: 17, width: "100%", borderRadius: 999, border: "none", color: "#fff",
-                  background: `linear-gradient(135deg, ${ROSE}, ${WINE})`,
-                  opacity: players.length < 2 ? 0.5 : 1,
-                }}
-              >
-                {t.startGame}
-              </button>
+              <>
+                {startError && (
+                  <p className="font-body" style={{ color: ROSE, fontWeight: 700, fontSize: 13, marginBottom: 10, textAlign: "center" }}>
+                    {startError}
+                  </p>
+                )}
+                <button
+                  disabled={players.length < 2 || starting}
+                  onClick={startGame}
+                  className="font-display"
+                  style={{
+                    padding: 18, fontSize: 17, width: "100%", borderRadius: 999, border: "none", color: "#fff",
+                    background: `linear-gradient(135deg, ${ROSE}, ${WINE})`,
+                    opacity: players.length < 2 || starting ? 0.5 : 1,
+                  }}
+                >
+                  {starting ? t.loading : t.startGame}
+                </button>
+              </>
             ) : (
               <div className="font-display" style={{ padding: 18, fontSize: 15, textAlign: "center", opacity: 0.7, border: "2px solid var(--ring)", borderRadius: 999 }}>
                 {t.waitingHost}
