@@ -1,7 +1,7 @@
 export type ShofahSessionStatus = "waiting" | "in_progress" | "completed";
 export type ShofahCharacter = "girl" | "guy";
 
-export type ShofahRoundPhase = "countdown" | "answering" | "voting";
+export type ShofahRoundPhase = "countdown" | "answering" | "voting" | "reveal";
 
 export interface ShofahSessionRow {
   id: string;
@@ -59,4 +59,12 @@ export interface ShofahVoteRow {
   voter_player_id: string;
   answer_id: string;
   created_at: string;
+}
+
+export interface ShofahRoundResultRow {
+  id: string;
+  session_id: string;
+  round_number: number;
+  winner_answer_id: string;
+  winner_player_id: string;
 }

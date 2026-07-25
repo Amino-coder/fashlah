@@ -15,7 +15,9 @@ const WINE = "#C2185B";
 const ANSWER_SECONDS = 30;
 const VOTE_SECONDS = 20;
 const COUNTDOWN_SECONDS = 5;
+const REVEAL_SECONDS = 5;
 const MAX_CHARS = 80;
+const TOTAL_ROUNDS = 5;
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -41,7 +43,7 @@ export default function RoundScreen({
   const [votes, setVotes] = useState<ShofahVoteRow[]>([]);
   const [draft, setDraft] = useState("");
   const [now, setNow] = useState(() => Date.now());
-  const [votingDone, setVotingDone] = useState(false);
+  const [winner, setWinner] = useState<{ nickname: string; avatar: string; text: string } | null>(null);
   const shuffledRef = useRef<ShofahAnswerRow[] | null>(null);
   const transitionedRef = useRef(false);
 
@@ -52,8 +54,8 @@ export default function RoundScreen({
   useEffect(() => {
     shuffledRef.current = null;
     transitionedRef.current = false;
-    setVotingDone(false);
     setDraft("");
+    setWinner(null);
   }, [session.current_round]);
 
   // Fetch this round's prompt
@@ -115,6 +117,7 @@ export default function RoundScreen({
 
   const duration = session.round_phase === "answering" ? ANSWER_SECONDS
     : session.round_phase === "voting" ? VOTE_SECONDS
+    : session.round_phase === "reveal" ? REVEAL_SECONDS
     : COUNTDOWN_SECONDS;
   const remaining = session.phase_started_at
     ? Math.max(0, Math.ceil(duration - (now - new Date(session.phase_started_at).getTime()) / 1000))
@@ -162,12 +165,84 @@ export default function RoundScreen({
     if (remaining <= 0 || everyoneAnswered) advancePastAnswering();
   }, [isHost, session.round_phase, remaining, answers.length, players.length, session.id]);
 
-  // Voting completion is purely local — reveal/scoring is a later phase.
+  // Host-only: once voting closes, ask the server to tally votes, apply
+  // scores, and flip the session into the reveal phase. This has to go
+  // through an API route (not a direct client write) because it needs to
+  // update OTHER players' total_score, which the public RLS policies
+  // deliberately don't allow from the browser.
+  const scoringRef = useRef(false);
+  const [scoringError, setScoringError] = useState<string | null>(null);
+
+  async function computeRoundResult() {
+    if (scoringRef.current) return;
+    scoringRef.current = true;
+    try {
+      const res = await fetch("/api/shofah-round-result", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: session.id, roundNumber: session.current_round }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Scoring failed");
+    } catch (e: any) {
+      scoringRef.current = false; // allow retry
+      setScoringError(e.message);
+    }
+  }
+
   useEffect(() => {
-    if (session.round_phase !== "voting") return;
+    if (!isHost || session.round_phase !== "voting" || scoringRef.current) return;
     const everyoneVoted = players.length > 0 && votes.length >= players.length;
-    if (remaining <= 0 || everyoneVoted) setVotingDone(true);
-  }, [session.round_phase, remaining, votes.length, players.length]);
+    if (remaining <= 0 || everyoneVoted) computeRoundResult();
+  }, [isHost, session.round_phase, remaining, votes.length, players.length, session.id]);
+
+  // Every client (not just the host) fetches the winner's info once the
+  // session enters the reveal phase, so this doesn't depend on whoever
+  // happened to trigger the scoring call.
+  useEffect(() => {
+    if (session.round_phase !== "reveal") return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("shofah_round_results")
+        .select("winner_player_id, shofah_answers(text), shofah_players(nickname, avatar_emoji)")
+        .eq("session_id", session.id)
+        .eq("round_number", session.current_round)
+        .single();
+      if (cancelled || !data) return;
+      const p = (data as any).shofah_players;
+      const a = (data as any).shofah_answers;
+      setWinner({ nickname: p?.nickname ?? "?", avatar: p?.avatar_emoji ?? "🏆", text: a?.text ?? "" });
+    })();
+    return () => { cancelled = true; };
+  }, [session.round_phase, session.id, session.current_round]);
+
+  // Host-only: after the reveal pause, move to the next round (or, past
+  // round 5, hand off to the final-conversation phase — Phase 5).
+  const advancedPastRevealRef = useRef(false);
+
+  async function advancePastReveal() {
+    if (advancedPastRevealRef.current) return;
+    advancedPastRevealRef.current = true;
+    if (session.current_round >= TOTAL_ROUNDS) {
+      await supabase.from("shofah_sessions")
+        .update({ current_round: TOTAL_ROUNDS + 1 })
+        .eq("id", session.id);
+    } else {
+      await supabase.from("shofah_sessions")
+        .update({ current_round: session.current_round + 1, round_phase: "answering", phase_started_at: new Date().toISOString() })
+        .eq("id", session.id);
+    }
+  }
+
+  useEffect(() => {
+    advancedPastRevealRef.current = false;
+  }, [session.current_round]);
+
+  useEffect(() => {
+    if (!isHost || session.round_phase !== "reveal" || advancedPastRevealRef.current) return;
+    if (remaining <= 0) advancePastReveal();
+  }, [isHost, session.round_phase, remaining, session.id, session.current_round]);
 
   const shuffledAnswers = useMemo(() => {
     if (session.round_phase !== "voting") return [];
@@ -193,6 +268,16 @@ export default function RoundScreen({
 
   const Character = session.character === "girl" ? NiqabGirl : ShemaghGuy;
   const promptText = prompt ? (lang === "ar" ? prompt.text_ar : prompt.text_en) : "";
+
+  // Past round 5 — the final conversation reveal is Phase 5, not built yet.
+  if (session.current_round > TOTAL_ROUNDS) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, marginTop: 60, textAlign: "center" }}>
+        <Character size={110} />
+        <p className="font-body" style={{ color: "var(--ink-soft)", fontWeight: 700 }}>{t.gameOverSoon}</p>
+      </div>
+    );
+  }
 
   if (session.round_phase === "countdown") {
     return (
@@ -223,11 +308,46 @@ export default function RoundScreen({
     );
   }
 
+  if (session.round_phase === "reveal") {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, marginTop: 40, textAlign: "center" }}>
+        <div style={{ fontSize: 60 }} className="pop">🎉</div>
+        <p className="font-display" style={{ fontSize: 22, fontWeight: 800, color: ROSE, margin: 0 }}>
+          🏆 {t.winnerHeader}
+        </p>
+        {winner ? (
+          <div className="card pop" style={{ padding: 20, textAlign: "center", maxWidth: 340 }}>
+            <div style={{ fontSize: 40 }}>{winner.avatar}</div>
+            <p className="font-display" style={{ fontSize: 18, fontWeight: 800, margin: "6px 0" }}>{winner.nickname}</p>
+            <p className="font-body" style={{ fontSize: 15, fontStyle: "italic", opacity: 0.85 }}>"{winner.text}"</p>
+          </div>
+        ) : (
+          <p className="font-body" style={{ color: "var(--ink-soft)" }}>{t.loading}</p>
+        )}
+        {scoringError && (
+          <p className="font-body" style={{ fontSize: 12, color: ROSE, textAlign: "center" }}>{scoringError}</p>
+        )}
+        {remaining <= 0 && isHost && (
+          <button
+            onClick={advancePastReveal}
+            className="font-display"
+            style={{
+              padding: "12px 28px", fontSize: 14, borderRadius: 999, border: "none", color: "#fff",
+              background: `linear-gradient(135deg, ${ROSE}, ${WINE})`,
+            }}
+          >
+            {session.current_round >= TOTAL_ROUNDS ? t.continueBtn : t.nextRoundBtn}
+          </button>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18, marginTop: 20 }}>
       <div style={{ textAlign: "center" }}>
         <span className="font-body" style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)" }}>
-          {session.current_round} / 5
+          {session.current_round} / {TOTAL_ROUNDS}
         </span>
       </div>
 
@@ -312,7 +432,7 @@ export default function RoundScreen({
         </>
       )}
 
-      {session.round_phase === "voting" && !votingDone && (
+      {session.round_phase === "voting" && (
         <>
           <p className="font-display" style={{ textAlign: "center", fontSize: 20, fontWeight: 800, color: ROSE, margin: 0 }}>
             {t.voteHeader}
@@ -347,13 +467,10 @@ export default function RoundScreen({
           <p className="font-body" style={{ textAlign: "center", fontSize: 12, color: "var(--ink-soft)" }}>
             {votes.length}/{players.length} {lang === "ar" ? "صوّتوا" : "voted"}
           </p>
+          {scoringError && (
+            <p className="font-body" style={{ fontSize: 12, color: ROSE, textAlign: "center" }}>{scoringError}</p>
+          )}
         </>
-      )}
-
-      {(session.round_phase === "voting" && votingDone) && (
-        <p className="font-body" style={{ textAlign: "center", color: "var(--ink-soft)", fontWeight: 700 }}>
-          {t.roundsComingSoon}
-        </p>
       )}
     </div>
   );
