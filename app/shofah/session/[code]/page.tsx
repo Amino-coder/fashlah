@@ -98,19 +98,24 @@ export default function ShofahWaitingRoom() {
     setStarting(true);
     setStartError(null);
     try {
-      const { data: allPrompts, error: promptsErr } = await supabase
-        .from("shofah_prompts").select("id").eq("active", true);
-      if (promptsErr) throw promptsErr;
-      if (!allPrompts || allPrompts.length < 5) {
-        throw new Error(
-          `Only ${allPrompts?.length ?? 0} prompts found in shofah_prompts — need at least 5. Did shofah_seed.sql get run?`
-        );
-      }
+      const { data: existingRounds } = await supabase
+        .from("shofah_round_prompts").select("id").eq("session_id", session.id).limit(1);
 
-      const shuffled = [...allPrompts].sort(() => Math.random() - 0.5).slice(0, 5);
-      const rows = shuffled.map((p, i) => ({ session_id: session.id, round_number: i + 1, prompt_id: p.id }));
-      const { error: rpErr } = await supabase.from("shofah_round_prompts").insert(rows);
-      if (rpErr) throw rpErr;
+      if (!existingRounds || existingRounds.length === 0) {
+        const { data: allPrompts, error: promptsErr } = await supabase
+          .from("shofah_prompts").select("id").eq("active", true);
+        if (promptsErr) throw promptsErr;
+        if (!allPrompts || allPrompts.length < 5) {
+          throw new Error(
+            `Only ${allPrompts?.length ?? 0} prompts found in shofah_prompts — need at least 5. Did shofah_seed.sql get run?`
+          );
+        }
+
+        const shuffled = [...allPrompts].sort(() => Math.random() - 0.5).slice(0, 5);
+        const rows = shuffled.map((p, i) => ({ session_id: session.id, round_number: i + 1, prompt_id: p.id }));
+        const { error: rpErr } = await supabase.from("shofah_round_prompts").insert(rows);
+        if (rpErr) throw rpErr;
+      }
 
       const nowIso = new Date().toISOString();
       const { data: updated, error: updateErr } = await supabase
