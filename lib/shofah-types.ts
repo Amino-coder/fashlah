@@ -34,6 +34,7 @@ export interface ShofahPromptRow {
   text_ar: string;
   text_en: string;
   active: boolean;
+  audience: "girl" | "guy" | null;
 }
 
 export interface ShofahRoundPromptRow {

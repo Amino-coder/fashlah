@@ -104,11 +104,13 @@ export default function ShofahWaitingRoom() {
 
       if (!existingRounds || existingRounds.length === 0) {
         const { data: allPrompts, error: promptsErr } = await supabase
-          .from("shofah_prompts").select("id").eq("active", true);
+          .from("shofah_prompts").select("id")
+          .eq("active", true)
+          .or(`audience.is.null,audience.eq.${session.character}`);
         if (promptsErr) throw promptsErr;
         if (!allPrompts || allPrompts.length < 5) {
           throw new Error(
-            `Only ${allPrompts?.length ?? 0} prompts found in shofah_prompts — need at least 5. Did shofah_seed.sql get run?`
+            `Only ${allPrompts?.length ?? 0} prompts available for character "${session.character}" — need at least 5. Did the prompt bank migration get run?`
           );
         }
 
