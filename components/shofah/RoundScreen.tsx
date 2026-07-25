@@ -46,16 +46,25 @@ export default function RoundScreen({
   const [winner, setWinner] = useState<{ nickname: string; avatar: string; text: string } | null>(null);
   const shuffledRef = useRef<ShofahAnswerRow[] | null>(null);
   const transitionedRef = useRef(false);
+  const scoringRef = useRef(false);
 
   const myAnswer = answers.find((a) => a.player_id === myPlayerId);
   const myVote = votes.find((v) => v.voter_player_id === myPlayerId);
 
-  // Reset per-round local state whenever the round number changes
+  // Reset per-round local state whenever the round number changes. Clearing
+  // answers/votes SYNCHRONOUSLY here (not waiting on the async refetch
+  // below) matters: otherwise there's a render where current_round/round_
+  // phase have already moved to the new round but `answers` still holds
+  // the PREVIOUS round's data, and the "everyone answered" check would
+  // fire using that stale count.
   useEffect(() => {
     shuffledRef.current = null;
     transitionedRef.current = false;
+    scoringRef.current = false;
     setDraft("");
     setWinner(null);
+    setAnswers([]);
+    setVotes([]);
   }, [session.current_round]);
 
   // Fetch this round's prompt
@@ -170,7 +179,6 @@ export default function RoundScreen({
   // through an API route (not a direct client write) because it needs to
   // update OTHER players' total_score, which the public RLS policies
   // deliberately don't allow from the browser.
-  const scoringRef = useRef(false);
   const [scoringError, setScoringError] = useState<string | null>(null);
 
   async function computeRoundResult() {
