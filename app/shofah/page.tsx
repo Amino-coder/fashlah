@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Moon, Sun } from "lucide-react";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
+import NiqabGirl from "@/components/shofah/NiqabGirl";
+import ShemaghGuy from "@/components/shofah/ShemaghGuy";
 import { SHOFAH_STR, shofahSubtitles, ShofahLang } from "@/lib/shofah-i18n";
 import { usePrefs } from "@/lib/usePrefs";
 
@@ -49,7 +51,11 @@ export default function ShofahLanding() {
         </div>
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 14 }}>
-          <div style={{ fontSize: 64 }}>💍</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, direction: "ltr" }}>
+            <ShemaghGuy size={56} />
+            <span style={{ fontSize: 40 }}>💍</span>
+            <NiqabGirl size={56} />
+          </div>
           <h1
             className="font-display"
             style={{

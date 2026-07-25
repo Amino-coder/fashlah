@@ -183,8 +183,8 @@ export default function ShofahWaitingRoom() {
                 <a
                   href={`https://wa.me/?text=${encodeURIComponent(
                     lang === "ar"
-                      ? `💍 انضم لجلستي على شوفة!\n${typeof window !== "undefined" ? window.location.origin : ""}/shofah/join?code=${session.code}`
-                      : `💍 Join my Shofah session!\n${typeof window !== "undefined" ? window.location.origin : ""}/shofah/join?code=${session.code}`
+                      ? `💍 انضم لجلستي على ابي اتزوج!\n${typeof window !== "undefined" ? window.location.origin : ""}/shofah/join?code=${session.code}`
+                      : `💍 Join my Marry me! session!\n${typeof window !== "undefined" ? window.location.origin : ""}/shofah/join?code=${session.code}`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"

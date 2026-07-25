@@ -3,8 +3,8 @@ export type ShofahLang = "ar" | "en";
 export const SHOFAH_STR: Record<ShofahLang, Record<string, string>> = {
   ar: {
     dir: "rtl",
-    gameNameArabic: "شوفة",
-    gameNameLatin: "First Date",
+    gameNameArabic: "ابي اتزوج!",
+    gameNameLatin: "Marry me!",
     startGame: "ابدأ اللعبة",
     subtitles: JSON.stringify([
       "خلّنا نشوف مين بيتزوج أول 😂",
@@ -46,8 +46,8 @@ export const SHOFAH_STR: Record<ShofahLang, Record<string, string>> = {
   },
   en: {
     dir: "ltr",
-    gameNameArabic: "شوفة",
-    gameNameLatin: "First Date",
+    gameNameArabic: "ابي اتزوج!",
+    gameNameLatin: "Marry me!",
     startGame: "Start Game",
     subtitles: JSON.stringify([
       "Let's see who gets married first 😂",
