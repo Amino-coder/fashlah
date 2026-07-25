@@ -66,20 +66,21 @@ export default function ShofahWaitingRoom() {
     return () => { supabase.removeChannel(channel); };
   }, [session?.id]);
 
-  // Polling fallback (every 4s while waiting) — self-heals if a realtime
-  // broadcast is ever missed, so the lobby doesn't get permanently stuck
-  // waiting on a page refresh.
+  // Polling fallback — self-heals if a realtime broadcast is ever missed,
+  // so the lobby/round flow never gets permanently stuck waiting on a
+  // manual refresh. Runs continuously (not just in the waiting room) since
+  // round-phase transitions matter just as much once gameplay starts.
   useEffect(() => {
-    if (!session?.id || session.status !== "waiting") return;
+    if (!session?.id) return;
     const id = setInterval(async () => {
       const { data: pl } = await supabase
         .from("shofah_players").select("*").eq("session_id", session.id).order("joined_at", { ascending: true });
       if (pl) setPlayers(pl as ShofahPlayerRow[]);
       const { data: sess } = await supabase.from("shofah_sessions").select("*").eq("id", session.id).single();
       if (sess) setSession(sess as ShofahSessionRow);
-    }, 4000);
+    }, 2500);
     return () => clearInterval(id);
-  }, [session?.id, session?.status]);
+  }, [session?.id]);
 
   // Same back-gesture trap used in Fashlah, so a stray back press doesn't
   // yank someone out of a live session.
@@ -120,7 +121,7 @@ export default function ShofahWaitingRoom() {
       const nowIso = new Date().toISOString();
       const { data: updated, error: updateErr } = await supabase
         .from("shofah_sessions")
-        .update({ status: "in_progress", current_round: 1, round_phase: "answering", phase_started_at: nowIso, started_at: nowIso })
+        .update({ status: "in_progress", current_round: 1, round_phase: "countdown", phase_started_at: nowIso, started_at: nowIso })
         .eq("id", session.id)
         .select()
         .single();
