@@ -1,3 +1,10 @@
+// مزنة — the girl character. Gradient IDs are prefixed "n5" so they can't
+// collide with ShemaghGuy's defs when both render on the same page (the
+// Shofah landing page shows them side by side around the ring emoji).
+//
+// NOTE: the filename is a leftover from an earlier design that had a niqab;
+// the character no longer wears one. Kept as-is only to avoid churning the
+// six files that import it — safe to rename whenever convenient.
 export default function NiqabGirl({
   size = 140,
   className = "",
@@ -6,64 +13,91 @@ export default function NiqabGirl({
   className?: string;
 }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 220 220" className={`shofah-float ${className}`}>
-      {/* tiny body */}
-      <path d="M76 180 Q76 156 110 152 Q144 156 144 180 L144 210 L76 210 Z" fill="#2A2440" />
+    <svg width={size} height={size} viewBox="0 0 240 250" className={`shofah-float ${className}`}>
+      <defs>
+        <radialGradient id="n5Skin" cx="40%" cy="34%">
+          <stop offset="0%" stopColor="#FFE0C8" />
+          <stop offset="100%" stopColor="#F3BE99" />
+        </radialGradient>
+        <linearGradient id="n5Hair" x1="0.2" y1="0" x2="0.8" y2="1">
+          <stop offset="0%" stopColor="#4A3350" />
+          <stop offset="45%" stopColor="#2E1F38" />
+          <stop offset="100%" stopColor="#1C1226" />
+        </linearGradient>
+        <linearGradient id="n5Dress" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#8E4FC4" />
+          <stop offset="100%" stopColor="#5E2E8E" />
+        </linearGradient>
+      </defs>
 
-      {/* big round head */}
-      <circle cx="110" cy="96" r="62" fill="#FBD7BD" />
+      {/* ground shadow */}
+      <ellipse cx="120" cy="240" rx="62" ry="8" fill="#7C3AED" opacity=".12" />
 
-      {/* draped niqab fabric */}
-      <path
-        d="M44 90 Q36 40 60 20 Q80 6 110 6 Q140 6 160 20 Q184 40 176 90
-           Q180 120 170 138 Q155 155 140 158 L140 130 Q160 120 164 90
-           Q170 50 110 28 Q50 50 56 90 Q60 120 80 130 L80 158
-           Q65 155 50 138 Q40 120 44 90 Z"
-        fill="#2A2440"
-      />
-      <path d="M80 158 Q72 180 78 210" fill="#2A2440" />
-      <path d="M140 158 Q148 180 142 210" fill="#2A2440" />
-      {/* fold texture */}
-      <path d="M76 22 Q74 60 78 100" stroke="#3D3460" strokeWidth="1.8" fill="none" opacity="0.5" />
-      <path d="M144 22 Q146 60 142 100" stroke="#3D3460" strokeWidth="1.8" fill="none" opacity="0.5" />
-      <path d="M110 10 Q108 50 110 90" stroke="#3D3460" strokeWidth="1.2" fill="none" opacity="0.3" />
+      {/* back hair mass, behind everything */}
+      <path d="M120 30 Q52 34 46 108 Q40 160 52 214 Q84 202 120 204 Q156 202 188 214 Q200 160 194 108 Q188 34 120 30 Z" fill="url(#n5Hair)" />
 
-      {/* face opening */}
-      <path d="M60 70 Q56 90 62 104 Q80 120 110 122 Q140 120 158 104 Q164 90 160 70 Q150 56 110 52 Q70 56 60 70 Z" fill="#FBD7BD" />
+      {/* dress + arms */}
+      <path d="M74 240 Q76 198 120 192 Q164 198 166 240 Z" fill="url(#n5Dress)" />
+      <path d="M82 212 Q58 202 50 214" stroke="#F3BE99" strokeWidth="11" fill="none" strokeLinecap="round" />
+      <path d="M158 212 Q184 200 192 212" stroke="#F3BE99" strokeWidth="11" fill="none" strokeLinecap="round" />
+      <circle cx="48" cy="216" r="9" fill="url(#n5Skin)" />
+      <circle cx="194" cy="213" r="9" fill="url(#n5Skin)" />
 
-      {/* eyes */}
-      <g className="shofah-blink">
-        <circle cx="86" cy="88" r="16" fill="#fff" />
-        <circle cx="89" cy="90" r="10.5" fill="#7C3AED" />
-        <circle cx="93" cy="85" r="4" fill="#fff" />
-        <circle cx="86" cy="94" r="2" fill="#fff" opacity="0.7" />
-        <circle cx="83" cy="83" r="1.2" fill="#fff" opacity="0.5" />
+      {/* round face + ears */}
+      <circle cx="120" cy="110" r="58" fill="url(#n5Skin)" />
+      <circle cx="62" cy="118" r="9" fill="#F3BE99" />
+      <circle cx="178" cy="118" r="9" fill="#F3BE99" />
 
-        <circle cx="134" cy="88" r="16" fill="#fff" />
-        <circle cx="137" cy="90" r="10.5" fill="#7C3AED" />
-        <circle cx="141" cy="85" r="4" fill="#fff" />
-        <circle cx="134" cy="94" r="2" fill="#fff" opacity="0.7" />
-        <circle cx="131" cy="83" r="1.2" fill="#fff" opacity="0.5" />
+      <g className="shofah-sway">
+        {/* front hair: side-swept fringe framing the face */}
+        <path d="M120 42 Q66 44 60 106 Q58 84 74 74 Q92 92 120 88 Q152 92 172 72 Q184 84 180 106 Q176 44 120 42 Z" fill="url(#n5Hair)" />
+        {/* side locks falling past the cheeks */}
+        <path d="M62 96 Q52 140 60 186 Q72 156 68 100 Z" fill="url(#n5Hair)" />
+        <path d="M178 96 Q188 140 180 186 Q168 156 172 100 Z" fill="url(#n5Hair)" />
+        {/* shine — what stops the hair reading as a flat silhouette */}
+        <path d="M88 60 Q76 76 74 96" fill="none" stroke="#7E6693" strokeWidth="4" opacity=".45" strokeLinecap="round" />
+        <path d="M150 58 Q166 74 168 94" fill="none" stroke="#7E6693" strokeWidth="3.5" opacity=".38" strokeLinecap="round" />
+        <path d="M64 150 Q58 178 62 200" fill="none" stroke="#7E6693" strokeWidth="3" opacity=".28" strokeLinecap="round" />
+        <path d="M176 150 Q182 178 178 200" fill="none" stroke="#7E6693" strokeWidth="3" opacity=".28" strokeLinecap="round" />
+        {/* flower tucked in */}
+        <g transform="translate(168,62)">
+          <circle r="5" cx="0" cy="-7" fill="#F4708F" />
+          <circle r="5" cx="7" cy="0" fill="#F4708F" />
+          <circle r="5" cx="0" cy="7" fill="#F4708F" />
+          <circle r="5" cx="-7" cy="0" fill="#F4708F" />
+          <circle r="4" fill="#FFC93C" />
+        </g>
       </g>
 
-      {/* lashes */}
-      <path d="M70 78 L64 72" stroke="#2A2440" strokeWidth="2.5" strokeLinecap="round" />
-      <path d="M74 74 L70 66" stroke="#2A2440" strokeWidth="2.5" strokeLinecap="round" />
-      <path d="M150 78 L156 72" stroke="#2A2440" strokeWidth="2.5" strokeLinecap="round" />
-      <path d="M146 74 L150 66" stroke="#2A2440" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M84 92 Q98 82 112 90" stroke="#3A2A44" strokeWidth="5" fill="none" strokeLinecap="round" />
+      <path d="M130 90 Q144 82 158 92" stroke="#3A2A44" strokeWidth="5" fill="none" strokeLinecap="round" />
+      <path d="M78 104 L68 96" stroke="#1C1226" strokeWidth="3.5" strokeLinecap="round" />
+      <path d="M162 104 L172 96" stroke="#1C1226" strokeWidth="3.5" strokeLinecap="round" />
 
-      {/* blush */}
-      <ellipse cx="78" cy="106" rx="10" ry="5" fill="#FFB3C6" opacity="0.55" />
-      <ellipse cx="142" cy="106" rx="10" ry="5" fill="#FFB3C6" opacity="0.55" />
-
-      <path className="shofah-smile" d="M102 112 Q110 120 118 112" stroke="#C97A50" strokeWidth="3" fill="none" strokeLinecap="round" />
-
-      <g className="shofah-heart" style={{ transformOrigin: "180px 50px" }}>
-        <path d="M176 50 Q176 42 182 42 Q188 42 188 50 Q188 58 176 66 Q164 58 164 50 Q164 42 170 42 Q176 42 176 50" fill="#FF6B9D" opacity="0.7" />
+      <g className="shofah-blink" style={{ transformOrigin: "120px 116px" }}>
+        <ellipse cx="97" cy="116" rx="15" ry="16" fill="#fff" />
+        <circle cx="99" cy="118" r="10" fill="#6B3FA0" />
+        <circle cx="99" cy="118" r="5" fill="#3A1F5C" />
+        <circle cx="103" cy="113" r="4" fill="#fff" />
+        <circle cx="95" cy="123" r="2" fill="#fff" opacity=".85" />
+        <circle cx="92" cy="111" r="1.4" fill="#fff" opacity=".6" />
+        <ellipse cx="145" cy="116" rx="15" ry="16" fill="#fff" />
+        <circle cx="147" cy="118" r="10" fill="#6B3FA0" />
+        <circle cx="147" cy="118" r="5" fill="#3A1F5C" />
+        <circle cx="151" cy="113" r="4" fill="#fff" />
+        <circle cx="143" cy="123" r="2" fill="#fff" opacity=".85" />
+        <circle cx="140" cy="111" r="1.4" fill="#fff" opacity=".6" />
       </g>
-      <g fill="#FFD400">
-        <path d="M38 60 l2 6 6 2 -6 2 -2 6 -2-6 -6-2 6-2z" opacity="0.7" />
-        <path d="M178 100 l1.5 4 4 1.5 -4 1.5 -1.5 4 -1.5-4 -4-1.5 4-1.5z" opacity="0.5" />
+
+      <path d="M120 126 Q116 136 122 139" stroke="#D89A72" strokeWidth="3" fill="none" strokeLinecap="round" />
+      <ellipse cx="80" cy="138" rx="11" ry="5.5" fill="#F4708F" opacity=".42" />
+      <ellipse cx="162" cy="138" rx="11" ry="5.5" fill="#F4708F" opacity=".42" />
+      <path d="M108 150 Q120 160 132 150" stroke="#B85C7A" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+
+      <path className="shofah-twinkle" d="M204 70 Q204 60 212 60 Q220 60 220 70 Q220 82 204 94 Q188 82 188 70 Q188 60 196 60 Q204 60 204 70" fill="#F4708F" opacity=".75" />
+      <g fill="#FFC93C">
+        <path className="shofah-twinkle-b" d="M26 92 l3 8 8 3 -8 3 -3 8 -3-8 -8-3 8-3z" />
+        <path className="shofah-twinkle" d="M32 160 l2 5 5 2 -5 2 -2 5 -2-5 -5-2 5-2z" />
       </g>
     </svg>
   );
