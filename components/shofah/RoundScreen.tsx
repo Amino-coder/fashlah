@@ -40,7 +40,7 @@ export default function RoundScreen({
   const [answers, setAnswers] = useState<ShofahAnswerRow[]>([]);
   const [votes, setVotes] = useState<ShofahVoteRow[]>([]);
   const [draft, setDraft] = useState("");
-  const [remaining, setRemaining] = useState(ANSWER_SECONDS);
+  const [now, setNow] = useState(() => Date.now());
   const [votingDone, setVotingDone] = useState(false);
   const shuffledRef = useRef<ShofahAnswerRow[] | null>(null);
   const transitionedRef = useRef(false);
@@ -99,20 +99,26 @@ export default function RoundScreen({
     return () => { cancelled = true; supabase.removeChannel(channel); clearInterval(pollId); };
   }, [session.id, session.current_round]);
 
-  // Countdown, anchored to phase_started_at so every client agrees
+  // A plain ticking clock — remaining time is derived from this fresh on
+  // every render (see below), rather than tracked as its own lagging state.
+  // That matters: if `remaining` were state updated by a separate effect,
+  // there's a render right after a phase change where the new round_phase
+  // has arrived but the old `remaining` value (e.g. 0, left over from the
+  // previous phase ending) hasn't been recomputed yet — and an effect that
+  // reads `remaining` in that render sees the stale value. Deriving it
+  // directly from session.round_phase + session.phase_started_at instead
+  // means it's always correct for whatever phase is current.
   useEffect(() => {
-    const duration = session.round_phase === "answering" ? ANSWER_SECONDS
-      : session.round_phase === "voting" ? VOTE_SECONDS
-      : COUNTDOWN_SECONDS;
-    function tick() {
-      if (!session.phase_started_at) { setRemaining(duration); return; }
-      const elapsed = (Date.now() - new Date(session.phase_started_at as string).getTime()) / 1000;
-      setRemaining(Math.max(0, Math.ceil(duration - elapsed)));
-    }
-    tick();
-    const id = setInterval(tick, 250);
+    const id = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(id);
-  }, [session.round_phase, session.phase_started_at]);
+  }, []);
+
+  const duration = session.round_phase === "answering" ? ANSWER_SECONDS
+    : session.round_phase === "voting" ? VOTE_SECONDS
+    : COUNTDOWN_SECONDS;
+  const remaining = session.phase_started_at
+    ? Math.max(0, Math.ceil(duration - (now - new Date(session.phase_started_at).getTime()) / 1000))
+    : duration;
 
   // Host-only: countdown -> answering once the 5-4-3-2-1 finishes
   const countdownTransitionedRef = useRef(false);
