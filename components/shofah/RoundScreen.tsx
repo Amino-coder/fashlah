@@ -17,7 +17,10 @@ const WINE = "#C2185B";
 const ANSWER_SECONDS = 30;
 const VOTE_SECONDS = 20;
 const COUNTDOWN_SECONDS = 5;
-const REVEAL_SECONDS = 5;
+// Not a separate screen anymore — just a brief "vote locked, here's who
+// wrote what" beat shown inline at the bottom of the voting screen before
+// auto-advancing. Kept short on purpose so it doesn't kill momentum.
+const REVEAL_SECONDS = 2.5;
 const MAX_CHARS = 80;
 const TOTAL_ROUNDS = 5;
 
@@ -37,8 +40,6 @@ export default function RoundScreen({
   const [draft, setDraft] = useState("");
   const [selectedAnswerId, setSelectedAnswerId] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
-  const [winner, setWinner] = useState<{ nickname: string; avatar: string; text: string } | null>(null);
-  const [winnerFetched, setWinnerFetched] = useState(false);
   const shuffleKeysRef = useRef<Map<string, number>>(new Map());
   const transitionedRef = useRef(false);
   const scoringRef = useRef(false);
@@ -84,8 +85,6 @@ export default function RoundScreen({
     votingDeadlineRef.current = null;
     setDraft("");
     setSelectedAnswerId(null);
-    setWinner(null);
-    setWinnerFetched(false);
     setAnswers([]);
     setVotes([]);
   }, [session.current_round]);
@@ -214,11 +213,15 @@ export default function RoundScreen({
     if (remaining <= 0 || everyoneAnswered) advancePastAnswering();
   }, [isHost, session.round_phase, remaining, currentAnswers.length, players.length, session.id]);
 
-  // Host-only: once voting closes, ask the server to tally votes, apply
-  // scores, and flip the session into the reveal phase. This has to go
-  // through an API route (not a direct client write) because it needs to
-  // update OTHER players' total_score, which the public RLS policies
-  // deliberately don't allow from the browser.
+  // Host-only: once voting closes (everyone voted, or the timer ran out),
+  // fire the scoring call in the BACKGROUND (fire-and-forget — still goes
+  // through the API route since it needs to update OTHER players'
+  // total_score, which RLS blocks from the browser) and, at the same time,
+  // show a brief "vote locked" + who-wrote-what beat before auto-advancing.
+  // We deliberately do NOT wait for scoring to finish before moving on —
+  // that round trip was what made the old reveal screen feel slow. Scoring
+  // still happens every round, just invisibly; the actual winner only
+  // resurfaces later, in the Final Conversation recap.
   const [scoringError, setScoringError] = useState<string | null>(null);
 
   async function computeRoundResult() {
@@ -242,46 +245,19 @@ export default function RoundScreen({
     if (!isHost || session.current_round > TOTAL_ROUNDS || session.round_phase !== "voting" || scoringRef.current) return;
     const everyoneVoted = players.length > 0 && currentVotes.length >= players.length;
     if (remaining <= 0 || everyoneVoted) {
-      if (currentAnswers.length === 0) {
-        // Nobody answered this round at all — nothing to score or vote on.
-        // Skip straight to reveal instead of calling an API that can only
-        // fail (and would otherwise retry every tick).
-        scoringRef.current = true;
-        supabase.from("shofah_sessions")
-          .update({ round_phase: "reveal", phase_started_at: new Date().toISOString() })
-          .eq("id", session.id);
-      } else {
-        computeRoundResult();
-      }
+      scoringRef.current = true;
+      // Only bother calling the scoring API if there was actually something
+      // to score; either way, flip to "reveal" right away — that phase is
+      // now just the short locked/who-wrote-what beat, not a wait state.
+      if (currentAnswers.length > 0) computeRoundResult();
+      supabase.from("shofah_sessions")
+        .update({ round_phase: "reveal", phase_started_at: new Date().toISOString() })
+        .eq("id", session.id);
     }
   }, [isHost, session.round_phase, remaining, currentVotes.length, currentAnswers.length, players.length, session.id]);
 
-  // Every client (not just the host) fetches the winner's info once the
-  // session enters the reveal phase, so this doesn't depend on whoever
-  // happened to trigger the scoring call.
-  useEffect(() => {
-    if (session.round_phase !== "reveal") return;
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase
-        .from("shofah_round_results")
-        .select("winner_player_id, shofah_answers(text), shofah_players(nickname, avatar_emoji)")
-        .eq("session_id", session.id)
-        .eq("round_number", session.current_round)
-        .single();
-      if (cancelled) return;
-      if (data) {
-        const p = (data as any).shofah_players;
-        const a = (data as any).shofah_answers;
-        setWinner({ nickname: p?.nickname ?? "?", avatar: p?.avatar_emoji ?? "🏆", text: a?.text ?? "" });
-      }
-      setWinnerFetched(true);
-    })();
-    return () => { cancelled = true; };
-  }, [session.round_phase, session.id, session.current_round]);
-
-  // Host-only: after the reveal pause, move to the next round (or, past
-  // round 5, hand off to the final-conversation phase — Phase 5).
+  // Host-only: after the brief locked/reveal beat, move to the next round
+  // (or, past round 5, hand off to the final-conversation phase).
   const advancedPastRevealRef = useRef(false);
 
   async function advancePastReveal() {
@@ -307,8 +283,12 @@ export default function RoundScreen({
     if (remaining <= 0) advancePastReveal();
   }, [isHost, session.round_phase, remaining, session.id, session.current_round]);
 
+  // Kept alive through "reveal" too (not just "voting") so the reveal beat
+  // shows authors in the SAME shuffled order players just voted on, instead
+  // of re-sorting the list the instant it locks — that re-sort was part of
+  // what made the old transition feel jarring.
   const shuffledAnswers = useMemo(() => {
-    if (session.round_phase !== "voting") return [];
+    if (session.round_phase !== "voting" && session.round_phase !== "reveal") return [];
     for (const a of currentAnswers) {
       if (!shuffleKeysRef.current.has(a.id)) shuffleKeysRef.current.set(a.id, Math.random());
     }
@@ -438,53 +418,11 @@ export default function RoundScreen({
     );
   }
 
-  if (session.round_phase === "reveal") {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, marginTop: 40, textAlign: "center" }}>
-        <div style={{ fontSize: 60 }} className="pop">{winnerFetched && !winner ? "😬" : "🎉"}</div>
-        {!(winnerFetched && !winner) && (
-          <p className="font-display" style={{ fontSize: 22, fontWeight: 800, color: ROSE, margin: 0 }}>
-            🏆 {t.winnerHeader}
-          </p>
-        )}
-        {winner ? (
-          <div className="card pop" style={{ padding: 20, textAlign: "center", maxWidth: 340 }}>
-            <div style={{ fontSize: 40 }}>{winner.avatar}</div>
-            <p className="font-display" style={{ fontSize: 18, fontWeight: 800, margin: "6px 0" }}>{winner.nickname}</p>
-            <p className="font-body" style={{ fontSize: 15, fontStyle: "italic", opacity: 0.85 }}>"{winner.text}"</p>
-          </div>
-        ) : winnerFetched ? (
-          <p className="font-body" style={{ color: "var(--ink-soft)" }}>
-            {lang === "ar" ? "هدوء يفشل... محد جاوب هالجولة!" : "Awkward silence... nobody answered this round!"}
-          </p>
-        ) : (
-          <div style={{ color: "var(--ink-soft)", height: 20, display: "flex", alignItems: "center" }}>
-            <span className="pulse-dot" /><span className="pulse-dot" /><span className="pulse-dot" />
-          </div>
-        )}
-        {(winner || winnerFetched) && (
-          <div style={{ color: "var(--ink-soft)", height: 6 }}>
-            <span className="pulse-dot" /><span className="pulse-dot" /><span className="pulse-dot" />
-          </div>
-        )}
-        {scoringError && (
-          <p className="font-body" style={{ fontSize: 12, color: ROSE, textAlign: "center" }}>{scoringError}</p>
-        )}
-        {remaining <= 0 && isHost && (
-          <button
-            onClick={advancePastReveal}
-            className="font-display"
-            style={{
-              padding: "12px 28px", fontSize: 14, borderRadius: 999, border: "none", color: "#fff",
-              background: `linear-gradient(135deg, ${ROSE}, ${WINE})`,
-            }}
-          >
-            {session.current_round >= TOTAL_ROUNDS ? t.continueBtn : t.nextRoundBtn}
-          </button>
-        )}
-      </div>
-    );
-  }
+  // "reveal" is no longer its own screen — it's a brief inline beat shown
+  // at the bottom of the voting screen (below) that immediately shows who
+  // wrote what, then auto-advances. If we somehow render while in reveal
+  // phase but currentAnswers hasn't loaded yet this tick, just fall through
+  // to the voting screen below, which handles the reveal beat itself.
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18, marginTop: 20 }}>
@@ -575,11 +513,17 @@ export default function RoundScreen({
         </>
       )}
 
-      {session.round_phase === "voting" && (
+      {(session.round_phase === "voting" || session.round_phase === "reveal") && (
         <>
-          <p className="font-display" style={{ textAlign: "center", fontSize: 20, fontWeight: 800, color: ROSE, margin: 0 }}>
-            {t.voteHeader}
-          </p>
+          {session.round_phase === "reveal" ? (
+            <p className="font-display pop" style={{ textAlign: "center", fontSize: 20, fontWeight: 800, color: ROSE, margin: 0 }}>
+              🔒 {lang === "ar" ? "تم قفل التصويت!" : "Vote locked!"}
+            </p>
+          ) : (
+            <p className="font-display" style={{ textAlign: "center", fontSize: 20, fontWeight: 800, color: ROSE, margin: 0 }}>
+              {t.voteHeader}
+            </p>
+          )}
           {shuffledAnswers.length === 0 && (
             <div style={{ textAlign: "center", color: "var(--ink-soft)" }}>
               <span className="pulse-dot" /><span className="pulse-dot" /><span className="pulse-dot" />
@@ -590,21 +534,37 @@ export default function RoundScreen({
               const isMine = a.player_id === myPlayerId;
               const isCommitted = myVote?.answer_id === a.id;
               const isSelected = !myVote && selectedAnswerId === a.id;
+              // Only de-anonymized once the round is locked (reveal beat) —
+              // during active voting, authorship stays hidden except for
+              // your own answer, same as before.
+              const revealed = session.round_phase === "reveal";
+              const author = revealed ? players.find((p) => p.id === a.player_id) : undefined;
               return (
                 <button
                   key={a.id}
                   onClick={() => !myVote && !isMine && setSelectedAnswerId(a.id)}
-                  disabled={!!myVote || isMine}
+                  disabled={!!myVote || isMine || revealed}
                   className="card"
                   style={{
                     padding: 16, textAlign: lang === "ar" ? "right" : "left", fontSize: 15,
                     border: (isSelected || isCommitted) ? `3px solid ${ROSE}` : "3px solid transparent",
-                    opacity: isMine ? 0.45 : 1,
-                    cursor: !myVote && !isMine ? "pointer" : "default",
+                    opacity: isMine && !revealed ? 0.45 : 1,
+                    cursor: !myVote && !isMine && !revealed ? "pointer" : "default",
                   }}
                 >
                   {a.text}
-                  {isMine && (
+                  {revealed && author && (
+                    <span
+                      className="font-body pop"
+                      style={{
+                        fontSize: 11, fontWeight: 700, color: ROSE, display: "flex", alignItems: "center", gap: 4,
+                        marginTop: 6, justifyContent: lang === "ar" ? "flex-end" : "flex-start",
+                      }}
+                    >
+                      {author.avatar_emoji} {author.nickname}
+                    </span>
+                  )}
+                  {isMine && !revealed && (
                     <span className="font-body" style={{ fontSize: 11, color: "var(--ink-soft)", display: "block", marginTop: 4 }}>
                       {lang === "ar" ? "✍️ إجابتك" : "✍️ your answer"}
                     </span>
@@ -613,7 +573,7 @@ export default function RoundScreen({
               );
             })}
           </div>
-          {!myVote && (
+          {session.round_phase === "voting" && !myVote && (
             <button
               onClick={() => selectedAnswerId && castVote(selectedAnswerId, shuffledAnswers.find((a) => a.id === selectedAnswerId)?.player_id || "")}
               disabled={!selectedAnswerId}
@@ -627,16 +587,10 @@ export default function RoundScreen({
               {lang === "ar" ? "تأكيد التصويت" : "Submit Vote"}
             </button>
           )}
-          <p className="font-body" style={{ textAlign: "center", fontSize: 12, color: "var(--ink-soft)" }}>
-            {currentVotes.length}/{players.length} {lang === "ar" ? "صوّتوا" : "voted"}
-          </p>
-          {players.length > 0 && currentVotes.length >= players.length && (
-            <div style={{ textAlign: "center", color: "var(--ink-soft)", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-              <span className="font-body" style={{ fontSize: 12, fontWeight: 700 }}>
-                {lang === "ar" ? "جاري حساب النتائج..." : "Calculating results..."}
-              </span>
-              <div><span className="pulse-dot" /><span className="pulse-dot" /><span className="pulse-dot" /></div>
-            </div>
+          {session.round_phase === "voting" && (
+            <p className="font-body" style={{ textAlign: "center", fontSize: 12, color: "var(--ink-soft)" }}>
+              {currentVotes.length}/{players.length} {lang === "ar" ? "صوّتوا" : "voted"}
+            </p>
           )}
           {scoringError && (
             <p className="font-body" style={{ fontSize: 12, color: ROSE, textAlign: "center" }}>{scoringError}</p>
