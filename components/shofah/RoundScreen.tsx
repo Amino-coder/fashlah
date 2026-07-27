@@ -364,7 +364,7 @@ export default function RoundScreen({
   }
 
   async function castVote(answerId: string, answerPlayerId: string) {
-    if (!myPlayerId || myVote || answerPlayerId === myPlayerId) return;
+    if (!myPlayerId || myVote) return;
     await supabase.from("shofah_votes").insert({
       session_id: session.id, round_number: session.current_round,
       voter_player_id: myPlayerId, answer_id: answerId,
@@ -560,14 +560,14 @@ export default function RoundScreen({
               return (
                 <button
                   key={a.id}
-                  onClick={() => !myVote && !isMine && setSelectedAnswerId(a.id)}
-                  disabled={!!myVote || isMine || revealed}
+                  onClick={() => !myVote && setSelectedAnswerId(a.id)}
+                  disabled={!!myVote || revealed}
                   className="card"
                   style={{
                     padding: 16, textAlign: lang === "ar" ? "right" : "left", fontSize: 15,
                     border: (isSelected || isCommitted) ? `3px solid ${ROSE}` : "3px solid transparent",
-                    opacity: isMine && !revealed ? 0.45 : 1,
-                    cursor: !myVote && !isMine && !revealed ? "pointer" : "default",
+                    opacity: 1,
+                    cursor: !myVote && !revealed ? "pointer" : "default",
                   }}
                 >
                   {a.text}
