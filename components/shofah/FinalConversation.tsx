@@ -35,8 +35,20 @@ export default function FinalConversation({
   // Pull each round's prompt + its winning answer (skipping any round
   // nobody answered — nothing to show for those) and zip them together
   // into the conversation script, in round order.
+  //
+  // Scoring is now fire-and-forget (RoundScreen advances the round the
+  // instant the brief "locked" beat ends, without waiting for the scoring
+  // API call to finish writing to shofah_round_results). That's a real
+  // race for the LAST round especially — this screen can mount before that
+  // final write has landed. So instead of a single fetch, retry a few
+  // times with a short delay until every prompt has a matching result (or
+  // we genuinely give up after a few tries and show whatever's there).
   useEffect(() => {
-    (async () => {
+    let cancelled = false;
+    const MAX_ATTEMPTS = 6;
+    const RETRY_DELAY_MS = 700;
+
+    async function attempt(tryNumber: number) {
       const { data: prompts } = await supabase
         .from("shofah_round_prompts")
         .select("round_number, shofah_prompts(text_ar, text_en)")
@@ -49,8 +61,20 @@ export default function FinalConversation({
         .eq("session_id", session.id)
         .order("round_number");
 
+      if (cancelled) return;
+
       const resultsByRound = new Map<number, any>();
       for (const r of results || []) resultsByRound.set(r.round_number, r);
+
+      // How many of this session's prompt rounds are still missing a
+      // scored result? If some are missing and we haven't hit the retry
+      // cap, wait a beat and try again rather than rendering "nobody
+      // answered" prematurely.
+      const missingCount = (prompts || []).length - resultsByRound.size;
+      if (missingCount > 0 && tryNumber < MAX_ATTEMPTS) {
+        setTimeout(() => { if (!cancelled) attempt(tryNumber + 1); }, RETRY_DELAY_MS);
+        return;
+      }
 
       const zipped: Beat[] = [];
       for (const p of prompts || []) {
@@ -69,7 +93,10 @@ export default function FinalConversation({
         });
       }
       setBeats(zipped);
-    })();
+    }
+
+    attempt(0);
+    return () => { cancelled = true; };
   }, [session.id, lang]);
 
   const totalMessages = beats ? beats.length * 2 : 0;
