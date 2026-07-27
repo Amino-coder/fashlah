@@ -225,8 +225,6 @@ export default function RoundScreen({
   const [scoringError, setScoringError] = useState<string | null>(null);
 
   async function computeRoundResult() {
-    if (scoringRef.current) return;
-    scoringRef.current = true;
     try {
       const res = await fetch("/api/shofah-round-result", {
         method: "POST",
@@ -236,7 +234,6 @@ export default function RoundScreen({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Scoring failed");
     } catch (e: any) {
-      scoringRef.current = false; // allow retry
       setScoringError(e.message);
     }
   }
