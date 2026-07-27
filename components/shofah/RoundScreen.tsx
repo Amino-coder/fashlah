@@ -252,7 +252,16 @@ export default function RoundScreen({
       if (currentAnswers.length > 0) computeRoundResult();
       supabase.from("shofah_sessions")
         .update({ round_phase: "reveal", phase_started_at: new Date().toISOString() })
-        .eq("id", session.id);
+        .eq("id", session.id)
+        .then(({ error }) => {
+          // If this write fails (RLS hiccup, dropped connection, etc.) we
+          // MUST clear the guard — otherwise the round is stuck forever,
+          // since nothing else will ever re-attempt this transition.
+          if (error) {
+            scoringRef.current = false;
+            setScoringError(error.message);
+          }
+        });
     }
   }, [isHost, session.round_phase, remaining, currentVotes.length, currentAnswers.length, players.length, session.id]);
 
@@ -263,14 +272,16 @@ export default function RoundScreen({
   async function advancePastReveal() {
     if (advancedPastRevealRef.current) return;
     advancedPastRevealRef.current = true;
-    if (session.current_round >= TOTAL_ROUNDS) {
-      await supabase.from("shofah_sessions")
-        .update({ current_round: TOTAL_ROUNDS + 1 })
-        .eq("id", session.id);
-    } else {
-      await supabase.from("shofah_sessions")
-        .update({ current_round: session.current_round + 1, round_phase: "answering", phase_started_at: new Date().toISOString() })
-        .eq("id", session.id);
+    const { error } = session.current_round >= TOTAL_ROUNDS
+      ? await supabase.from("shofah_sessions")
+          .update({ current_round: TOTAL_ROUNDS + 1 })
+          .eq("id", session.id)
+      : await supabase.from("shofah_sessions")
+          .update({ current_round: session.current_round + 1, round_phase: "answering", phase_started_at: new Date().toISOString() })
+          .eq("id", session.id);
+    if (error) {
+      advancedPastRevealRef.current = false; // allow retry instead of stalling forever
+      setScoringError(error.message);
     }
   }
 
