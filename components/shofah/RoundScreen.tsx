@@ -166,7 +166,9 @@ export default function RoundScreen({
     ? Math.max(0, Math.ceil(duration - (now - new Date(session.phase_started_at).getTime()) / 1000))
     : duration;
 
-  // Host-only: countdown -> answering once the 5-4-3-2-1 finishes
+  // Host-only: countdown -> prewarm (the player-voting warm-up round) once
+  // the 5-4-3-2-1 finishes. Round 1's answering phase doesn't start until
+  // the prewarm round hands off to it (see PrewarmRound.tsx).
   const countdownTransitionedRef = useRef(false);
   const [countdownError, setCountdownError] = useState<string | null>(null);
 
@@ -174,7 +176,7 @@ export default function RoundScreen({
     if (countdownTransitionedRef.current) return;
     countdownTransitionedRef.current = true;
     const { error } = await supabase.from("shofah_sessions")
-      .update({ round_phase: "answering", phase_started_at: new Date().toISOString() })
+      .update({ round_phase: "prewarm", phase_started_at: new Date().toISOString() })
       .eq("id", session.id);
     if (error) {
       countdownTransitionedRef.current = false; // allow retry
@@ -424,6 +426,14 @@ export default function RoundScreen({
         )}
       </div>
     );
+  }
+
+  // The prewarm round (player-voting warm-up before round 1) is rendered by
+  // the parent page as its own component (PrewarmRound), not here — this
+  // guard just avoids RoundScreen falling through to a nonsensical
+  // answering/voting render if it's ever mounted during these phases.
+  if (session.round_phase === "prewarm" || session.round_phase === "prewarm_teaser") {
+    return null;
   }
 
   // "reveal" is no longer its own screen — it's a brief inline beat shown

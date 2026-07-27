@@ -1,7 +1,7 @@
 export type ShofahSessionStatus = "waiting" | "in_progress" | "completed";
 export type ShofahCharacter = "girl" | "guy";
 
-export type ShofahRoundPhase = "countdown" | "answering" | "voting" | "reveal";
+export type ShofahRoundPhase = "countdown" | "prewarm" | "prewarm_teaser" | "answering" | "voting" | "reveal";
 
 export interface ShofahSessionRow {
   id: string;
@@ -68,4 +68,29 @@ export interface ShofahRoundResultRow {
   round_number: number;
   winner_answer_id: string;
   winner_player_id: string;
+}
+
+// --- Prewarm round (player-voting warm-up before round 1) ---
+
+export interface ShofahPrewarmPromptRow {
+  id: string;
+  text_ar: string;
+  text_en: string;
+  active: boolean;
+}
+
+export interface ShofahPrewarmRoundPromptRow {
+  id: string;
+  session_id: string;
+  round_number: number;
+  prompt_id: string;
+}
+
+export interface ShofahPrewarmVoteRow {
+  id: string;
+  session_id: string;
+  round_number: number;
+  voter_player_id: string;
+  voted_for_player_id: string;
+  created_at: string;
 }

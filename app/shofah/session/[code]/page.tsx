@@ -11,6 +11,7 @@ import HomeButton from "@/components/HomeButton";
 import NiqabGirl from "@/components/shofah/NiqabGirl";
 import ShemaghGuy from "@/components/shofah/ShemaghGuy";
 import RoundScreen from "@/components/shofah/RoundScreen";
+import PrewarmRound from "@/components/shofah/PrewarmRound";
 import type { ShofahSessionRow, ShofahPlayerRow } from "@/lib/shofah-types";
 
 const ROSE = "#E63946";
@@ -120,10 +121,32 @@ export default function ShofahWaitingRoom() {
         if (rpErr) throw rpErr;
       }
 
+      // Same draw-and-persist pattern for the prewarm warm-up round's 5
+      // (of 8) prompts — done once at game start so a reload mid-round
+      // shows the same 5 questions instead of reshuffling.
+      const { data: existingPrewarmRounds } = await supabase
+        .from("shofah_prewarm_round_prompts").select("id").eq("session_id", session.id).limit(1);
+
+      if (!existingPrewarmRounds || existingPrewarmRounds.length === 0) {
+        const { data: allPrewarmPrompts, error: prewarmPromptsErr } = await supabase
+          .from("shofah_prewarm_prompts").select("id")
+          .eq("active", true);
+        if (prewarmPromptsErr) throw prewarmPromptsErr;
+        if (!allPrewarmPrompts || allPrewarmPrompts.length < 5) {
+          throw new Error(
+            `Only ${allPrewarmPrompts?.length ?? 0} prewarm prompts available — need at least 5. Did shofah_migration_007 get run?`
+          );
+        }
+        const shuffledPrewarm = [...allPrewarmPrompts].sort(() => Math.random() - 0.5).slice(0, 5);
+        const prewarmRows = shuffledPrewarm.map((p, i) => ({ session_id: session.id, round_number: i + 1, prompt_id: p.id }));
+        const { error: prwErr } = await supabase.from("shofah_prewarm_round_prompts").insert(prewarmRows);
+        if (prwErr) throw prwErr;
+      }
+
       const nowIso = new Date().toISOString();
       const { data: updated, error: updateErr } = await supabase
         .from("shofah_sessions")
-        .update({ status: "in_progress", current_round: 1, round_phase: "countdown", phase_started_at: nowIso, started_at: nowIso })
+        .update({ status: "in_progress", current_round: 0, round_phase: "countdown", phase_started_at: nowIso, started_at: nowIso })
         .eq("id", session.id)
         .select()
         .single();
@@ -147,13 +170,23 @@ export default function ShofahWaitingRoom() {
         {error && <p style={{ color: ROSE, fontWeight: 700, marginTop: 40 }}>{error}</p>}
 
         {session && session.status !== "waiting" && (
-          <RoundScreen
-            session={session}
-            players={players}
-            myPlayerId={players.find((p) => p.user_id === userId)?.id ?? null}
-            isHost={isHost}
-            lang={lang as ShofahLang}
-          />
+          session.round_phase === "prewarm" || session.round_phase === "prewarm_teaser" ? (
+            <PrewarmRound
+              session={session}
+              players={players}
+              myPlayerId={players.find((p) => p.user_id === userId)?.id ?? null}
+              isHost={isHost}
+              lang={lang as ShofahLang}
+            />
+          ) : (
+            <RoundScreen
+              session={session}
+              players={players}
+              myPlayerId={players.find((p) => p.user_id === userId)?.id ?? null}
+              isHost={isHost}
+              lang={lang as ShofahLang}
+            />
+          )
         )}
 
         {session && session.status === "waiting" && (
