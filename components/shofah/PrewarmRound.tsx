@@ -108,7 +108,7 @@ export default function PrewarmRound({
   }, [myVoteThisRound]);
 
   async function pick(votedForPlayerId: string) {
-    if (!myPlayerId || myVoteThisRound || votedForPlayerId === myPlayerId) return;
+    if (!myPlayerId || myVoteThisRound) return;
     setSelected(votedForPlayerId); // optimistic — feels instant even before the round-trip
     const { error: insertErr } = await supabase.from("shofah_prewarm_votes").insert({
       session_id: session.id,
@@ -146,7 +146,15 @@ export default function PrewarmRound({
       } else if (isHost) {
         supabase.from("shofah_sessions")
           .update({ round_phase: "prewarm_teaser", phase_started_at: new Date().toISOString() })
-          .eq("id", session.id);
+          .eq("id", session.id)
+          .then(({ error }) => {
+            // Must clear the guard on failure — otherwise this is stuck
+            // forever with nothing left to retry the transition.
+            if (error) {
+              advancingRef.current = false;
+              setError(error.message);
+            }
+          });
       }
     }, 550); // small beat so the "locked in" state is visible before advancing
     return () => clearTimeout(timer);
@@ -203,7 +211,7 @@ export default function PrewarmRound({
               <button
                 key={p.id}
                 onClick={() => pick(p.id)}
-                disabled={!!myVoteThisRound || isMe}
+                disabled={!!myVoteThisRound}
                 className="wiggle"
                 style={{
                   padding: "14px 6px",
@@ -215,7 +223,7 @@ export default function PrewarmRound({
                   flexDirection: "column",
                   alignItems: "center",
                   gap: 6,
-                  opacity: isMe ? 0.4 : (myVoteThisRound && !isSelected ? 0.5 : 1),
+                  opacity: myVoteThisRound && !isSelected ? 0.5 : 1,
                   transition: "opacity .2s ease, background .2s ease, color .2s ease",
                 }}
               >
@@ -275,21 +283,35 @@ function PrewarmTeaser({
     return { topPlayer: top, topCount: count, isTie: tieCount > 1 };
   }, [players, tally]);
 
+  const [error, setError] = useState<string | null>(null);
+
   async function advanceToRound1() {
     if (advancingRef.current) return;
     advancingRef.current = true;
-    await supabase.from("shofah_sessions")
+    const { error: err } = await supabase.from("shofah_sessions")
       .update({ current_round: 1, round_phase: "answering", phase_started_at: new Date().toISOString() })
       .eq("id", session.id);
+    if (err) {
+      advancingRef.current = false; // allow retry instead of stalling forever
+      setError(err.message);
+    }
   }
 
   // Auto-advance after a beat so this doesn't need a tap on every device —
   // matches the "don't kill momentum" spirit of the rest of the game.
+  // Retries a couple times if the write fails, since nothing else will
+  // ever call this again once the initial timer has fired.
   useEffect(() => {
     if (!isHost) return;
     const timer = setTimeout(() => { advanceToRound1(); }, 3200);
     return () => clearTimeout(timer);
   }, [isHost]);
+
+  useEffect(() => {
+    if (!isHost || !error) return;
+    const retry = setTimeout(() => { advanceToRound1(); }, 1500);
+    return () => clearTimeout(retry);
+  }, [isHost, error]);
 
   return (
     <div className="screen-enter pop" style={{ padding: "60px 24px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
@@ -313,6 +335,9 @@ function PrewarmTeaser({
       <div style={{ color: "var(--ink-soft)", height: 6, marginTop: 8 }}>
         <span className="pulse-dot" /><span className="pulse-dot" /><span className="pulse-dot" />
       </div>
+      {error && (
+        <p className="font-body" style={{ fontSize: 12, color: "#E63946", textAlign: "center" }}>{error}</p>
+      )}
     </div>
   );
 }
