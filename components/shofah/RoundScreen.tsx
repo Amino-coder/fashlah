@@ -481,6 +481,13 @@ export default function RoundScreen({
                 value={draft}
                 onChange={(e) => setDraft(e.target.value.slice(0, MAX_CHARS))}
                 rows={3}
+                // The box used to be completely blank with no prompt of any
+                // kind, which is rough with a 30s timer running. Autofocus
+                // saves a tap too — this screen exists only to type in.
+                placeholder={lang === "ar" ? "اكتب ردك هنا..." : "Type your answer..."}
+                aria-label={lang === "ar" ? "ردك" : "Your answer"}
+                maxLength={MAX_CHARS}
+                autoFocus
                 style={{
                   width: "100%", padding: 12, borderRadius: 14, border: "2px solid var(--ring)",
                   background: "transparent", color: "var(--ink)", fontSize: 15, outline: "none", resize: "none",

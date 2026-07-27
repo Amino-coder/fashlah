@@ -89,25 +89,40 @@ export default function CreateSession() {
         <h1 className="font-display" style={{ fontSize: 24, fontWeight: 800, marginBottom: 20, marginTop: 40 }}>{t.startSession}</h1>
 
         <div className="card" style={{ padding: 20, marginBottom: 16 }}>
-          <label className="font-body" style={{ fontWeight: 700, fontSize: 14, color: "var(--ink-soft)" }}>{t.groupName}</label>
+          <label className="font-body" htmlFor="create-group" style={{ fontWeight: 700, fontSize: 14, color: "var(--ink-soft)" }}>{t.groupName}</label>
           <input
-            value={name} onChange={(e) => setName(e.target.value)} placeholder={t.groupNamePh}
+            id="create-group"
+            value={name} onChange={(e) => setName(e.target.value.slice(0, 30))} placeholder={t.groupNamePh}
+            maxLength={30}
+            autoFocus
+            enterKeyHint="next"
+            onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
             style={{ width: "100%", marginTop: 8, padding: "12px 14px", borderRadius: 14, border: "2px solid var(--ring)", background: "transparent", color: "var(--ink)", fontSize: 15, outline: "none" }}
           />
         </div>
 
         <div className="card" style={{ padding: 20, marginBottom: 16 }}>
-          <label className="font-body" style={{ fontWeight: 700, fontSize: 14, color: "var(--ink-soft)" }}>{t.nickname}</label>
+          <label className="font-body" htmlFor="create-nickname" style={{ fontWeight: 700, fontSize: 14, color: "var(--ink-soft)" }}>{t.nickname}</label>
           <input
-            value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder={t.nicknamePh}
+            id="create-nickname"
+            value={nickname} onChange={(e) => setNickname(e.target.value.slice(0, 20))} placeholder={t.nicknamePh}
+            maxLength={20}
+            enterKeyHint="go"
+            onKeyDown={(e) => { if (e.key === "Enter" && !loading) handleCreate(); }}
             style={{ width: "100%", marginTop: 8, padding: "12px 14px", borderRadius: 14, border: "2px solid var(--ring)", background: "transparent", color: "var(--ink)", fontSize: 15, outline: "none" }}
           />
         </div>
 
-        <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+        <p className="font-body" style={{ fontWeight: 700, fontSize: 13, color: "var(--ink-soft)", marginBottom: 8 }}>
+          {lang === "ar" ? "اختر شخصيتك" : "Pick your avatar"}
+        </p>
+        <div role="radiogroup" aria-label={lang === "ar" ? "اختر شخصيتك" : "Pick your avatar"} style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
           {["🌿", "🎉", "🔥", "🦄", "🍕", "⚡"].map((em) => (
             <button
               key={em} onClick={() => setEmoji(em)}
+              role="radio"
+              aria-checked={emoji === em}
+              aria-label={em}
               className={`chip ${emoji === em ? "active" : ""}`} style={{ fontSize: 18, padding: "8px 12px" }}
             >
               {em}

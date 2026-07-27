@@ -1,4 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Baloo+Bhaijaan+2:wght@600;700;800&family=Cairo:wght@500;600;700;800&family=Tajawal:wght@400;500;700&family=JetBrains+Mono:wght@600;700&display=swap');
+/* Cairo was imported here but never referenced by tailwind.config.ts
+   (display -> Baloo, body -> Tajawal, mono -> JetBrains), so it was a
+   wasted font download on every page load. Removed. */
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Baloo+Bhaijaan+2:wght@600;700;800&family=Tajawal:wght@400;500;700&family=JetBrains+Mono:wght@600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -27,10 +30,42 @@
   --ring: rgba(255, 255, 255, 0.08);
 }
 
+/* The theme lives on <html> (set pre-paint by the inline script in
+   layout.tsx) rather than only on a per-page wrapper div. That keeps the
+   background correct in areas React doesn't paint — most visibly the
+   overscroll/rubber-band strip on iOS, which used to flash white in dark
+   mode. */
+html {
+  background: var(--bg);
+  color-scheme: light;
+}
+html.dark { color-scheme: dark; }
+
 body {
   background: var(--bg);
   color: var(--ink);
   transition: background .3s ease, color .3s ease;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Kills the grey flash Android/iOS paint over every tapped control — the
+   app already has its own :active states, so the default highlight just
+   looked like a rendering glitch. */
+button, a, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled) { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+
+/* Visible keyboard focus. Previously there was none at all, so tabbing
+   through the app was untrackable. :focus-visible (not :focus) means mouse
+   and touch users never see the ring. */
+:focus-visible {
+  outline: 3px solid var(--pink);
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
 .btn-primary {
@@ -124,3 +159,37 @@ body {
 
 .confetti-piece { position: absolute; top: -10%; font-size: 22px; animation: fall linear forwards; }
 @keyframes fall { to { transform: translateY(110vh) rotate(360deg); opacity: 0.2; } }
+
+/* ---------------------------------------------------------------------
+   Reduced motion
+   ---------------------------------------------------------------------
+   The app leans on a lot of continuous animation (drifting blobs, bobbing
+   mascots, blinking eyes, pulse dots, confetti). For anyone who's asked
+   their OS to reduce motion that's genuinely uncomfortable, so the looping
+   decorative ones are switched off and the rest are collapsed to a near
+   instant fade. Deliberately NOT `animation: none` across the board —
+   entrance animations still need to run to their final state, otherwise
+   elements that animate in from opacity:0 would stay invisible.
+--------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Purely decorative loops — no final state worth showing, so just stop. */
+  .blob,
+  .bounce,
+  .shofah-float,
+  .shofah-blink,
+  .shofah-sway,
+  .shofah-twinkle,
+  .shofah-twinkle-b {
+    animation: none !important;
+  }
+
+  /* Confetti is celebratory but also the most motion-heavy thing here. */
+  .confetti-piece { display: none !important; }
+}

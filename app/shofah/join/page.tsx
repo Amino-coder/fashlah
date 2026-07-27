@@ -44,6 +44,16 @@ function ShofahJoin() {
 
   if (!ready) return null;
 
+  // Drives both the disabled state and the hint below the button, so it's
+  // never just greyed out with no explanation of what's missing.
+  const canJoin = code.trim().length >= 4 && nickname.trim().length > 0 && !loading;
+  const missingHint =
+    code.trim().length < 4
+      ? (lang === "ar" ? "اكتب كود الغرفة عشان تنضم" : "Enter the room code to join")
+      : nickname.trim().length === 0
+      ? (lang === "ar" ? "اكتب اسمك عشان تنضم" : "Enter your name to join")
+      : null;
+
   async function handleJoin() {
     setLoading(true);
     setError(null);
@@ -111,27 +121,46 @@ function ShofahJoin() {
           </div>
         ) : (
           <div className="card" style={{ padding: 20, marginBottom: 16 }}>
-            <label className="font-body" style={{ fontWeight: 700, fontSize: 14, color: "var(--ink-soft)" }}>{t.codeLabel}</label>
+            <label className="font-body" htmlFor="shofah-join-code" style={{ fontWeight: 700, fontSize: 14, color: "var(--ink-soft)" }}>{t.codeLabel}</label>
             <input
+              id="shofah-join-code"
               value={code} onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 6))} placeholder={t.codePh}
               className="font-mono"
+              autoCapitalize="characters"
+              autoCorrect="off"
+              spellCheck={false}
+              autoComplete="off"
+              maxLength={6}
+              enterKeyHint="next"
+              onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
               style={{ width: "100%", marginTop: 8, padding: 14, borderRadius: 14, border: "2px solid var(--ring)", background: "transparent", color: "var(--ink)", fontSize: 22, textAlign: "center", letterSpacing: "0.3em", outline: "none" }}
             />
           </div>
         )}
 
         <div className="card" style={{ padding: 20, marginBottom: 16 }}>
-          <label className="font-body" style={{ fontWeight: 700, fontSize: 14, color: "var(--ink-soft)" }}>{t.nickname}</label>
+          <label className="font-body" htmlFor="shofah-join-nickname" style={{ fontWeight: 700, fontSize: 14, color: "var(--ink-soft)" }}>{t.nickname}</label>
           <input
-            value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder={t.nicknamePh}
+            id="shofah-join-nickname"
+            value={nickname} onChange={(e) => setNickname(e.target.value.slice(0, 20))} placeholder={t.nicknamePh}
+            maxLength={20}
+            autoFocus={codeFromLink}
+            enterKeyHint="go"
+            onKeyDown={(e) => { if (e.key === "Enter" && canJoin) handleJoin(); }}
             style={{ width: "100%", marginTop: 8, padding: "12px 14px", borderRadius: 14, border: "2px solid var(--ring)", background: "transparent", color: "var(--ink)", fontSize: 15, outline: "none" }}
           />
         </div>
 
-        <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+        <p className="font-body" style={{ fontWeight: 700, fontSize: 13, color: "var(--ink-soft)", marginBottom: 8 }}>
+          {lang === "ar" ? "اختر شخصيتك" : "Pick your avatar"}
+        </p>
+        <div role="radiogroup" aria-label={lang === "ar" ? "اختر شخصيتك" : "Pick your avatar"} style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
           {SHOFAH_AVATARS.map((em) => (
             <button
               key={em} onClick={() => setEmoji(em)}
+              role="radio"
+              aria-checked={emoji === em}
+              aria-label={em}
               className={`chip ${emoji === em ? "active" : ""}`} style={{ fontSize: 19, padding: "10px 13px" }}
             >
               {em}
@@ -158,13 +187,19 @@ function ShofahJoin() {
           </div>
         )}
 
+        {missingHint && !error && (
+          <p className="font-body" style={{ fontSize: 13, color: "var(--ink-soft)", fontWeight: 600, textAlign: "center", marginBottom: 10 }}>
+            {missingHint}
+          </p>
+        )}
+
         <button
-          onClick={handleJoin} disabled={loading || code.length < 4 || !nickname}
+          onClick={handleJoin} disabled={!canJoin}
           className="font-display"
           style={{
             padding: 18, fontSize: 17, width: "100%", borderRadius: 999, border: "none", color: "#fff",
             background: `linear-gradient(135deg, ${ROSE}, ${WINE})`, boxShadow: `0 10px 30px ${ROSE}55`,
-            opacity: loading || code.length < 4 || !nickname ? 0.6 : 1,
+            opacity: canJoin ? 1 : 0.6,
           }}
         >
           {loading ? t.loading : t.joinBtn}

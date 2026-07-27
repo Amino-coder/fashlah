@@ -12,6 +12,8 @@ import NiqabGirl from "@/components/shofah/NiqabGirl";
 import ShemaghGuy from "@/components/shofah/ShemaghGuy";
 import RoundScreen from "@/components/shofah/RoundScreen";
 import PrewarmRound from "@/components/shofah/PrewarmRound";
+import { HelpButton } from "@/components/HowToPlay";
+import ShareInvite from "@/components/ShareInvite";
 import type { ShofahSessionRow, ShofahPlayerRow } from "@/lib/shofah-types";
 
 const ROSE = "#E63946";
@@ -26,7 +28,6 @@ export default function ShofahWaitingRoom() {
   const [players, setPlayers] = useState<ShofahPlayerRow[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
 
@@ -166,6 +167,14 @@ export default function ShofahWaitingRoom() {
     <div dir={t.dir} className={dark ? "dark" : ""} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
       <Blobs />
       {(error || !session || session.status === "waiting") && <HomeButton label={t.backHome} href="/shofah" />}
+      {/* Rules stay reachable from the lobby — that's the moment the group
+          is actually gathered around asking how this works. Hidden once
+          play starts so it can't distract mid-round. */}
+      {session && session.status === "waiting" && (
+        <div style={{ position: "absolute", top: 24, insetInlineEnd: 24, zIndex: 2 }}>
+          <HelpButton game="shofah" lang={lang} autoOpenFirstVisit={false} />
+        </div>
+      )}
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
         {error && <p style={{ color: ROSE, fontWeight: 700, marginTop: 40 }}>{error}</p>}
 
@@ -195,42 +204,13 @@ export default function ShofahWaitingRoom() {
               {session.character === "girl" ? <NiqabGirl size={90} /> : <ShemaghGuy size={90} />}
             </div>
 
-            <div className="card" style={{ padding: 18, marginBottom: 16, textAlign: "center" }}>
-              <p className="font-body" style={{ fontSize: 13, color: "var(--ink-soft)", fontWeight: 700 }}>{t.roomCode}</p>
-              <p className="font-mono" style={{ fontSize: 32, fontWeight: 700, letterSpacing: "0.2em" }}>{session.code}</p>
-
-              <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-                <button
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(session.code);
-                      setCopied(true);
-                      setTimeout(() => setCopied(false), 1800);
-                    } catch {}
-                  }}
-                  className="btn-ghost font-body"
-                  style={{ flex: 1, padding: "10px", fontSize: 13 }}
-                >
-                  {copied ? t.copied : `📋 ${t.copyCode}`}
-                </button>
-                <a
-                  href={`https://wa.me/?text=${encodeURIComponent(
-                    lang === "ar"
-                      ? `💍 انضم لجلستي على ابي اتزوج!\n${typeof window !== "undefined" ? window.location.origin : ""}/shofah/join?code=${session.code}`
-                      : `💍 Join my Marry me! session!\n${typeof window !== "undefined" ? window.location.origin : ""}/shofah/join?code=${session.code}`
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-body"
-                  style={{
-                    flex: 1, padding: "10px", fontSize: 13, borderRadius: 999, fontWeight: 700,
-                    background: "#25D366", color: "white", textAlign: "center", textDecoration: "none",
-                  }}
-                >
-                  💬 {t.whatsapp}
-                </a>
-              </div>
-            </div>
+            <ShareInvite
+              code={session.code}
+              joinPath="/shofah/join"
+              lang={lang}
+              accent={`linear-gradient(135deg, ${ROSE}, ${WINE})`}
+              label={t.roomCode}
+            />
 
             <div className="card" style={{ padding: 18, marginBottom: 20 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>

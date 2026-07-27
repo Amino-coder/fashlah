@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Moon, Sun } from "lucide-react";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
+import { HelpButton } from "@/components/HowToPlay";
 import NiqabGirl from "@/components/shofah/NiqabGirl";
 import ShemaghGuy from "@/components/shofah/ShemaghGuy";
 import { SHOFAH_STR, shofahSubtitles, ShofahLang } from "@/lib/shofah-i18n";
@@ -38,13 +39,20 @@ export default function ShofahLanding() {
       <Blobs />
       <HomeButton label={t.backHome} />
       <div style={{ maxWidth: 480, margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column", padding: "24px 24px 40px", position: "relative", zIndex: 1 }}>
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-          <button onClick={() => setLang(lang === "ar" ? "en" : "ar")} className="chip" style={{ padding: "6px 14px", fontSize: 13 }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8 }}>
+          <HelpButton game="shofah" lang={lang} />
+          <button
+            onClick={() => setLang(lang === "ar" ? "en" : "ar")}
+            className="chip"
+            aria-label={lang === "ar" ? "Switch to English" : "التبديل إلى العربية"}
+            style={{ padding: "6px 14px", fontSize: 13 }}
+          >
             {lang === "ar" ? "EN" : "AR"}
           </button>
           <button
             onClick={() => setDark(!dark)}
-            style={{ width: 36, height: 36, borderRadius: 999, background: "var(--card)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px var(--ring)" }}
+            aria-label={dark ? (lang === "ar" ? "الوضع الفاتح" : "Light mode") : (lang === "ar" ? "الوضع الداكن" : "Dark mode")}
+            style={{ width: 36, height: 36, borderRadius: 999, background: "var(--card)", border: "none", color: "var(--ink)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px var(--ring)" }}
           >
             {dark ? <Sun size={16} /> : <Moon size={16} />}
           </button>

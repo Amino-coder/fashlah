@@ -21,7 +21,7 @@ create table shofah_sessions (
   lang          text default 'ar' check (lang in ('ar', 'en')),
   status        text default 'waiting' check (status in ('waiting', 'in_progress', 'completed')),
   current_round int default 0,   -- 0 = lobby, 1-5 = answer/vote rounds, 6 = final conversation, 7 = final reveal
-  round_phase   text default 'answering' check (round_phase in ('answering', 'voting')),
+  round_phase   text default 'answering' check (round_phase in ('countdown', 'answering', 'voting', 'reveal')),
   phase_started_at timestamptz,
   created_at    timestamptz default now(),
   started_at    timestamptz,
@@ -53,7 +53,8 @@ create table shofah_prompts (
               )),
   text_ar     text not null,
   text_en     text not null,
-  active      boolean default true
+  active      boolean default true,
+  audience    text check (audience in ('girl', 'guy'))  -- null = universal, drawn regardless of character
 );
 
 -- ----------------------------------------------------------------------------

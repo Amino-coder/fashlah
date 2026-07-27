@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 // Runs once, server-side, when the last player in a session finishes Round
 // 3. Never runs client-side and never calls an LLM — pure computation over
@@ -56,6 +56,10 @@ export async function POST(req: NextRequest) {
     if (!session_id) {
       return NextResponse.json({ error: "session_id is required" }, { status: 400 });
     }
+
+    // Built here rather than at module scope so a missing service-role key
+    // fails this one request cleanly instead of breaking `next build`.
+    const supabaseAdmin = getSupabaseAdmin();
 
     // --- Idempotency guard: only the winner of this race actually computes ---
     const { data: claimedSession, error: claimErr } = await supabaseAdmin

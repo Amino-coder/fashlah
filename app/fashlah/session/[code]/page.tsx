@@ -9,6 +9,8 @@ import { usePrefs } from "@/lib/usePrefs";
 import Mascot from "@/components/Mascot";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
+import { HelpButton } from "@/components/HowToPlay";
+import ShareInvite from "@/components/ShareInvite";
 import Round1 from "@/components/rounds/Round1";
 import Round2 from "@/components/rounds/Round2";
 import Round3 from "@/components/rounds/Round3";
@@ -26,7 +28,6 @@ export default function WaitingRoom() {
   const [userId, setUserId] = useState<string | null>(null);
   const [msgIdx, setMsgIdx] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
 
   const myPlayer = players.find((p) => p.user_id === userId) || null;
   const isHost = !!(session && userId && session.host_user_id === userId);
@@ -102,6 +103,14 @@ export default function WaitingRoom() {
     <div dir={t.dir} className={dark ? "dark" : ""} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
       <Blobs />
       {(error || !session || session.status === "waiting") && <HomeButton label={t.backHome} href="/fashlah" />}
+      {/* Rules stay reachable from the lobby — that's the moment the group
+          is actually gathered around asking how this works. Hidden once
+          play starts so it can't distract mid-round. */}
+      {session && session.status === "waiting" && (
+        <div style={{ position: "absolute", top: 24, insetInlineEnd: 24, zIndex: 2 }}>
+          <HelpButton game="fashlah" lang={lang} autoOpenFirstVisit={false} />
+        </div>
+      )}
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
         {error && <p style={{ color: "#FF2E93", fontWeight: 700, marginTop: 40 }}>{error}</p>}
 
@@ -171,42 +180,13 @@ export default function WaitingRoom() {
               </p>
             </div>
 
-            <div className="card" style={{ padding: 18, marginBottom: 16, textAlign: "center" }}>
-              <p className="font-body" style={{ fontSize: 13, color: "var(--ink-soft)", fontWeight: 700 }}>{t.roomCode}</p>
-              <p className="font-mono" style={{ fontSize: 32, fontWeight: 700, letterSpacing: "0.2em" }}>{session.code}</p>
-
-              <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-                <button
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(session.code);
-                      setCopied(true);
-                      setTimeout(() => setCopied(false), 1800);
-                    } catch {}
-                  }}
-                  className="btn-ghost font-body"
-                  style={{ flex: 1, padding: "10px", fontSize: 13 }}
-                >
-                  {copied ? (lang === "ar" ? "✅ انتسخ!" : "✅ Copied!") : `📋 ${lang === "ar" ? "نسخ الكود" : "Copy code"}`}
-                </button>
-                <a
-                  href={`https://wa.me/?text=${encodeURIComponent(
-                    lang === "ar"
-                      ? `🌿 انضم لجلستي على فشلة!\n${typeof window !== "undefined" ? window.location.origin : ""}/fashlah/join?code=${session.code}`
-                      : `🌿 Join my Fashlah session!\n${typeof window !== "undefined" ? window.location.origin : ""}/fashlah/join?code=${session.code}`
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-body"
-                  style={{
-                    flex: 1, padding: "10px", fontSize: 13, borderRadius: 999, fontWeight: 700,
-                    background: "#25D366", color: "white", textAlign: "center", textDecoration: "none",
-                  }}
-                >
-                  💬 {lang === "ar" ? "واتساب" : "WhatsApp"}
-                </a>
-              </div>
-            </div>
+            <ShareInvite
+              code={session.code}
+              joinPath="/fashlah/join"
+              lang={lang}
+              accent="linear-gradient(135deg, #FF2E93, #7C3AED)"
+              label={t.roomCode}
+            />
 
             <div className="card" style={{ padding: 18, marginBottom: 20 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>

@@ -1,11 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
 import type { Lang } from "@/lib/i18n";
 import Mascot from "@/components/Mascot";
-import Results from "@/components/results/Results";
 import type { PlayerRow, SessionRow } from "@/lib/types";
+
+// Results pulls in recharts for the personality radar chart, which is by
+// far the heaviest dependency in the app. Imported statically it was
+// bundled into the session route, so every player downloaded the whole
+// charting library the moment they joined the lobby — before the waiting
+// room, before all four rounds, for a chart they only ever see at the very
+// end (and only if they finish). Loading it on demand keeps the join path
+// light, which is what matters when a group is joining over patchy phone
+// data at a gathering. By the time this renders the results are already
+// being computed, so there's a natural window to fetch it in.
+const Results = dynamic(() => import("@/components/results/Results"), {
+  ssr: false,
+  loading: () => (
+    <div style={{ padding: "60px 24px", textAlign: "center" }}>
+      <div className="spinner" />
+    </div>
+  ),
+});
 
 const COMPUTING_MESSAGES_AR = [
   "🌿 نحلل شخصياتكم...",

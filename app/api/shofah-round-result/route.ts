@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 // Runs once per round, when a player's client detects voting has finished
 // (timer hit 0 or everyone voted). Uses the service-role key because it
@@ -19,6 +19,10 @@ export async function POST(req: NextRequest) {
     if (!sessionId || !roundNumber) {
       return NextResponse.json({ error: "sessionId and roundNumber are required" }, { status: 400 });
     }
+
+    // Built here rather than at module scope so a missing service-role key
+    // fails this one request cleanly instead of breaking `next build`.
+    const supabaseAdmin = getSupabaseAdmin();
 
     const { data, error } = await supabaseAdmin.rpc("shofah_compute_round_result", {
       p_session_id: sessionId,
