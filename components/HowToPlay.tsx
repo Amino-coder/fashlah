@@ -15,7 +15,7 @@ import type { Lang } from "@/lib/i18n";
  * from memory.
  */
 
-export type GameKey = "fashlah" | "shofah";
+export type GameKey = "fashlah" | "shofah" | "job";
 
 type Step = { icon: string; title: string; body: string };
 type Content = { title: string; tagline: string; steps: Step[]; footer: string };
@@ -77,11 +77,40 @@ const CONTENT: Record<GameKey, Record<Lang, Content>> = {
       footer: "The bolder answers usually win 👀",
     },
   },
+  job: {
+    ar: {
+      title: "كيف تلعبون مين بيتوظف؟",
+      tagline: "جولة تسخين، ٥ أسئلة، وبعدها القرار 💼",
+      steps: [
+        { icon: "💼", title: "المقابلة بدت", body: "كلكم متقدمين على نفس الوظيفة، والمدير يراقب." },
+        { icon: "📱", title: "جهاز لكل شخص", body: "المضيف ينشئ غرفة ويشارك الكود مع الشلة." },
+        { icon: "🔥", title: "جولة التسخين", body: "٥ أسئلة سريعة، صوّتوا على بعض. للضحك بس — ما تحسب في النتيجة." },
+        { icon: "✍️", title: "٥ أسئلة", body: "يجيكم سؤال مقابلة، وكل واحد يكتب رده بأحلى طريقة." },
+        { icon: "🗳️", title: "صوّتوا", body: "بعدها صوّتوا على أحلى رد — وبتشوفون مين كتب وش." },
+        { icon: "🤝", title: "القرار", body: "بالنهاية تشوفون المقابلة كاملة، ومين اللي انوظف." },
+      ],
+      footer: "الردود الأجرأ عادة هي اللي تفوز 👀",
+    },
+    en: {
+      title: "How to play Job Interview!",
+      tagline: "A warm-up, 5 questions, then the decision 💼",
+      steps: [
+        { icon: "💼", title: "The interview starts", body: "You're all applying for the same job, and the boss is watching." },
+        { icon: "📱", title: "One phone each", body: "The host creates a room and shares the code with the group." },
+        { icon: "🔥", title: "Warm-up round", body: "5 quick questions voting on each other. Just for laughs — it doesn't affect scoring." },
+        { icon: "✍️", title: "5 questions", body: "You get an interview question, and everyone writes their best answer." },
+        { icon: "🗳️", title: "Vote", body: "Then vote for the best answer — and find out who wrote what." },
+        { icon: "🤝", title: "The decision", body: "At the end you'll see the full interview, and who actually gets hired." },
+      ],
+      footer: "The bolder answers usually win 👀",
+    },
+  },
 };
 
 const ACCENTS: Record<GameKey, { from: string; to: string }> = {
   fashlah: { from: "#FF2E93", to: "#7C3AED" },
   shofah: { from: "#E63946", to: "#C2185B" },
+  job: { from: "#3B82F6", to: "#1E40AF" },
 };
 
 function storageKey(game: GameKey) {

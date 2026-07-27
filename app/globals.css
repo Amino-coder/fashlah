@@ -117,21 +117,21 @@ button:disabled { cursor: not-allowed; }
 /* Body bob — a slight rotation alongside the vertical drift so it reads as
    a character breathing rather than an image sliding up and down. */
 @keyframes shofahBob { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-9px) rotate(1deg); } }
-.shofah-float { animation: shofahBob 3.2s ease-in-out infinite; }
+.shofah-float, .job-float { animation: shofahBob 3.2s ease-in-out infinite; }
 
 /* transform-origin is set inline per-character, since the eye position
    differs slightly between the two designs. */
 @keyframes shofahBlink { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.06); } }
-.shofah-blink { animation: shofahBlink 4.4s ease-in-out infinite; }
+.shofah-blink, .job-blink { animation: shofahBlink 4.4s ease-in-out infinite; }
 
 /* Headwear/hair sways on its own timing, independent of the body bob, so
    cloth and hair feel like they have their own weight. */
 @keyframes shofahSway { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(2.5deg); } }
-.shofah-sway { animation: shofahSway 4s ease-in-out infinite; transform-origin: 120px 40px; }
+.shofah-sway, .job-sway { animation: shofahSway 4s ease-in-out infinite; transform-origin: 120px 40px; }
 
 @keyframes shofahTwinkle { 0%, 100% { opacity: .25; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.15); } }
-.shofah-twinkle { animation: shofahTwinkle 2s ease-in-out infinite; }
-.shofah-twinkle-b { animation: shofahTwinkle 2s ease-in-out infinite; animation-delay: .7s; }
+.shofah-twinkle, .job-twinkle { animation: shofahTwinkle 2s ease-in-out infinite; }
+.shofah-twinkle-b, .job-twinkle-b { animation: shofahTwinkle 2s ease-in-out infinite; animation-delay: .7s; }
 
 
 @keyframes popIn { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
@@ -186,7 +186,12 @@ button:disabled { cursor: not-allowed; }
   .shofah-blink,
   .shofah-sway,
   .shofah-twinkle,
-  .shofah-twinkle-b {
+  .shofah-twinkle-b,
+  .job-float,
+  .job-blink,
+  .job-sway,
+  .job-twinkle,
+  .job-twinkle-b {
     animation: none !important;
   }
 

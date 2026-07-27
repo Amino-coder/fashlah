@@ -6,6 +6,7 @@ import Mascot from "@/components/Mascot";
 import Blobs from "@/components/Blobs";
 import { STR } from "@/lib/i18n";
 import { SHOFAH_STR } from "@/lib/shofah-i18n";
+import { JOB_STR } from "@/lib/job-i18n";
 import { usePrefs } from "@/lib/usePrefs";
 
 // Midpoint blend of the Bagdoonis wordmark gradient (#FF2E93 -> #7C3AED) —
@@ -14,10 +15,12 @@ const MAGENTA = "#BE34C0";
 
 // One distinct tint per remaining blurred slot so each placeholder reads
 // as "a specific unrevealed game" rather than a uniform gray block.
-const LIBRARY_COLORS = ["#7C3AED", "#2EE6A6", "#FFD400", MAGENTA, "#3B82F6"];
+const LIBRARY_COLORS = ["#7C3AED", "#2EE6A6", "#FFD400", MAGENTA];
 
 const SHOFAH_ROSE = "#E63946";
 const SHOFAH_WINE = "#C2185B";
+const JOB_BLUE = "#3B82F6";
+const JOB_NAVY = "#1E40AF";
 
 export default function Home() {
   const { lang, setLang, dark, setDark, ready } = usePrefs();
@@ -136,6 +139,30 @@ export default function Home() {
                 style={{ fontSize: 11, fontWeight: 800, position: "relative", textAlign: "center", lineHeight: 1.2 }}
               >
                 {SHOFAH_STR[lang].gameNameArabic}
+              </span>
+            </Link>
+
+            <Link
+              href="/job"
+              className="card pop"
+              style={{
+                aspectRatio: "1 / 1", display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "center", gap: 4,
+                textDecoration: "none", color: "var(--ink)", position: "relative", overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute", inset: 0, opacity: 0.1,
+                  background: `linear-gradient(135deg, ${JOB_BLUE}, ${JOB_NAVY})`,
+                }}
+              />
+              <span style={{ fontSize: 26, position: "relative" }}>💼</span>
+              <span
+                className="font-display"
+                style={{ fontSize: 11, fontWeight: 800, position: "relative", textAlign: "center", lineHeight: 1.2 }}
+              >
+                {JOB_STR[lang].gameNameArabic}
               </span>
             </Link>
 
