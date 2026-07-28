@@ -15,6 +15,8 @@ const config: Config = {
         display: ["'Baloo 2'", "'Baloo Bhaijaan 2'", "sans-serif"],
         body: ["'Tajawal'", "'Nunito'", "sans-serif"],
         mono: ["'JetBrains Mono'", "monospace"],
+        // Classical Arabic serif, used by the عبارات quote cards.
+        quote: ["'Amiri'", "serif"],
       },
     },
   },

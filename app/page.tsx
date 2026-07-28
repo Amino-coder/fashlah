@@ -15,12 +15,16 @@ const MAGENTA = "#BE34C0";
 
 // One distinct tint per remaining blurred slot so each placeholder reads
 // as "a specific unrevealed game" rather than a uniform gray block.
-const LIBRARY_COLORS = ["#7C3AED", "#2EE6A6", "#FFD400", MAGENTA];
+const LIBRARY_COLORS = ["#7C3AED", "#2EE6A6", "#FFD400"];
 
 const SHOFAH_ROSE = "#E63946";
 const SHOFAH_WINE = "#C2185B";
 const JOB_BLUE = "#3B82F6";
 const JOB_NAVY = "#1E40AF";
+const IBARAT_INK = "#1F2A44";
+const IBARAT_DEEP = "#0C1220";
+const IBARAT_EMOJI = "\u{1F4C7}"; // 📇
+
 
 export default function Home() {
   const { lang, setLang, dark, setDark, ready } = usePrefs();
@@ -163,6 +167,34 @@ export default function Home() {
                 style={{ fontSize: 11, fontWeight: 800, position: "relative", textAlign: "center", lineHeight: 1.2 }}
               >
                 {JOB_STR[lang].gameNameArabic}
+              </span>
+            </Link>
+
+            {/* عبارات — an experience rather than a game, but it lives in
+                the same library so it's discoverable alongside them. */}
+            <Link
+              href="/ibarat"
+              className="card pop"
+              style={{
+                aspectRatio: "1 / 1", display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "center", gap: 4,
+                textDecoration: "none", color: "var(--ink)", position: "relative", overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute", inset: 0, opacity: 0.12,
+                  background: `linear-gradient(135deg, ${IBARAT_INK}, ${IBARAT_DEEP})`,
+                }}
+              />
+              <span style={{ fontSize: 24, position: "relative", lineHeight: 1 }}>{IBARAT_EMOJI}</span>
+              <span
+                style={{
+                  fontFamily: "'Amiri', serif", fontSize: 13, fontWeight: 700,
+                  position: "relative", textAlign: "center", lineHeight: 1.2,
+                }}
+              >
+                عبارات
               </span>
             </Link>
 

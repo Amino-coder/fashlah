@@ -1,7 +1,7 @@
 /* Cairo was imported here but never referenced by tailwind.config.ts
    (display -> Baloo, body -> Tajawal, mono -> JetBrains), so it was a
    wasted font download on every page load. Removed. */
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Baloo+Bhaijaan+2:wght@600;700;800&family=Tajawal:wght@400;500;700&family=JetBrains+Mono:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Baloo+2:wght@500;600;700;800&family=Baloo+Bhaijaan+2:wght@600;700;800&family=Tajawal:wght@400;500;700&family=JetBrains+Mono:wght@600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -197,4 +197,56 @@ button:disabled { cursor: not-allowed; }
 
   /* Confetti is celebratory but also the most motion-heavy thing here. */
   .confetti-piece { display: none !important; }
+}
+
+/* ---------------------------------------------------------------------
+   عبارات (ibarat) — the quote-card experience
+   ---------------------------------------------------------------------
+   Deliberately calmer than the games' animation vocabulary: long durations,
+   soft easing, nothing bouncy. The deck should feel like handling paper,
+   not like a game board.
+--------------------------------------------------------------------- */
+
+/* Each deck card fans out and settles back. --r0 is its resting angle and
+   --rf/--fx/--fy where it travels to mid-shuffle; both are set per card so
+   the stack moves as a loose hand of cards rather than one rigid block. */
+@keyframes ibaratFan {
+  0%   { transform: translate(0, 0) rotate(var(--r0)); }
+  38%  { transform: translate(var(--fx), var(--fy)) rotate(var(--rf)); }
+  100% { transform: translate(0, 0) rotate(var(--r0)); }
+}
+
+/* The top card lifting away, which is what the revealed card replaces. */
+@keyframes ibaratDraw {
+  0%   { transform: translate(0, 0) rotate(var(--r0)); opacity: 1; }
+  45%  { transform: translate(0, -18px) rotate(0deg) scale(1.03); opacity: 1; }
+  100% { transform: translate(0, -190px) rotate(-3deg) scale(1.07); opacity: 0; }
+}
+
+@keyframes ibaratReveal {
+  from { opacity: 0; transform: translateY(26px) scale(0.965); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes ibaratFadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.ibarat-deck-card {
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(.25, .8, .35, 1);
+}
+.ibarat-deck.is-shuffling .ibarat-deck-card { animation-name: ibaratFan; animation-duration: .95s; }
+.ibarat-deck.is-shuffling .ibarat-deck-card.is-top { animation-name: ibaratDraw; animation-duration: .95s; }
+
+.ibarat-reveal { animation: ibaratReveal .72s cubic-bezier(.25, .8, .35, 1) both; }
+.ibarat-fade-up { animation: ibaratFadeUp .6s cubic-bezier(.25, .8, .35, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ibarat-deck.is-shuffling .ibarat-deck-card,
+  .ibarat-deck.is-shuffling .ibarat-deck-card.is-top {
+    animation: none !important;
+  }
+  .ibarat-reveal, .ibarat-fade-up { animation-duration: .01ms !important; }
 }
