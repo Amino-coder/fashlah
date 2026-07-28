@@ -149,7 +149,7 @@ export default function IbaratPage() {
           <h1
             className="ibarat-fade-up"
             style={{
-              fontFamily: "'Amiri', serif",
+              fontFamily: "'El Messiri', serif",
               fontSize: 54, fontWeight: 700, margin: 0, letterSpacing: "0.01em",
             }}
           >

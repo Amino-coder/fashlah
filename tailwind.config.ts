@@ -16,7 +16,7 @@ const config: Config = {
         body: ["'Tajawal'", "'Nunito'", "sans-serif"],
         mono: ["'JetBrains Mono'", "monospace"],
         // Classical Arabic serif, used by the عبارات quote cards.
-        quote: ["'Amiri'", "serif"],
+        quote: ["'El Messiri'", "serif"],
       },
     },
   },

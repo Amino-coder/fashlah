@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
-  CARD_W, CARD_H, PAD_X, RADIUS, QR, QR_MATRIX, SIZE, Y,
+  CARD_W, CARD_H, PAD_X, RADIUS, SIZE, Y, RULE,
   BRAND_URL, FONT_QUOTE, FONT_UI, QUOTE_LINE_HEIGHT, quoteFontSize,
   type Palette,
 } from "@/lib/ibarat-card";
+import { getTextureUrl, TEXTURE_TILE } from "@/lib/ibarat-texture";
 import type { Quote } from "@/lib/ibarat-quotes-types";
 
 /**
@@ -21,18 +23,14 @@ export default function QuoteCard({
   scale: number;
 }) {
   const qSize = quoteFontSize(quote.text);
-  const modules = QR_MATRIX.length;
+
+  // Generated in the browser, so it can't be read during SSR. Applied after
+  // mount; the card is perfectly presentable in the frame before it lands.
+  const [texture, setTexture] = useState<string | null>(null);
+  useEffect(() => { setTexture(getTextureUrl()); }, []);
 
   return (
-    <div
-      style={{
-        width: CARD_W * scale,
-        height: CARD_H * scale,
-        // The card is laid out at full size inside this box; the transform
-        // shrinks it to fit without changing any of the internal geometry.
-        position: "relative",
-      }}
-    >
+    <div style={{ width: CARD_W * scale, height: CARD_H * scale, position: "relative" }}>
       <div
         dir="rtl"
         style={{
@@ -45,37 +43,56 @@ export default function QuoteCard({
           right: 0,
           borderRadius: RADIUS,
           overflow: "hidden",
-          background: `linear-gradient(160deg, ${palette.from} 0%, ${palette.to} 100%)`,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
+          background: `linear-gradient(158deg, ${palette.from} 0%, ${palette.mid} 52%, ${palette.to} 100%)`,
           color: palette.ink,
         }}
       >
-        {/* Soft bloom behind the quote — stops the flat gradient looking dead */}
+        {/* Light falling from upper-left — gives the flat gradient a direction */}
         <div
+          aria-hidden="true"
           style={{
             position: "absolute", inset: 0, pointerEvents: "none",
-            background: `radial-gradient(circle at 50% 42%, ${palette.glow}38 0%, transparent 58%)`,
+            background: `radial-gradient(ellipse 78% 52% at 28% 8%, rgba(255,255,255,0.10) 0%, transparent 62%)`,
           }}
         />
-        {/* Vignette, to settle the edges */}
+        {/* Bloom behind the quote */}
         <div
+          aria-hidden="true"
           style={{
             position: "absolute", inset: 0, pointerEvents: "none",
-            background: "radial-gradient(circle at 50% 45%, transparent 55%, rgba(0,0,0,0.32) 100%)",
+            background: `radial-gradient(circle at 50% 40%, ${palette.glow}22 0%, transparent 56%)`,
+          }}
+        />
+        {/* Paper grain + faint lattice, well under 5% opacity */}
+        {texture && (
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute", inset: 0, pointerEvents: "none",
+              backgroundImage: `url(${texture})`,
+              backgroundRepeat: "repeat",
+              backgroundSize: `${TEXTURE_TILE}px ${TEXTURE_TILE}px`,
+            }}
+          />
+        )}
+        {/* Vignette, to settle the edges */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute", inset: 0, pointerEvents: "none",
+            background: "radial-gradient(circle at 50% 44%, transparent 56%, rgba(0,0,0,0.26) 100%)",
           }}
         />
 
-        {/* Card number */}
+        {/* Card number — understated on purpose */}
         <div
           style={{
             position: "absolute", top: Y.cardNumber, left: 0, right: 0,
             textAlign: "center",
             fontFamily: `'${FONT_UI}', sans-serif`,
             fontSize: SIZE.cardNumber, fontWeight: 500,
-            letterSpacing: "0.14em",
-            color: palette.soft,
+            letterSpacing: "0.16em",
+            color: palette.faint,
           }}
         >
           {`بطاقة #${quote.id}`}
@@ -97,7 +114,7 @@ export default function QuoteCard({
               fontFamily: `'${FONT_QUOTE}', serif`,
               fontSize: qSize,
               lineHeight: QUOTE_LINE_HEIGHT,
-              fontWeight: 700,
+              fontWeight: 600,
               color: palette.ink,
             }}
           >
@@ -107,7 +124,7 @@ export default function QuoteCard({
           {quote.author && (
             <p
               style={{
-                margin: `${Math.round(qSize * 0.9)}px 0 0`,
+                margin: `${Math.round(qSize * 0.85)}px 0 0`,
                 fontFamily: `'${FONT_UI}', sans-serif`,
                 fontSize: SIZE.author,
                 // Pinned (not inherited) so the exported canvas can reproduce
@@ -122,54 +139,27 @@ export default function QuoteCard({
           )}
         </div>
 
-        {/* Hairline rule with a small diamond — quiet structure above the branding */}
-        <div style={{ position: "absolute", top: Y.rule, left: 0, right: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 18 }}>
-          <span style={{ display: "block", width: 150, height: 1, background: palette.soft, opacity: 0.4 }} />
-          <span style={{ display: "block", width: 9, height: 9, background: palette.soft, opacity: 0.55, transform: "rotate(45deg)" }} />
-          <span style={{ display: "block", width: 150, height: 1, background: palette.soft, opacity: 0.4 }} />
-        </div>
-
-        {/* QR — dark modules on a light plate so it scans on every palette */}
+        {/* Divider — hairlines either side of a small diamond */}
         <div
+          aria-hidden="true"
           style={{
-            position: "absolute", top: Y.qrPlateTop, left: 0, right: 0,
-            display: "flex", justifyContent: "center",
+            position: "absolute", top: Y.rule, left: 0, right: 0,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: RULE.gap,
           }}
         >
-          <div
-            style={{
-              width: QR.plate, height: QR.plate,
-              borderRadius: QR.plateRadius,
-              background: QR.light,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}
-          >
-            <svg
-              width={QR.plate - QR.quiet * 2}
-              height={QR.plate - QR.quiet * 2}
-              viewBox={`0 0 ${modules} ${modules}`}
-              shapeRendering="crispEdges"
-              aria-hidden="true"
-            >
-              {QR_MATRIX.map((row, y) =>
-                row.split("").map((cell, x) =>
-                  cell === "1" ? (
-                    <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill={QR.dark} />
-                  ) : null
-                )
-              )}
-            </svg>
-          </div>
+          <span style={{ display: "block", width: RULE.lineWidth, height: 1, background: palette.faint, opacity: RULE.lineOpacity }} />
+          <span style={{ display: "block", width: RULE.diamond, height: RULE.diamond, background: palette.faint, opacity: RULE.diamondOpacity, transform: "rotate(45deg)" }} />
+          <span style={{ display: "block", width: RULE.lineWidth, height: 1, background: palette.faint, opacity: RULE.lineOpacity }} />
         </div>
 
-        {/* Wordmark */}
+        {/* Signature */}
         <div
           style={{
             position: "absolute", top: Y.url, left: 0, right: 0,
             textAlign: "center",
             fontFamily: `'${FONT_UI}', sans-serif`,
-            fontSize: SIZE.url, fontWeight: 500,
-            letterSpacing: "0.16em",
+            fontSize: SIZE.url, fontWeight: 400,
+            letterSpacing: "0.2em",
             color: palette.soft,
             direction: "ltr",
           }}

@@ -1,23 +1,22 @@
 import {
-  CARD_W, CARD_H, PAD_X, QR, QR_MATRIX, SIZE, Y, BRAND_URL,
+  CARD_W, CARD_H, PAD_X, SIZE, Y, RULE, BRAND_URL,
   FONT_QUOTE, FONT_UI, QUOTE_LINE_HEIGHT, quoteFontSize, type Palette,
 } from "@/lib/ibarat-card";
+import { getTextureCanvas } from "@/lib/ibarat-texture";
 import type { Quote } from "@/lib/ibarat-quotes-types";
 
 /**
  * Renders a card to a 1080x1920 PNG and hands it to the OS share sheet,
  * falling back to a download.
  *
- * Drawn with the Canvas 2D API rather than by screenshotting the DOM. Two
- * reasons: it avoids adding a heavyweight dependency for one feature, and
- * — more importantly — the usual DOM-to-image routes rasterise through an
- * <img>, which refuses to load external fonts. That would silently drop
- * Amiri and fall back to a system face, which for Arabic is the difference
- * between the card people want to post and one they don't. Canvas draws
- * with the real loaded font and shapes Arabic correctly.
+ * Drawn with the Canvas 2D API rather than by screenshotting the DOM. Beyond
+ * avoiding a heavyweight dependency, the usual DOM-to-image routes rasterise
+ * through an <img>, which refuses to load external fonts — that would
+ * silently drop the Arabic face and fall back to a system one, which for
+ * this card is the whole point of the design.
  *
- * The layout constants are imported from the same module the on-screen card
- * uses, so the two can't drift.
+ * Layout constants and the texture tile are imported from the same modules
+ * the on-screen card uses, so the two renderers can't drift.
  */
 
 /** CSS gradient angles are measured clockwise from "to top"; canvas wants two points. */
@@ -40,16 +39,6 @@ function hexToRgba(hex: string, alpha: number): string {
   const h = hex.replace("#", "");
   const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16);
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
-}
-
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
 }
 
 /**
@@ -79,7 +68,7 @@ async function ensureFonts(quoteSize: number) {
   if (typeof document === "undefined" || !("fonts" in document)) return;
   try {
     await Promise.all([
-      document.fonts.load(`700 ${quoteSize}px "${FONT_QUOTE}"`),
+      document.fonts.load(`600 ${quoteSize}px "${FONT_QUOTE}"`),
       document.fonts.load(`400 ${SIZE.author}px "${FONT_UI}"`),
       document.fonts.load(`500 ${SIZE.cardNumber}px "${FONT_UI}"`),
     ]);
@@ -87,6 +76,25 @@ async function ensureFonts(quoteSize: number) {
   } catch {
     /* If loading reports a problem we still draw — a fallback face beats no card. */
   }
+}
+
+/** Draws an ellipse-shaped radial falloff, matching CSS's `radial-gradient(ellipse Wx H at X Y)`. */
+function ellipseGlow(
+  ctx: CanvasRenderingContext2D,
+  cx: number, cy: number, rx: number, ry: number,
+  inner: string, outer: string, stop: number
+) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(1, ry / rx);
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+  g.addColorStop(0, inner);
+  g.addColorStop(stop, outer);
+  g.addColorStop(1, outer);
+  ctx.fillStyle = g;
+  // Generous rect in the transformed space so the gradient covers the card.
+  ctx.fillRect(-CARD_W * 2, -CARD_H * 2, CARD_W * 4, CARD_H * 4);
+  ctx.restore();
 }
 
 export async function renderCardToCanvas(quote: Quote, palette: Palette): Promise<HTMLCanvasElement> {
@@ -101,48 +109,67 @@ export async function renderCardToCanvas(quote: Quote, palette: Palette): Promis
   // Full-bleed background. Unlike the on-screen card this has square
   // corners: story surfaces don't respect transparency, so rounded corners
   // would come out as black wedges.
-  const bg = cssAngleGradient(ctx, 160, CARD_W, CARD_H);
+  const bg = cssAngleGradient(ctx, 158, CARD_W, CARD_H);
   bg.addColorStop(0, palette.from);
+  bg.addColorStop(0.52, palette.mid);
   bg.addColorStop(1, palette.to);
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, CARD_W, CARD_H);
 
+  // Directional light from upper-left
+  ellipseGlow(
+    ctx,
+    CARD_W * 0.28, CARD_H * 0.08,
+    CARD_W * 0.78, CARD_H * 0.52,
+    "rgba(255,255,255,0.10)", "rgba(255,255,255,0)", 0.62
+  );
+
   // Bloom behind the quote
   const glowCx = CARD_W * 0.5;
-  const glowCy = CARD_H * 0.42;
-  const glowR = Math.hypot(glowCx, CARD_H - glowCy) * 0.58;
+  const glowCy = CARD_H * 0.40;
+  const glowR = Math.hypot(glowCx, CARD_H - glowCy) * 0.56;
   const glow = ctx.createRadialGradient(glowCx, glowCy, 0, glowCx, glowCy, glowR);
-  glow.addColorStop(0, hexToRgba(palette.glow, 0.22));
+  glow.addColorStop(0, hexToRgba(palette.glow, 0.133)); // 0x22/255
   glow.addColorStop(1, hexToRgba(palette.glow, 0));
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, CARD_W, CARD_H);
 
+  // Paper grain + faint lattice — the identical tile the live card uses
+  const tile = getTextureCanvas();
+  if (tile) {
+    const pattern = ctx.createPattern(tile, "repeat");
+    if (pattern) {
+      ctx.fillStyle = pattern;
+      ctx.fillRect(0, 0, CARD_W, CARD_H);
+    }
+  }
+
   // Vignette
   const vCx = CARD_W * 0.5;
-  const vCy = CARD_H * 0.45;
+  const vCy = CARD_H * 0.44;
   const vR = Math.hypot(vCx, CARD_H - vCy);
-  const vig = ctx.createRadialGradient(vCx, vCy, vR * 0.55, vCx, vCy, vR);
+  const vig = ctx.createRadialGradient(vCx, vCy, vR * 0.56, vCx, vCy, vR);
   vig.addColorStop(0, "rgba(0,0,0,0)");
-  vig.addColorStop(1, "rgba(0,0,0,0.32)");
+  vig.addColorStop(1, "rgba(0,0,0,0.26)");
   ctx.fillStyle = vig;
   ctx.fillRect(0, 0, CARD_W, CARD_H);
 
   ctx.textAlign = "center";
   ctx.direction = "rtl";
+  ctx.textBaseline = "middle";
 
   // Card number
   ctx.font = `500 ${SIZE.cardNumber}px "${FONT_UI}", sans-serif`;
-  ctx.fillStyle = palette.soft;
-  ctx.textBaseline = "middle";
+  ctx.fillStyle = palette.faint;
   ctx.fillText(`بطاقة #${quote.id}`, CARD_W / 2, Y.cardNumber + SIZE.cardNumber / 2);
 
   // Quote block, vertically centred on Y.quoteCenter (mirrors the CSS
   // translateY(-50%) the on-screen card uses)
   const maxWidth = CARD_W - PAD_X * 2;
-  ctx.font = `700 ${qSize}px "${FONT_QUOTE}", serif`;
+  ctx.font = `600 ${qSize}px "${FONT_QUOTE}", serif`;
   const lines = wrapText(ctx, quote.text, maxWidth);
   const lineH = qSize * QUOTE_LINE_HEIGHT;
-  const authorGap = quote.author ? Math.round(qSize * 0.9) : 0;
+  const authorGap = quote.author ? Math.round(qSize * 0.85) : 0;
   const authorLineH = quote.author ? SIZE.author * 1.4 : 0;
   const blockH = lines.length * lineH + authorGap + authorLineH;
   const top = Y.quoteCenter - blockH / 2;
@@ -162,50 +189,48 @@ export async function renderCardToCanvas(quote: Quote, palette: Palette): Promis
     );
   }
 
-  // Hairline rule with centre diamond
+  // Divider
+  const half = RULE.lineWidth + RULE.gap / 2;
   ctx.save();
-  ctx.globalAlpha = 0.4;
-  ctx.fillStyle = palette.soft;
-  ctx.fillRect(CARD_W / 2 - 18 - 150, Y.rule, 150, 1);
-  ctx.fillRect(CARD_W / 2 + 18, Y.rule, 150, 1);
-  ctx.globalAlpha = 0.55;
+  ctx.fillStyle = palette.faint;
+  ctx.globalAlpha = RULE.lineOpacity;
+  ctx.fillRect(CARD_W / 2 - half, Y.rule, RULE.lineWidth, 1);
+  ctx.fillRect(CARD_W / 2 + RULE.gap / 2, Y.rule, RULE.lineWidth, 1);
+  ctx.globalAlpha = RULE.diamondOpacity;
   ctx.translate(CARD_W / 2, Y.rule);
   ctx.rotate(Math.PI / 4);
-  ctx.fillRect(-4.5, -4.5, 9, 9);
+  ctx.fillRect(-RULE.diamond / 2, -RULE.diamond / 2, RULE.diamond, RULE.diamond);
   ctx.restore();
 
-  // QR — dark modules on a light plate, so it scans on every palette
-  const plateX = (CARD_W - QR.plate) / 2;
-  ctx.fillStyle = QR.light;
-  roundRect(ctx, plateX, Y.qrPlateTop, QR.plate, QR.plate, QR.plateRadius);
-  ctx.fill();
-
-  const modules = QR_MATRIX.length;
-  const moduleSize = (QR.plate - QR.quiet * 2) / modules;
-  ctx.fillStyle = QR.dark;
-  for (let y = 0; y < modules; y++) {
-    const row = QR_MATRIX[y];
-    for (let x = 0; x < modules; x++) {
-      if (row[x] === "1") {
-        // Rounded up by a hair to avoid hairline seams between modules,
-        // which can confuse scanners.
-        ctx.fillRect(
-          plateX + QR.quiet + x * moduleSize,
-          Y.qrPlateTop + QR.quiet + y * moduleSize,
-          Math.ceil(moduleSize),
-          Math.ceil(moduleSize)
-        );
-      }
-    }
-  }
-
-  // Wordmark (LTR — it's a domain)
+  // Signature (LTR — it's a domain). Canvas has no letter-spacing in older
+  // engines, so it's applied by hand to match the CSS.
   ctx.direction = "ltr";
-  ctx.font = `500 ${SIZE.url}px "${FONT_UI}", sans-serif`;
+  ctx.font = `400 ${SIZE.url}px "${FONT_UI}", sans-serif`;
   ctx.fillStyle = palette.soft;
-  ctx.fillText(BRAND_URL, CARD_W / 2, Y.url + SIZE.url / 2);
+  drawTracked(ctx, BRAND_URL, CARD_W / 2, Y.url + SIZE.url / 2, SIZE.url * 0.2);
 
   return canvas;
+}
+
+/**
+ * Letter-spaced text. `ctx.letterSpacing` only landed recently and isn't
+ * everywhere yet, so the glyphs are placed individually — the signature is
+ * widely tracked and would look wrong bunched up.
+ */
+function drawTracked(
+  ctx: CanvasRenderingContext2D, text: string, cx: number, y: number, tracking: number
+) {
+  const chars = [...text];
+  const widths = chars.map((c) => ctx.measureText(c).width);
+  const total = widths.reduce((a, b) => a + b, 0) + tracking * (chars.length - 1);
+  const prevAlign = ctx.textAlign;
+  ctx.textAlign = "left";
+  let x = cx - total / 2;
+  chars.forEach((c, i) => {
+    ctx.fillText(c, x, y);
+    x += widths[i] + tracking;
+  });
+  ctx.textAlign = prevAlign;
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {

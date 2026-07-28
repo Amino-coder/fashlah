@@ -16,8 +16,8 @@ components/ibarat/QuoteCard.tsx  the card
 components/ibarat/CardDeck.tsx   the deck + shuffle
 components/ibarat/exportCard.ts  1080×1920 PNG export + share
 lib/ibarat-card.ts               design system (palettes, layout, typography)
+lib/ibarat-texture.ts            paper grain + lattice, generated at runtime
 lib/ibarat-quotes.json           the 80 quotes
-lib/ibarat-qr.json               pre-generated QR matrix
 lib/ibarat-quotes-types.ts       Quote type
 ```
 
@@ -48,14 +48,23 @@ rounded corners would come out as black wedges.
 
 ## Typography
 
-The platform's existing fonts (Baloo, Tajawal) are playful — the wrong
-register here. Added **Amiri**, a classical Arabic serif, for the quote
-itself. Tajawal still handles the small UI text (card number, author,
-wordmark).
+Now **El Messiri** — modern Arabic with calligraphic bones. Amiri (the first
+pass) is a lovely face but it's a classical book type, which is what made it
+read as generic here. Tajawal still handles the small UI text.
 
-Quote size steps down as the text grows (100px → 56px). I verified with real
-Amiri metrics that **all 80 quotes wrap to at most 3 lines** and none collide
-with the card number above or the rule below.
+I downloaded and compared seven Arabic faces before choosing: Amiri, IBM Plex
+Sans Arabic, El Messiri, Reem Kufi, Readex Pro, Alexandria and Noto Kufi
+Arabic. Two close runners-up are documented in `lib/ibarat-card.ts` —
+switching is a one-line change there plus the font import in `globals.css`:
+
+- **IBM Plex Sans Arabic** — cleaner and more neutral, slightly corporate
+- **Reem Kufi** — geometric kufi, more striking but more stylised
+
+Quote sizes are ~5% smaller than the first pass (95px → 53px ladder). El
+Messiri also sets about 11% wider than Amiri at the same nominal px, so the
+effective reduction is larger than 5% and the quote has noticeably more room.
+Re-verified with real El Messiri metrics: **all 80 quotes still wrap to at
+most 3 lines**, with no overflow and no collisions.
 
 ---
 
@@ -71,15 +80,34 @@ which, incidentally, helps the collection feel real.
 
 ---
 
-## QR code
+## Background depth
 
-Generated offline and committed as a 25×25 matrix (`lib/ibarat-qr.json`), so
-there's no API call and nothing to fail at runtime. Dark modules on a light
-plate regardless of palette, because dark-on-light scans far more reliably.
+Three layers, all deliberately quiet:
 
-Verified end to end: rendered a card at true 1080×1920 and decoded the QR
-back out of the pixels — reads `https://bagdoonis.app`, at 5.44px per module
-(comfortably above the ~4px threshold for screen scanning).
+1. **Three-stop gradient** (light → mid → deep) instead of the previous two.
+   A single ramp read flat at this size.
+2. **Directional light** from the upper left, so the card looks lit rather
+   than tinted.
+3. **Paper texture** — fine grain plus a very faint diamond lattice, peaking
+   at 3.9% opacity.
+
+Measured against the first pass: the cards are **31% brighter overall**, and
+the dynamic range widened (10th percentile 17→12, 90th 39→54) — so they read
+as having more depth, not just being uniformly lighter.
+
+The texture is generated once in the browser onto an offscreen canvas from a
+seeded PRNG, then used both as a CSS background and as the canvas pattern in
+the export. That keeps it out of the bundle (a noise PNG compresses badly for
+something under 5% opacity) and guarantees the two renderers show the same
+grain. It's tileable by construction — built from per-pixel maths on a modulo
+grid — so there are no seams.
+
+---
+
+## Branding
+
+No QR code. It's just `bagdoonis.app` centred near the bottom, under the
+divider — a signature rather than a call to action.
 
 ---
 
@@ -97,6 +125,11 @@ back out of the pixels — reads `https://bagdoonis.app`, at 5.44px per module
 
 ## Worth your eyes
 
-The palettes and the Amiri sizing are judgement calls — have a look on a real
-phone and tell me if you want them warmer, darker, or the quote larger. The
-deck animation timing (950ms) is also easy to tune.
+**The typeface especially.** I compared seven faces and picked El Messiri on
+its merits, but that's a taste call and I'd rather you saw it. I've included
+`ibarat-font-comparison.png` showing the same two cards in the three
+finalists — if you prefer one of the others it's a one-line swap.
+
+Also judgement calls, all easy to tune: palette brightness, texture strength
+(`lib/ibarat-texture.ts`, currently peaking near 4% opacity), and the deck
+timing (950ms).

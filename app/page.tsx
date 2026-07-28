@@ -190,7 +190,7 @@ export default function Home() {
               <span style={{ fontSize: 24, position: "relative", lineHeight: 1 }}>{IBARAT_EMOJI}</span>
               <span
                 style={{
-                  fontFamily: "'Amiri', serif", fontSize: 13, fontWeight: 700,
+                  fontFamily: "'El Messiri', serif", fontSize: 13, fontWeight: 700,
                   position: "relative", textAlign: "center", lineHeight: 1.2,
                 }}
               >
