@@ -210,6 +210,7 @@ export default function ShofahWaitingRoom() {
               lang={lang}
               accent={`linear-gradient(135deg, ${ROSE}, ${WINE})`}
               label={t.roomCode}
+              emoji="\u{1F48D}" // 💍
             />
 
             <div className="card" style={{ padding: 18, marginBottom: 20 }}>

@@ -3,6 +3,15 @@
 import { useEffect, useState } from "react";
 import type { Lang } from "@/lib/i18n";
 
+// Written as an escape rather than a literal character for the same reason
+// as EndGameShare: this string gets assembled into a WhatsApp share link,
+// and staying pure-ASCII in the source is one less place a copy/paste or
+// transport step could turn a multi-byte emoji into a broken glyph.
+const SEND = "\u{1F4E4}";  // 📤
+const CHECK = "\u{2705}";  // ✅
+const CLIPBOARD = "\u{1F4CB}"; // 📋
+const CHAT = "\u{1F4AC}"; // 💬
+
 /**
  * The room-code + invite block shown in both games' waiting rooms.
  *
@@ -18,17 +27,22 @@ import type { Lang } from "@/lib/i18n";
  * displayed large for anyone typing it in manually across the room.
  */
 export default function ShareInvite({
-  code, joinPath, lang, accent, label,
+  code, joinPath, lang, accent, label, emoji,
 }: {
   code: string;
-  /** e.g. "/fashlah/join" or "/shofah/join" */
+  /** e.g. "/fashlah/join" or "/shofah/join" or "/job/join" */
   joinPath: string;
   lang: Lang;
   /** Gradient/solid colour for the primary share button. */
   accent: string;
   /** Localised "Room Code" heading. */
   label: string;
+  /** Game-specific emoji for the invite text (e.g. parsley for Fashlah,
+   *  a ring for Shofah, a briefcase for Job Interview) — defaults to a
+   *  generic wave if the caller doesn't pass one. */
+  emoji?: string;
 }) {
+  const inviteEmoji = emoji ?? "\u{1F44B}"; // 👋
   const [copied, setCopied] = useState<"code" | "link" | null>(null);
   const [canNativeShare, setCanNativeShare] = useState(false);
   const [origin, setOrigin] = useState("");
@@ -43,8 +57,8 @@ export default function ShareInvite({
   const joinUrl = origin ? `${origin}${joinPath}?code=${code}` : "";
   const message =
     lang === "ar"
-      ? `🌿 انضم لجلستي!\n${joinUrl}`
-      : `🌿 Join my game!\n${joinUrl}`;
+      ? `${inviteEmoji} انضم لجلستي!\n${joinUrl}`
+      : `${inviteEmoji} Join my game!\n${joinUrl}`;
 
   async function copy(kind: "code" | "link") {
     try {
@@ -60,7 +74,7 @@ export default function ShareInvite({
     try {
       await navigator.share({
         title: lang === "ar" ? "انضم لجلستي" : "Join my game",
-        text: lang === "ar" ? "🌿 انضم لجلستي!" : "🌿 Join my game!",
+        text: lang === "ar" ? `${inviteEmoji} انضم لجلستي!` : `${inviteEmoji} Join my game!`,
         url: joinUrl,
       });
     } catch {
@@ -106,7 +120,7 @@ export default function ShareInvite({
             border: "none", color: "#fff", background: accent, marginBottom: 10,
           }}
         >
-          📤 {t.share}
+          {SEND} {t.share}
         </button>
       )}
 
@@ -117,8 +131,8 @@ export default function ShareInvite({
           style={{ flex: 1, padding: "10px", fontSize: 13 }}
         >
           {copied
-            ? `✅ ${t.copied}`
-            : `📋 ${canNativeShare ? t.copyCode : t.copyLink}`}
+            ? `${CHECK} ${t.copied}`
+            : `${CLIPBOARD} ${canNativeShare ? t.copyCode : t.copyLink}`}
         </button>
         <a
           href={`https://wa.me/?text=${encodeURIComponent(message)}`}
@@ -131,7 +145,7 @@ export default function ShareInvite({
             display: "flex", alignItems: "center", justifyContent: "center",
           }}
         >
-          💬 {t.whatsapp}
+          {CHAT} {t.whatsapp}
         </a>
       </div>
     </div>

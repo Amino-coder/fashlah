@@ -7,6 +7,7 @@ import { SHOFAH_STR, ShofahLang } from "@/lib/shofah-i18n";
 import NiqabGirl from "./NiqabGirl";
 import ShemaghGuy from "./ShemaghGuy";
 import type { ShofahSessionRow, ShofahPlayerRow } from "@/lib/shofah-types";
+import EndGameShare from "@/components/EndGameShare";
 
 const ROSE = "#E63946";
 const WINE = "#C2185B";
@@ -150,6 +151,10 @@ export default function FinalReveal({
           >
             {t.backHome}
           </Link>
+
+          <div style={{ marginTop: 20 }}>
+            <EndGameShare game="shofah" lang={lang} accent={`linear-gradient(135deg, ${ROSE}, ${WINE})`} />
+          </div>
         </div>
       )}
     </div>

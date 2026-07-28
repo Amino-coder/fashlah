@@ -6,6 +6,7 @@ import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer } fro
 import { supabase } from "@/lib/supabase";
 import type { Lang } from "@/lib/i18n";
 import type { PlayerRow, SessionRow } from "@/lib/types";
+import EndGameShare from "@/components/EndGameShare";
 
 const TRAIT_LABELS: Record<string, { ar: string; en: string }> = {
   leadership: { ar: "القيادة", en: "Leadership" },
@@ -58,7 +59,7 @@ function Confetti() {
   );
 }
 
-function ShareSlide({ lang, whatsappHref }: { lang: Lang; whatsappHref: string }) {
+function ShareSlide({ lang }: { lang: Lang }) {
   // position:relative + a higher z-index than the tap-to-navigate overlay
   // (zIndex 1) and the arrow buttons (zIndex 2), so these buttons — which
   // live inside the slide content, a normal non-positioned element — don't
@@ -78,16 +79,11 @@ function ShareSlide({ lang, whatsappHref }: { lang: Lang; whatsappHref: string }
       </h2>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%", maxWidth: 280 }}>
-        <a
-          href={whatsappHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          className="font-display"
-          style={{ ...btnStyle, background: "#25D366", color: "white", textDecoration: "none" }}
-        >
-          💬 {lang === "ar" ? "شارك على واتساب" : "Share on WhatsApp"}
-        </a>
+        {/* position:relative + z-index 3 (matching btnStyle above) so
+            EndGameShare's buttons sit above the tap-to-navigate overlay. */}
+        <div style={{ position: "relative", zIndex: 3, width: "100%" }} onClick={(e) => e.stopPropagation()}>
+          <EndGameShare game="fashlah" lang={lang} accent="linear-gradient(135deg, #FF2E93, #7C3AED)" />
+        </div>
 
         <a
           href="/"
@@ -452,15 +448,8 @@ export default function Results({
   slides.push({
     key: "share",
     render: () => {
-      const appUrl = typeof window !== "undefined" ? window.location.origin : "";
-      const shareText =
-        lang === "ar"
-          ? `🌿 خلصت ألعب بقدونس مع أصحابي! جربوها: ${appUrl}`
-          : `🌿 Just played Bagdoonis with my friends! Try it: ${appUrl}`;
-      const whatsappHref = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-
       return (
-        <ShareSlide lang={lang} whatsappHref={whatsappHref} />
+        <ShareSlide lang={lang} />
       );
     },
   });

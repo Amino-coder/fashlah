@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { JOB_STR, JobLang } from "@/lib/job-i18n";
 import SuitGuy from "./SuitGuy";
 import type { JobSessionRow, JobPlayerRow } from "@/lib/job-types";
+import EndGameShare from "@/components/EndGameShare";
 
 const BLUE = "#3B82F6";
 const NAVY = "#1E40AF";
@@ -148,6 +149,10 @@ export default function FinalReveal({
           >
             {t.backHome}
           </Link>
+
+          <div style={{ marginTop: 20 }}>
+            <EndGameShare game="job" lang={lang} accent={`linear-gradient(135deg, ${BLUE}, ${NAVY})`} />
+          </div>
         </div>
       )}
     </div>
