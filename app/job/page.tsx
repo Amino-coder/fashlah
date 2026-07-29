@@ -7,14 +7,15 @@ import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import { HelpButton } from "@/components/HowToPlay";
 import SuitGuy from "@/components/job/SuitGuy";
+import { JobArt } from "@/components/art/GameArt";
 import { JOB_STR, jobSubtitles, JobLang } from "@/lib/job-i18n";
 import { usePrefs } from "@/lib/usePrefs";
 
 // Job gets its own accent identity — corporate blues, distinct from
 // Fashlah's pink/purple and Shofah's rose/wine — so the three games feel
 // visually separate even though they share the same platform chrome.
-const BLUE = "#3B82F6";
-const NAVY = "#1E40AF";
+const BLUE = "#2B4C9B";
+const NAVY = "#1B3068";
 
 export default function JobLanding() {
   const { lang, setLang, dark, setDark, ready } = usePrefs();
@@ -58,7 +59,7 @@ export default function JobLanding() {
         </div>
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 14 }}>
-          <SuitGuy size={132} />
+          <JobArt size={140} />
           <h1
             className="font-display"
             style={{

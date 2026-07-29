@@ -1,36 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { Moon, Sun, Users2 } from "lucide-react";
-import Mascot from "@/components/Mascot";
-import Blobs from "@/components/Blobs";
+import { Moon, Sun } from "lucide-react";
 import { STR } from "@/lib/i18n";
 import { SHOFAH_STR } from "@/lib/shofah-i18n";
 import { JOB_STR } from "@/lib/job-i18n";
 import { usePrefs } from "@/lib/usePrefs";
+import { FashlahArt, ShofahArt, JobArt, IbaratArt, Crest } from "@/components/art/GameArt";
 
-// Midpoint blend of the Bagdoonis wordmark gradient (#FF2E93 -> #7C3AED) —
-// a true magenta drawn directly from the brand gradient itself.
-const MAGENTA = "#BE34C0";
-
-// One distinct tint per remaining blurred slot so each placeholder reads
-// as "a specific unrevealed game" rather than a uniform gray block.
-const LIBRARY_COLORS = ["#7C3AED", "#2EE6A6", "#FFD400"];
-
-const SHOFAH_ROSE = "#E63946";
-const SHOFAH_WINE = "#C2185B";
-const JOB_BLUE = "#3B82F6";
-const JOB_NAVY = "#1E40AF";
-const IBARAT_INK = "#1F2A44";
-const IBARAT_DEEP = "#0C1220";
-const IBARAT_EMOJI = "\u{1F4C7}"; // 📇
-
-
+/**
+ * Home — the game library.
+ *
+ * Rebuilt around the illustration set: each game is a framed panel with
+ * its own artwork rather than an emoji tile, and the page furniture
+ * (hairline gold frames, diamond rules, the arch crest) carries the same
+ * ornamental language as the art itself.
+ */
 export default function Home() {
   const { lang, setLang, dark, setDark, ready } = usePrefs();
   const t = STR[lang];
+  const ar = lang === "ar";
 
   if (!ready) return null;
+
+  const entries = [
+    { href: "/fashlah", title: t.gameName, sub: ar ? "الشخصية والأسرار" : "Secrets & personality", Art: FashlahArt },
+    { href: "/shofah", title: SHOFAH_STR[lang].gameNameArabic, sub: ar ? "الزواج الجماعية" : "The marriage game", Art: ShofahArt },
+    { href: "/job", title: JOB_STR[lang].gameNameArabic, sub: ar ? "مقابلة العمل" : "The interview game", Art: JobArt },
+    { href: "/ibarat", title: "عبارات", sub: ar ? "بطاقة إلهام يومية" : "A daily card", Art: IbaratArt },
+  ];
 
   return (
     <div
@@ -38,194 +36,55 @@ export default function Home() {
       className={dark ? "dark" : ""}
       style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}
     >
-      <Blobs />
-      <div style={{ maxWidth: 480, margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column", padding: "24px 24px 40px", position: "relative", zIndex: 1 }}>
+      <div style={{ maxWidth: 480, margin: "0 auto", padding: "22px 20px 48px", position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
           <button
-            onClick={() => setLang(lang === "ar" ? "en" : "ar")}
-            className="chip"
-            aria-label={lang === "ar" ? "Switch to English" : "التبديل إلى العربية"}
-            style={{ padding: "6px 14px", fontSize: 13 }}
+            onClick={() => setLang(ar ? "en" : "ar")}
+            aria-label={ar ? "Switch to English" : "التبديل إلى العربية"}
+            className="font-body"
+            style={{ padding: "7px 15px", borderRadius: 999, fontSize: 12, fontWeight: 800, background: "var(--card)", color: "var(--ink)", border: "1.5px solid rgba(217,164,65,.5)" }}
           >
-            {lang === "ar" ? "EN" : "AR"}
+            {ar ? "EN" : "AR"}
           </button>
           <button
             onClick={() => setDark(!dark)}
-            aria-label={dark ? (lang === "ar" ? "الوضع الفاتح" : "Light mode") : (lang === "ar" ? "الوضع الداكن" : "Dark mode")}
-            style={{ width: 36, height: 36, borderRadius: 999, background: "var(--card)", border: "none", color: "var(--ink)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px var(--ring)" }}
+            aria-label={dark ? (ar ? "الوضع الفاتح" : "Light mode") : (ar ? "الوضع الداكن" : "Dark mode")}
+            style={{ width: 36, height: 36, borderRadius: 999, background: "var(--card)", color: "var(--ink)", display: "flex", alignItems: "center", justifyContent: "center", border: "1.5px solid rgba(217,164,65,.5)" }}
           >
-            {dark ? <Sun size={16} /> : <Moon size={16} />}
+            {dark ? <Sun size={15} /> : <Moon size={15} />}
           </button>
         </div>
 
-        {/* Platform brand header */}
-        <div style={{ textAlign: "center", padding: "18px 0 8px" }}>
-          <h1
-            className="font-display"
-            style={{
-              fontSize: 34, fontWeight: 800, margin: 0,
-              background: "linear-gradient(135deg, #FF2E93, #7C3AED)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-            }}
-          >
-            {t.appName} 🌿
+        <div style={{ textAlign: "center", marginTop: 14 }}>
+          <Crest size={132} />
+          <h1 className="font-display" style={{ fontSize: 46, fontWeight: 800, margin: "6px 0 0", letterSpacing: "-.01em", lineHeight: 1 }}>
+            {t.appName}
           </h1>
-          <p className="font-body" style={{ fontSize: 14, color: "var(--ink-soft)", marginTop: 4, fontWeight: 600 }}>
-            {t.platformTagline}
+          <div className="tile-rule" style={{ width: 112, margin: "14px auto 0" }} />
+          <p className="font-body" style={{ fontSize: 13.5, color: "var(--ink-soft)", margin: "14px auto 0", maxWidth: 285, lineHeight: 1.8, fontWeight: 500 }}>
+            {ar ? "اكتشفوا أسرار قروبكم — ألعاب جماعية وتجارب لكل تجمّع" : "Party games and daily experiences for your group"}
           </p>
         </div>
 
-        {/* Main game card — Fashlah */}
-        <Link
-          href="/fashlah"
-          className="card pop"
-          style={{
-            display: "block", padding: 26, marginTop: 18, textAlign: "center",
-            textDecoration: "none", color: "var(--ink)", position: "relative", overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              position: "absolute", inset: 0, opacity: 0.08,
-              background: "linear-gradient(135deg, #FF2E93, #7C3AED)",
-            }}
-          />
-          <div style={{ position: "relative", textAlign: "center" }}>
-            <div style={{ display: "flex", justifyContent: "center" }}>
-              <Mascot size={78} mood="excited" className="bounce" />
-            </div>
-            <h2 className="font-display" style={{ fontSize: 26, fontWeight: 800, margin: "10px 0 4px" }}>
-              <span style={{ color: "var(--mint)" }}>{t.gameNamePart1}</span>
-              {t.gameNamePart2 && <span style={{ color: MAGENTA, fontStyle: "italic" }}> {t.gameNamePart2}</span>}
-            </h2>
-            <p className="font-body" style={{ fontSize: 14, color: "var(--ink-soft)", fontWeight: 600, marginBottom: 16 }}>
-              {t.gameTagline}
-            </p>
-            <span
-              className="btn-primary font-display"
-              style={{ display: "inline-block", padding: "12px 32px", fontSize: 15 }}
-            >
-              {t.playNow}
-            </span>
-          </div>
-        </Link>
-
-        {/* Game library */}
-        <div style={{ marginTop: 32 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-            <h3 className="font-display" style={{ fontSize: 15, fontWeight: 800, color: "var(--ink-soft)", letterSpacing: "0.02em", margin: 0 }}>
-              {t.gameLibrary}
-            </h3>
-            <span className="chip" style={{ fontSize: 11, padding: "5px 12px", pointerEvents: "none" }}>
-              {t.comingSoonBadge}
-            </span>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 30 }}>
+          {entries.map(({ href, title, sub, Art }) => (
             <Link
-              href="/shofah"
-              className="card pop"
-              style={{
-                aspectRatio: "1 / 1", display: "flex", flexDirection: "column",
-                alignItems: "center", justifyContent: "center", gap: 4,
-                textDecoration: "none", color: "var(--ink)", position: "relative", overflow: "hidden",
-              }}
+              key={href}
+              href={href}
+              className="ornate"
+              style={{ borderRadius: 22, background: "var(--card)", padding: 12, textDecoration: "none", color: "var(--ink)", display: "flex", flexDirection: "column", alignItems: "center", gap: 9, boxShadow: "0 8px 20px rgba(36,21,57,.10)" }}
             >
-              <div
-                style={{
-                  position: "absolute", inset: 0, opacity: 0.1,
-                  background: `linear-gradient(135deg, ${SHOFAH_ROSE}, ${SHOFAH_WINE})`,
-                }}
-              />
-              <span style={{ fontSize: 26, position: "relative" }}>💍</span>
-              <span
-                className="font-display"
-                style={{ fontSize: 11, fontWeight: 800, position: "relative", textAlign: "center", lineHeight: 1.2 }}
-              >
-                {SHOFAH_STR[lang].gameNameArabic}
-              </span>
+              <Art size={112} />
+              <span className="font-display" style={{ fontSize: 16, fontWeight: 800, lineHeight: 1.1, textAlign: "center" }}>{title}</span>
+              <span className="font-body" style={{ fontSize: 10, fontWeight: 700, color: "var(--ink-soft)", marginTop: -5, textAlign: "center" }}>{sub}</span>
             </Link>
-
-            <Link
-              href="/job"
-              className="card pop"
-              style={{
-                aspectRatio: "1 / 1", display: "flex", flexDirection: "column",
-                alignItems: "center", justifyContent: "center", gap: 4,
-                textDecoration: "none", color: "var(--ink)", position: "relative", overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute", inset: 0, opacity: 0.1,
-                  background: `linear-gradient(135deg, ${JOB_BLUE}, ${JOB_NAVY})`,
-                }}
-              />
-              <span style={{ fontSize: 26, position: "relative" }}>💼</span>
-              <span
-                className="font-display"
-                style={{ fontSize: 11, fontWeight: 800, position: "relative", textAlign: "center", lineHeight: 1.2 }}
-              >
-                {JOB_STR[lang].gameNameArabic}
-              </span>
-            </Link>
-
-            {/* عبارات — an experience rather than a game, but it lives in
-                the same library so it's discoverable alongside them. */}
-            <Link
-              href="/ibarat"
-              className="card pop"
-              style={{
-                aspectRatio: "1 / 1", display: "flex", flexDirection: "column",
-                alignItems: "center", justifyContent: "center", gap: 4,
-                textDecoration: "none", color: "var(--ink)", position: "relative", overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute", inset: 0, opacity: 0.12,
-                  background: `linear-gradient(135deg, ${IBARAT_INK}, ${IBARAT_DEEP})`,
-                }}
-              />
-              <span style={{ fontSize: 24, position: "relative", lineHeight: 1 }}>{IBARAT_EMOJI}</span>
-              <span
-                style={{
-                  fontFamily: "'El Messiri', serif", fontSize: 13, fontWeight: 700,
-                  position: "relative", textAlign: "center", lineHeight: 1.2,
-                }}
-              >
-                عبارات
-              </span>
-            </Link>
-
-            {LIBRARY_COLORS.map((color, i) => (
-              <div
-                key={i}
-                className="card"
-                style={{
-                  aspectRatio: "1 / 1",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  filter: "blur(1.5px)",
-                  opacity: 0.5,
-                }}
-              >
-                <div style={{
-                  width: 34, height: 34, borderRadius: 12,
-                  background: color, opacity: 0.55,
-                }} />
-              </div>
-            ))}
-          </div>
+          ))}
         </div>
 
-        <div style={{ flex: 1 }} />
-
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 24, opacity: 0.4 }}>
-          <Users2 size={13} />
-          <span className="font-body" style={{ fontSize: 12, fontWeight: 600 }}>{t.appName}</span>
-        </div>
+        <div className="tile-rule" style={{ width: 86, margin: "34px auto 0" }} />
+        <p className="font-body" style={{ textAlign: "center", fontSize: 10.5, letterSpacing: ".18em", color: "var(--ink-soft)", fontWeight: 700, marginTop: 16 }}>
+          BAGDOONIS.APP
+        </p>
       </div>
     </div>
   );

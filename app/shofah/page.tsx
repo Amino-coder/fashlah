@@ -7,6 +7,7 @@ import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import { HelpButton } from "@/components/HowToPlay";
 import NiqabGirl from "@/components/shofah/NiqabGirl";
+import { ShofahArt } from "@/components/art/GameArt";
 import ShemaghGuy from "@/components/shofah/ShemaghGuy";
 import { SHOFAH_STR, shofahSubtitles, ShofahLang } from "@/lib/shofah-i18n";
 import { usePrefs } from "@/lib/usePrefs";
@@ -14,8 +15,8 @@ import { usePrefs } from "@/lib/usePrefs";
 // Shofah gets its own accent identity — warm rose/wine, distinct from
 // Fashlah's pink/purple — so the two games feel visually separate even
 // though they share the same platform chrome.
-const ROSE = "#E63946";
-const WINE = "#C2185B";
+const ROSE = "#C7405F";
+const WINE = "#2F6B5E";
 
 export default function ShofahLanding() {
   const { lang, setLang, dark, setDark, ready } = usePrefs();
@@ -60,9 +61,7 @@ export default function ShofahLanding() {
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, direction: "ltr" }}>
-            <ShemaghGuy size={56} />
-            <span style={{ fontSize: 40 }}>💍</span>
-            <NiqabGirl size={56} />
+            <ShofahArt size={132} />
           </div>
           <h1
             className="font-display"

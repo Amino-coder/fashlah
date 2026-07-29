@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Moon, Sun } from "lucide-react";
 import Mascot from "@/components/Mascot";
+import { FashlahArt } from "@/components/art/GameArt";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import { HelpButton } from "@/components/HowToPlay";
@@ -48,7 +49,7 @@ export default function BagdoonisHome() {
         </div>
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 18 }}>
-          <Mascot size={110} mood="excited" className="bounce" />
+          <FashlahArt size={140} />
           <div>
             <h1
               className="font-display"
