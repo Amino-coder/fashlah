@@ -331,42 +331,26 @@ grant execute on function job_compute_round_result(uuid, int) to service_role;
 -- SEED — interview questions
 -- ============================================================================
 insert into job_prompts (category, text_ar, text_en) values
-  ('opening',    'عرّف عن نفسك بثلاث كلمات بس.', 'Introduce yourself in exactly three words.'),
-  ('opening',    'اوصف نفسك كأنك إعلان وظيفة.', 'Describe yourself like you''re a job listing.'),
-  ('opening',    'ليش نوظفك انت بالذات؟', 'Why should we hire you specifically?'),
-  ('opening',    'بعني نفسك في جملة وحدة.', 'Sell yourself in one sentence.'),
-
-  ('experience', 'ليش تركت شغلك اللي راح؟ (قول شي حتى لو ما عندك جواب.)', 'Why did you leave your last job? (Make something up if you have to.)'),
-  ('experience', 'وش أكبر إنجاز لك؟ وما ينفع يكون من المدرسة.', 'What''s your biggest achievement? School doesn''t count.'),
-  ('experience', 'وش سبب الفراغ اللي في سيرتك الذاتية؟', 'Explain the gap in your CV.'),
-  ('experience', 'وش أكبر كذبة في سيرتك الذاتية؟', 'What''s the biggest lie on your CV?'),
-  ('experience', 'اذكر مهارة كاتبها في سيرتك وانت ما تعرفها.', 'Name a skill on your CV that you absolutely do not have.'),
-
-  ('weakness',   'وش أكبر نقطة ضعف فيك؟ (بصراحة هالمرة)', 'What''s your biggest weakness? (Be honest this time)'),
-  ('weakness',   'وش أسوأ عادة عندك في الدوام؟', 'What''s your worst habit at work?'),
-  ('weakness',   'وش بيقول عنك مديرك السابق لو اتصلنا فيه؟', 'What would your last boss say if we called them?'),
-  ('weakness',   'وش الشي اللي يخليك تستقيل من أول يوم؟', 'What would make you quit on day one?'),
-
-  ('salary',     'كم راتب تتوقع؟ وليش؟', 'What salary do you expect? And why?'),
-  ('salary',     'اقنعني تستاهل زيادة وانت لسا ما بديت.', 'Convince me you deserve a raise before you''ve even started.'),
-  ('salary',     'وش أول شي بتشتريه من أول راتب؟', 'What''s the first thing you''ll buy with your first paycheck?'),
-
-  ('awkward',    'لو بحثت عن اسمك في قوقل، وش بلقى؟', 'If I Googled your name, what would I find?'),
-  ('awkward',    'وش الشي اللي تسويه بالدوام وما تبي أحد يعرف عنه؟', 'What do you do at work that you hope nobody finds out about?'),
-  ('awkward',    'المدير طلب منك تشتغل يوم الجمعة، وش بتقول؟', 'Your boss asks you to work on a Friday. What do you say?'),
-  ('awkward',    'وصلت متأخر ساعتين، وش عذرك؟', 'You''re two hours late. What''s your excuse?'),
-
-  ('teamwork',   'زميلك أخذ الكريدت على شغلك، وش بتسوي؟', 'A coworker took credit for your work. What do you do?'),
-  ('teamwork',   'وش تسوي لو مديرك غلطان وانت متأكد؟', 'What do you do when your boss is wrong and you know it?'),
-  ('teamwork',   'وش نوع الزملاء اللي ما تتحمله؟', 'What kind of coworker can''t you stand?'),
-
-  ('wildcard',   'وين تشوف نفسك بعد ٥ سنين؟ (أجوبة خاطئة فقط)', 'Where do you see yourself in 5 years? (wrong answers only)'),
-  ('wildcard',   'اقنعني أوظفك بدون لا تستخدم حرف الألف "ا".', 'Convince me to hire you without using the letter "A".'),
-  ('wildcard',   'قول شي يخليني أرفضك على طول.', 'Say something that''ll make me reject you instantly.'),
-  ('wildcard',   'المقابلة خلصت — اسألني انت سؤال.', 'The interview''s over — now you ask me a question.'),
-  ('wildcard',   'لو كنت حيوان في المكتب، وش بتكون؟', 'If you were an animal in this office, what would you be?'),
-  ('wildcard',   'اقنعني أخليك تشتغل من البيت للأبد.', 'Convince me to let you work from home forever.'),
-  ('wildcard',   'الشركة صارت لك ليوم واحد — وش أول قرار؟', 'The company is yours for one day. What''s your first decision?');
+  ('opening', 'سوّق لنفسك كأنك سيارة مستعملة. 🛻', 'Sell yourself like you''re a used car. 🛻'),
+  ('experience', 'ليش انطردت من شغلك اللي راح؟ 🚨', 'Why did you get fired from your last job? 🚨'),
+  ('experience', 'وش المهارة بسيرتك الذاتية اللي اكيييد مو كذبه 😉', 'Which skill on your CV is definitely not a lie? 😉'),
+  ('weakness', 'وش أكبر نقطة ضعف فيك؟ (قولها بطريقة تخليها شي إيجابي 🏃🏻‍♂️)', 'What''s your biggest weakness? (Spin it into a strength 🏃🏻‍♂️)'),
+  ('weakness', 'وش العادة الخايسة اللي بتخليك تنطرد من اول اسبوع؟', 'What''s the bad habit that''ll get you fired in your first week?'),
+  ('weakness', 'وش بيقول عنك مديرك السابق لو اتصلنا فيه؟ 💀', 'What would your last boss say if we called them? 💀'),
+  ('salary', 'كم الراتب اللي تتوقعه؟ واذا نقدر نعطيك شي ثاني بدل الراتب وش بتاخذ؟', 'What salary do you expect? And if we paid you in something other than money, what would you take?'),
+  ('salary', 'اقنعني تستاهل زيادة براتبك وانت باقي ما بديت.', 'Convince me you deserve a raise before you''ve even started.'),
+  ('salary', 'وش أغبى شي بتشتريه من أول راتب؟', 'What''s the dumbest thing you''ll buy with your first paycheck?'),
+  ('awkward', 'لو شفت مديرك يبوووق الشركة وش بتسوي؟ وكم بتسرق معاه 😂', 'You catch your boss stealing from the company. What do you do — and what''s your cut? 😂'),
+  ('awkward', 'المدير طلب منك تشتغل الويكند، وش بتقول؟', 'Your boss asks you to work the weekend. What do you say?'),
+  ('awkward', 'وصلت متأخر ساعتين… عطنا عذر يستحق جائزة أوسكار', 'You''re two hours late. Give us an Oscar-worthy excuse.'),
+  ('teamwork', 'واحد اخذ الكريدت على شغلك، كيف بتنتقم؟ 🪓', 'Someone took credit for your work. How do you get revenge? 🪓'),
+  ('teamwork', 'وش بتسوي عشان تسرق وظيفة مديرك؟', 'What would you do to steal your boss''s job?'),
+  ('wildcard', 'وين تشوف نفسك بعد ٥ سنين؟ (أجوبة خاطئة فقط)', 'Where do you see yourself in 5 years? (wrong answers only)'),
+  ('wildcard', 'اقنعني أوظفك بدون لا تستخدم حرف الألف "ا".', 'Convince me to hire you without using the letter "A".'),
+  ('wildcard', 'قول شي يخليني أرفضك على طول.', 'Say something that''ll make me reject you instantly.'),
+  ('wildcard', 'اسألني انت سؤال. مو لازم عن الوظيفة 😅', 'Now you ask me a question. Doesn''t have to be about the job 😅'),
+  ('wildcard', 'اقنعني أخليك تشتغل من البيت للأبد.', 'Convince me to let you work from home forever.'),
+  ('wildcard', 'الشركة صارت لك ليوم واحد — وش أول قرار؟', 'The company is yours for one day. What''s your first decision?');
 
 -- ============================================================================
 -- SEED — warm-up round ("who's most likely to...")
@@ -375,7 +359,7 @@ insert into job_prewarm_prompts (text_ar, text_en) values
   ('مين أول واحد بينطرد من الشغل', 'Who gets fired first'),
   ('مين بيتأخر عن الدوام كل يوم', 'Who''s late every single day'),
   ('مين بيصير مدير خلال سنة', 'Who becomes the boss within a year'),
-  ('مين بينام في الاجتماع', 'Who falls asleep in the meeting'),
+  ('مين بينام في كل اجتماع', 'Who falls asleep in every meeting'),
   ('مين بياخذ الكريدت على شغل غيره', 'Who takes credit for someone else''s work'),
   ('مين يرد على الإيميلات الساعة ٣ الفجر', 'Who replies to emails at 3 AM'),
   ('مين بيستقيل من أول أسبوع', 'Who quits in the first week'),

@@ -12,6 +12,13 @@ only shared table is `users`, which already exists.
 `supabase/job_reset_test_data.sql` clears test sessions while keeping the
 question banks, same as the Shofah one.
 
+**If you already ran `job_schema.sql` before the questions were revised**, run
+`supabase/job_update_prompts.sql` instead — it swaps both banks over. It has to
+clear existing game data first, because `job_round_prompts` holds a foreign key
+onto `job_prompts` with no cascade, so the old rows can't be deleted while a
+session still references them. (Verified: a naive `delete from job_prompts`
+fails with a FK violation.)
+
 ---
 
 ## What it is
@@ -35,17 +42,17 @@ scoring, retry-polling on the recap, guard-clearing on failed writes).
 
 ## Content
 
-**30 interview questions** across opening / experience / weakness / salary /
-awkward / teamwork / wildcard, written to match Shofah's tone. A few:
+**20 interview questions** across opening / experience / weakness / salary /
+awkward / teamwork / wildcard — your revised set. A few:
 
-- ليش تركت شغلك اللي راح؟ (قول شي حتى لو ما عندك جواب.)
-- وش أكبر كذبة في سيرتك الذاتية؟
+- ليش انطردت من شغلك اللي راح؟ 🚨
+- وش المهارة بسيرتك الذاتية اللي اكيييد مو كذبه 😉
+- لو شفت مديرك يبوووق الشركة وش بتسوي؟ وكم بتسرق معاه 😂
 - اقنعني أوظفك بدون لا تستخدم حرف الألف "ا".
-- وين تشوف نفسك بعد ٥ سنين؟ (أجوبة خاطئة فقط)
-- المقابلة خلصت — اسألني انت سؤال.
+- وصلت متأخر ساعتين… عطنا عذر يستحق جائزة أوسكار
 
 **8 warm-up questions** (vote on each other, doesn't affect scoring):
-مين أول واحد بينطرد من الشغل، مين بينام في الاجتماع، مين بيصير مدير خلال سنة…
+مين أول واحد بينطرد من الشغل، مين بينام في كل اجتماع، مين بيصير مدير خلال سنة…
 
 Five of each are drawn per session, so no two games are the same.
 
@@ -69,7 +76,7 @@ Beyond the type-check and a clean `next build` (19/19 routes):
 
 The schema was run against a real Postgres 16 instance with the Supabase bits
 stubbed (`auth.uid()`, the realtime publication, `users`). It executed clean —
-all tables, 13 policies, realtime, the function, 30 + 8 seeded rows.
+all tables, 13 policies, realtime, the function, 20 + 8 seeded rows.
 
 Then a full round was simulated in that database: 3 players, 3 answers, votes
 including a self-vote. Confirmed the scoring function picks the right winner,
