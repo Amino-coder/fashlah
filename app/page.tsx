@@ -7,6 +7,7 @@ import { SHOFAH_STR } from "@/lib/shofah-i18n";
 import { JOB_STR } from "@/lib/job-i18n";
 import { usePrefs } from "@/lib/usePrefs";
 import Blobs from "@/components/Blobs";
+import Mascot from "@/components/Mascot";
 import { FashlahArt, ShofahArt, JobArt, IbaratArt } from "@/components/art/GameArt";
 
 /**
@@ -25,10 +26,10 @@ export default function Home() {
   if (!ready) return null;
 
   const entries = [
-    { href: "/fashlah", title: t.gameName, sub: ar ? "الشخصية والأسرار" : "Secrets & personality", Art: FashlahArt },
-    { href: "/shofah", title: SHOFAH_STR[lang].gameNameArabic, sub: ar ? "الزواج الجماعية" : "The marriage game", Art: ShofahArt },
-    { href: "/job", title: JOB_STR[lang].gameNameArabic, sub: ar ? "مقابلة العمل" : "The interview game", Art: JobArt },
-    { href: "/ibarat", title: "عبارات", sub: ar ? "بطاقة إلهام يومية" : "A daily card", Art: IbaratArt },
+    { href: "/fashlah", title: t.gameName, sub: ar ? "اكتشفوا أسرار شلتكم 😂" : "Uncover your group's secrets 😂", Art: FashlahArt },
+    { href: "/shofah", title: SHOFAH_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين بيتزوج أول" : "Who gets married first?", Art: ShofahArt },
+    { href: "/job", title: JOB_STR[lang].gameNameArabic, sub: ar ? "لعبة للعاطلين 👀" : "A game for the unemployed 👀", Art: JobArt },
+    { href: "/ibarat", title: "عبارات", sub: ar ? "بطاقة إلهام يومية" : "A daily card of inspiration", Art: IbaratArt },
   ];
 
   return (
@@ -57,18 +58,26 @@ export default function Home() {
           </button>
         </div>
 
-        <div style={{ textAlign: "center", marginTop: 26 }}>
-          <span
+        <div style={{ textAlign: "center", marginTop: 64 }}>
+          {/* Mascot sits behind the badge and pokes out above it — the badge
+              is painted after, so it lands in front where they overlap. */}
+          <div style={{ position: "relative", display: "inline-block", marginBottom: 14 }}>
+            <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", bottom: 12, zIndex: 0, lineHeight: 0 }}>
+              <Mascot size={78} mood="excited" className="bounce" />
+            </div>
+            <span
             className="font-display"
             style={{
+              position: "relative", zIndex: 1,
               display: "inline-block", background: "var(--purple)", color: "#fff",
               fontSize: 12, fontWeight: 800, padding: "6px 16px", borderRadius: 999,
-              transform: "rotate(-4deg)", marginBottom: 14,
+              transform: "rotate(-4deg)",
               boxShadow: "3px 3px 0 var(--ink)",
             }}
           >
             {ar ? "\u{1F389} يلا نلعب!" : "\u{1F389} Let's play!"}
-          </span>
+            </span>
+          </div>
           <h1
             className="font-display"
             style={{

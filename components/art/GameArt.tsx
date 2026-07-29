@@ -16,6 +16,9 @@ const MINT = "#2EE6A6";
 const YELLOW = "#FFD400";
 const SKIN = "#F3C79C";
 const SKIN_D = "#E0AC7D";
+const HAIR = "#4A3226";
+const HAIR_L = "#6B4A32";
+const SCARF = "#5B2C6F";
 
 /** Four-point sparkle used as scattered punctuation. */
 function Sp({ x, y, s = 8, f = CREAM, o = 1 }: { x: number; y: number; s?: number; f?: string; o?: number }) {
@@ -50,7 +53,8 @@ export function FashlahArt({ size = 120 }: P) {
       <g>
         <path d="M 14 190 q 2 -34 26 -40 q 24 6 26 40 Z" fill={PURPLE} />
         <circle cx="40" cy="118" r="21" fill={SKIN} />
-        <path d="M 19 116 q 0 -25 21 -25 q 21 0 21 25 q -7 -11 -21 -11 q -14 0 -21 11 Z" fill={INK} />
+        <path d="M 19 116 q 0 -26 21 -26 q 21 0 21 26 q -4 -9 -10 -12 q -5 6 -12 4 q -7 -2 -12 3 q -6 2 -8 5 Z" fill={HAIR} />
+        <path d="M 28 100 q 9 -6 19 -2" stroke={HAIR_L} strokeWidth="2.4" fill="none" strokeLinecap="round" />
         <path d="M 31 114 q 4 -4 9 -1 M 44 113 q 5 -3 9 1" stroke={INK} strokeWidth="2.6" fill="none" strokeLinecap="round" />
         <ellipse cx="40" cy="132" rx="9" ry="7" fill={INK} />
         <ellipse cx="40" cy="135" rx="5" ry="3.4" fill={PINK} />
@@ -61,9 +65,9 @@ export function FashlahArt({ size = 120 }: P) {
       <g>
         <path d="M 134 190 q 2 -34 26 -40 q 24 6 26 40 Z" fill={MINT} />
         <circle cx="160" cy="118" r="21" fill={SKIN} />
-        <path d="M 139 118 q 0 -27 21 -27 q 21 0 21 27 q 0 20 -21 22 q -21 -2 -21 -22 Z" fill={INK} />
+        <path d="M 137 122 q 0 -30 23 -30 q 23 0 23 30 q 0 16 -7 20 q 3 -16 -4 -22 q -6 6 -16 5 q -10 -1 -15 4 q -5 5 -3 13 q -1 -8 -1 -20 Z" fill={HAIR} />
         <circle cx="160" cy="120" r="16" fill={SKIN} />
-        <path d="M 144 116 q 0 -22 16 -22 q 16 0 16 22 q -6 -10 -16 -10 q -10 0 -16 10 Z" fill={INK} />
+        <path d="M 144 116 q 0 -23 16 -23 q 16 0 16 23 q -4 -9 -9 -11 q -5 5 -12 4 q -7 -1 -11 4 Z" fill={HAIR} />
         <circle cx="153" cy="120" r="2.8" fill={INK} />
         <circle cx="167" cy="120" r="2.8" fill={INK} />
         <ellipse cx="160" cy="133" rx="5.5" ry="6.5" fill={INK} />
@@ -74,19 +78,17 @@ export function FashlahArt({ size = 120 }: P) {
       <g>
         <path d="M 62 192 q 3 -42 38 -49 q 35 7 38 49 Z" fill={YELLOW} />
         <circle cx="100" cy="100" r="30" fill={SKIN} />
-        <path d="M 70 98 q 0 -34 30 -34 q 30 0 30 34 q -10 -15 -30 -15 q -20 0 -30 15 Z" fill={INK} />
-        <ellipse cx="88" cy="100" rx="6" ry="7" fill={CREAM} />
-        <ellipse cx="112" cy="100" rx="6" ry="7" fill={CREAM} />
-        <circle cx="88.5" cy="101" r="3.2" fill={INK} />
-        <circle cx="112.5" cy="101" r="3.2" fill={INK} />
-        <path d="M 78 84 q 8 -6 15 -2 M 107 82 q 8 -4 15 2" stroke={INK} strokeWidth="3" fill="none" strokeLinecap="round" />
-        <ellipse cx="74" cy="112" rx="7" ry="4.6" fill={PINK} opacity=".6" />
-        <ellipse cx="126" cy="112" rx="7" ry="4.6" fill={PINK} opacity=".6" />
-        {/* hands */}
-        <rect x="70" y="118" width="32" height="30" rx="13" fill={SKIN_D} />
-        <rect x="98" y="118" width="32" height="30" rx="13" fill={SKIN_D} />
-        <path d="M 79 121 v 24 M 87 119 v 26 M 95 119 v 26" stroke={SKIN} strokeWidth="2.2" strokeLinecap="round" />
-        <path d="M 105 119 v 26 M 113 119 v 26 M 121 121 v 24" stroke={SKIN} strokeWidth="2.2" strokeLinecap="round" />
+        <path d="M 68 100 q 0 -38 32 -38 q 32 0 32 38 q -6 -13 -15 -17 q -8 8 -19 6 q -11 -2 -19 5 q -8 3 -11 6 Z" fill={HAIR} />
+        <path d="M 80 80 q 13 -8 27 -3" stroke={HAIR_L} strokeWidth="3" fill="none" strokeLinecap="round" />
+        {/* squeezed-shut laughing eyes */}
+        <path d="M 80 100 q 8 -9 16 0" stroke={INK} strokeWidth="4" fill="none" strokeLinecap="round" />
+        <path d="M 104 100 q 8 -9 16 0" stroke={INK} strokeWidth="4" fill="none" strokeLinecap="round" />
+        <path d="M 76 84 q 9 -6 17 -2 M 107 82 q 8 -4 17 2" stroke={INK} strokeWidth="3" fill="none" strokeLinecap="round" />
+        <ellipse cx="72" cy="114" rx="8" ry="5" fill={PINK} opacity=".6" />
+        <ellipse cx="128" cy="114" rx="8" ry="5" fill={PINK} opacity=".6" />
+        {/* wide open laugh */}
+        <path d="M 82 116 q 18 26 36 0 q -18 8 -36 0 Z" fill={INK} />
+        <path d="M 88 122 q 12 14 24 0 q -12 5 -24 0 Z" fill="#FF6B8E" />
       </g>
     </svg>
   );
@@ -122,9 +124,10 @@ export function ShofahArt({ size = 120 }: P) {
       {/* right — hijab */}
       <g>
         <path d="M 124 192 q 3 -38 32 -45 q 29 7 32 45 Z" fill={PINK} />
-        <path d="M 131 126 q 0 -33 25 -33 q 25 0 25 33 q 0 25 -25 28 q -25 -3 -25 -28 Z" fill={INK} />
+        <path d="M 131 126 q 0 -33 25 -33 q 25 0 25 33 q 0 25 -25 28 q -25 -3 -25 -28 Z" fill={SCARF} />
         <circle cx="156" cy="128" r="19" fill={SKIN} />
-        <path d="M 137 124 q 0 -26 19 -26 q 19 0 19 26 q -7 -11 -19 -11 q -12 0 -19 11 Z" fill={INK} />
+        <path d="M 137 124 q 0 -26 19 -26 q 19 0 19 26 q -7 -11 -19 -11 q -12 0 -19 11 Z" fill={SCARF} />
+        <path d="M 140 116 q 16 -9 32 0" stroke="#7A46A0" strokeWidth="2.4" fill="none" strokeLinecap="round" />
         <circle cx="148" cy="130" r="3.2" fill={INK} />
         <circle cx="164" cy="130" r="3.2" fill={INK} />
         <path d="M 148 142 q 8 6 16 0" stroke={INK} strokeWidth="3" fill="none" strokeLinecap="round" />
@@ -154,7 +157,8 @@ export function JobArt({ size = 120 }: P) {
 
       {/* interviewer */}
       <circle cx="100" cy="86" r="27" fill={SKIN} />
-      <path d="M 73 84 q 0 -33 27 -33 q 27 0 27 33 q -9 -14 -27 -14 q -18 0 -27 14 Z" fill={INK} />
+      <path d="M 71 86 q 0 -35 29 -35 q 29 0 29 35 q -6 -12 -14 -16 q -7 7 -17 5 q -10 -2 -17 4 q -7 3 -10 7 Z" fill={HAIR} />
+      <path d="M 82 68 q 12 -7 24 -3" stroke={HAIR_L} strokeWidth="2.8" fill="none" strokeLinecap="round" />
       <circle cx="90" cy="88" r="3.2" fill={INK} />
       <circle cx="110" cy="88" r="3.2" fill={INK} />
       <path d="M 80 74 q 8 -6 15 -2 M 105 72 q 8 -4 15 2" stroke={INK} strokeWidth="3" fill="none" strokeLinecap="round" />
