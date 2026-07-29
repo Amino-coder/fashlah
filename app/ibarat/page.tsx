@@ -6,7 +6,7 @@ import { ArrowRight } from "lucide-react";
 import QuoteCard from "@/components/ibarat/QuoteCard";
 import CardDeck from "@/components/ibarat/CardDeck";
 import { shareCard } from "@/components/ibarat/exportCard";
-import { CARD_W, CARD_H, paletteFor } from "@/lib/ibarat-card";
+import { CARD_W, CARD_H, FRONT_IMAGES } from "@/lib/ibarat-card";
 import type { Quote } from "@/lib/ibarat-quotes-types";
 import QUOTES_DATA from "@/lib/ibarat-quotes.json";
 
@@ -26,6 +26,7 @@ const SHUFFLE_MS = 950;
 
 export default function IbaratPage() {
   const [quote, setQuote] = useState<Quote | null>(null);
+  const [frontIndex, setFrontIndex] = useState(0);
   const [shuffling, setShuffling] = useState(false);
   const [scale, setScale] = useState(0.28);
   const [shareState, setShareState] = useState<"idle" | "working" | "downloaded" | "failed">("idle");
@@ -79,6 +80,7 @@ export default function IbaratPage() {
 
     timerRef.current = setTimeout(() => {
       setQuote(pickQuote());
+      setFrontIndex(Math.floor(Math.random() * FRONT_IMAGES.length));
       setShuffling(false);
     }, reduced ? 0 : SHUFFLE_MS);
   }, [shuffling, pickQuote]);
@@ -86,7 +88,7 @@ export default function IbaratPage() {
   async function onShare() {
     if (!quote || shareState === "working") return;
     setShareState("working");
-    const result = await shareCard(quote, paletteFor(quote.id));
+    const result = await shareCard(quote, frontIndex);
     // "shared" and "cancelled" both end silently — the sheet already gave
     // the user feedback, and a toast after they deliberately backed out
     // would be nagging.
@@ -195,7 +197,7 @@ export default function IbaratPage() {
             }}
           >
             <div className="ibarat-reveal" key={quote.id} style={{ filter: "drop-shadow(0 22px 48px rgba(0,0,0,0.34))" }}>
-              <QuoteCard quote={quote} palette={paletteFor(quote.id)} scale={scale} />
+              <QuoteCard quote={quote} frontIndex={frontIndex} scale={scale} />
             </div>
           </div>
 

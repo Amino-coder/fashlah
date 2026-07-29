@@ -18,7 +18,9 @@ export const CARD_W = 1080;
 export const CARD_H = 1920;
 
 /** Horizontal breathing room. Arabic at this size needs a lot of it. */
-export const PAD_X = 112;
+// 15% of the card width on each side, so the quote never overlaps the
+// ornamental border of the uploaded card art.
+export const PAD_X = Math.round(1080 * 0.15);
 
 export const RADIUS = 56;
 
@@ -81,14 +83,15 @@ export const FONT_UI = "Tajawal";
  * wider than Amiri at the same nominal px, so the quote reads noticeably
  * calmer and has more room around it.
  */
+// 20% smaller across the board than the previous ladder.
 export function quoteFontSize(text: string): number {
   const n = text.length;
-  if (n <= 28) return 95;
-  if (n <= 42) return 84;
-  if (n <= 58) return 74;
-  if (n <= 78) return 67;
-  if (n <= 100) return 59;
-  return 53;
+  if (n <= 28) return 76;
+  if (n <= 42) return 67;
+  if (n <= 58) return 59;
+  if (n <= 78) return 54;
+  if (n <= 100) return 47;
+  return 42;
 }
 
 /** Generous, because Arabic diacritics need vertical room to not collide. */
@@ -106,13 +109,8 @@ export const SIZE = {
  * bottom margin is deliberately deeper than the top — the same convention
  * as the mat on a framed print.
  */
-export const Y = {
-  cardNumber: 148,
-  /** Quote block is centred on this line, not top-aligned. */
-  quoteCenter: 830,
-  rule: 1580,
-  url: 1670,
-};
+// Vertical centre of the blank writable area inside the uploaded card art.
+export const QUOTE_CENTER_Y = 920;
 
 /** Divider: hairline rules flanking a small diamond. */
 export const RULE = {
@@ -124,3 +122,26 @@ export const RULE = {
 };
 
 export const BRAND_URL = "bagdoonis.app";
+
+/**
+ * The uploaded card artwork. Backs are shown on the deck; fronts are the
+ * revealed card. Both live in /public and are loaded as plain <img>/canvas
+ * sources, so nothing here needs to draw a background — the art already
+ * includes the ornamental frame, and "bagdoonis.app" is baked into every
+ * front design already, so the app doesn't render its own copy.
+ */
+export const FRONT_IMAGES = [
+  "/ibarat-cards/front-1.jpg",
+  "/ibarat-cards/front-2.jpg",
+  "/ibarat-cards/front-3.jpg",
+  "/ibarat-cards/front-4.jpg",
+  "/ibarat-cards/front-5.jpg",
+  "/ibarat-cards/front-6.jpg",
+  "/ibarat-cards/front-7.jpg",
+];
+
+export const BACK_IMAGES = [
+  "/ibarat-cards/back-1.jpg",
+  "/ibarat-cards/back-2.jpg",
+  "/ibarat-cards/back-3.jpg",
+];
