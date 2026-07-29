@@ -49,7 +49,7 @@ export default function BagdoonisHome() {
         </div>
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 18 }}>
-          <FashlahArt size={140} />
+          <div style={{ width: 168, height: 168, borderRadius: 30, overflow: "hidden", border: "3px solid var(--ink)", boxShadow: "5px 5px 0 var(--ink)", margin: "0 auto" }}><FashlahArt size={168} /></div>
           <div>
             <h1
               className="font-display"

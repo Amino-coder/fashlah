@@ -15,8 +15,8 @@ import { usePrefs } from "@/lib/usePrefs";
 // Shofah gets its own accent identity — warm rose/wine, distinct from
 // Fashlah's pink/purple — so the two games feel visually separate even
 // though they share the same platform chrome.
-const ROSE = "#C7405F";
-const WINE = "#2F6B5E";
+const ROSE = "#FF2E93";
+const WINE = "#7C3AED";
 
 export default function ShofahLanding() {
   const { lang, setLang, dark, setDark, ready } = usePrefs();
@@ -61,7 +61,7 @@ export default function ShofahLanding() {
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, direction: "ltr" }}>
-            <ShofahArt size={132} />
+            <div style={{ width: 168, height: 168, borderRadius: 30, overflow: "hidden", border: "3px solid var(--ink)", boxShadow: "5px 5px 0 var(--ink)", margin: "0 auto" }}><ShofahArt size={168} /></div>
           </div>
           <h1
             className="font-display"

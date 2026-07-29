@@ -1,237 +1,199 @@
 /**
- * Bagdoonis illustration set.
+ * Bagdoonis game art — full-bleed square panels.
  *
- * Original artwork, drawn in a flat ornamental Gulf-modernist idiom:
- * flat fills with no gradients on figures, thin gold outlines on every
- * shape, strict bilateral symmetry, a pointed-arch frame as the recurring
- * architectural motif, four-point stars as punctuation, and a diamond tile
- * band along the base. Figures are geometric and minimally featured so
- * they read as motifs rather than cartoons.
- *
- * Everything here is built from primitives (arches, cups, dallah, palm
- * fronds, stars) rather than copied from any existing artwork.
+ * Playful flat vector on the original brand palette (pink / purple / mint /
+ * yellow). Each panel fills its whole tile edge to edge, so it sits on the
+ * page as a solid colour block rather than a picture floating inside a
+ * white card. Chunky simplified characters, confetti and stars, no
+ * architectural or ornamental framing.
  */
 
-const GOLD = "#D9A441";
-const INK = "#241539";
-const CREAM = "#F5E9D7";
+const INK = "#17122B";
+const CREAM = "#FFFDF7";
+const PINK = "#FF2E93";
+const PURPLE = "#7C3AED";
+const MINT = "#2EE6A6";
+const YELLOW = "#FFD400";
+const SKIN = "#F3C79C";
+const SKIN_D = "#E0AC7D";
 
-/** Four-point concave star — the recurring accent across the set. */
-function Star({ x, y, s = 10, fill = GOLD, o = 1 }: { x: number; y: number; s?: number; fill?: string; o?: number }) {
+/** Four-point sparkle used as scattered punctuation. */
+function Sp({ x, y, s = 8, f = CREAM, o = 1 }: { x: number; y: number; s?: number; f?: string; o?: number }) {
   return (
     <path
-      d={`M ${x} ${y - s} Q ${x + s * 0.2} ${y - s * 0.2} ${x + s} ${y} Q ${x + s * 0.2} ${y + s * 0.2} ${x} ${y + s} Q ${x - s * 0.2} ${y + s * 0.2} ${x - s} ${y} Q ${x - s * 0.2} ${y - s * 0.2} ${x} ${y - s} Z`}
-      fill={fill}
+      d={`M ${x} ${y - s} Q ${x + s * 0.22} ${y - s * 0.22} ${x + s} ${y} Q ${x + s * 0.22} ${y + s * 0.22} ${x} ${y + s} Q ${x - s * 0.22} ${y + s * 0.22} ${x - s} ${y} Q ${x - s * 0.22} ${y - s * 0.22} ${x} ${y - s} Z`}
+      fill={f}
       opacity={o}
     />
   );
 }
 
-/** Diamond tile band that sits along the bottom edge of each panel. */
-function TileBand({ y, fillA, fillB }: { y: number; fillA: string; fillB: string }) {
-  const tiles = [];
-  for (let i = 0; i < 9; i++) {
-    const cx = 12 + i * 22;
-    tiles.push(
-      <path
-        key={i}
-        d={`M ${cx} ${y} l 9 7 -9 7 -9 -7 Z`}
-        fill={i % 2 === 0 ? fillA : fillB}
-        stroke={GOLD}
-        strokeWidth="0.8"
-      />
-    );
-  }
-  return <g>{tiles}</g>;
+function Dot({ x, y, r = 4, f = CREAM, o = 1 }: { x: number; y: number; r?: number; f?: string; o?: number }) {
+  return <circle cx={x} cy={y} r={r} fill={f} opacity={o} />;
 }
 
-/** The pointed arch that frames every composition. */
-function Arch({ fill, stroke = GOLD }: { fill: string; stroke?: string }) {
+type P = { size?: number };
+const box = { display: "block" as const };
+
+/* ───────────── فشلة — the whole group, one of them caught out ───────────── */
+export function FashlahArt({ size = 120 }: P) {
   return (
-    <path
-      d="M 52 172 L 52 92 Q 52 44 100 22 Q 148 44 148 92 L 148 172 Z"
-      fill={fill}
-      stroke={stroke}
-      strokeWidth="2"
-    />
-  );
-}
+    <svg width="100%" height="100%" viewBox="0 0 200 200" style={box} aria-hidden="true">
+      <rect width="200" height="200" rx="30" fill={PINK} />
+      <Dot x={26} y={30} r={5} o={0.55} />
+      <Dot x={176} y={40} r={4} f={YELLOW} />
+      <Dot x={168} y={168} r={5} f={MINT} o={0.8} />
+      <Sp x={34} y={166} s={8} f={YELLOW} />
+      <Sp x={100} y={26} s={9} f={CREAM} o={0.85} />
 
-type IconProps = { size?: number };
-
-/* ─────────────── فشلة — secrets spilled over coffee ─────────────── */
-export function FashlahArt({ size = 96 }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 200 200" aria-hidden="true">
-      <rect x="0" y="0" width="200" height="200" rx="34" fill="#C7405F" />
-      <rect x="8" y="8" width="184" height="184" rx="28" fill="none" stroke={GOLD} strokeWidth="1.6" opacity=".7" />
-      <Arch fill="#F0DFC6" />
-
-      {/* seated figure, hands clapped over the mouth */}
-      <path d="M 70 172 Q 72 132 100 126 Q 128 132 130 172 Z" fill="#2F6B5E" stroke={GOLD} strokeWidth="1.6" />
-      <circle cx="100" cy="98" r="26" fill="#E8B98C" stroke={GOLD} strokeWidth="1.6" />
-      {/* hair / head covering */}
-      <path d="M 74 96 Q 74 62 100 62 Q 126 62 126 96 Q 118 82 100 82 Q 82 82 74 96 Z" fill={INK} />
-      {/* wide eyes */}
-      <ellipse cx="90" cy="98" rx="4.6" ry="5.4" fill={CREAM} />
-      <ellipse cx="110" cy="98" rx="4.6" ry="5.4" fill={CREAM} />
-      <circle cx="90.5" cy="99" r="2.5" fill={INK} />
-      <circle cx="110.5" cy="99" r="2.5" fill={INK} />
-      {/* hands over the mouth */}
-      <path d="M 82 128 Q 100 118 118 128 Q 118 142 100 144 Q 82 142 82 128 Z" fill="#E8B98C" stroke={GOLD} strokeWidth="1.4" />
-      <path d="M 92 122 v 20 M 100 120 v 24 M 108 122 v 20" stroke="#C99468" strokeWidth="1.4" strokeLinecap="round" />
-
-      {/* mirrored finjan cups — the majlis where secrets get spilled */}
+      {/* left friend — laughing and pointing */}
       <g>
-        <path d="M 22 132 h 20 l -3 14 h -14 Z" fill={GOLD} stroke={INK} strokeWidth="1.2" />
-        <ellipse cx="32" cy="132" rx="10" ry="3" fill={CREAM} stroke={INK} strokeWidth="1" />
-        <path d="M 178 132 h -20 l 3 14 h 14 Z" fill={GOLD} stroke={INK} strokeWidth="1.2" />
-        <ellipse cx="168" cy="132" rx="10" ry="3" fill={CREAM} stroke={INK} strokeWidth="1" />
+        <path d="M 14 190 q 2 -34 26 -40 q 24 6 26 40 Z" fill={PURPLE} />
+        <circle cx="40" cy="118" r="21" fill={SKIN} />
+        <path d="M 19 116 q 0 -25 21 -25 q 21 0 21 25 q -7 -11 -21 -11 q -14 0 -21 11 Z" fill={INK} />
+        <path d="M 31 114 q 4 -4 9 -1 M 44 113 q 5 -3 9 1" stroke={INK} strokeWidth="2.6" fill="none" strokeLinecap="round" />
+        <ellipse cx="40" cy="132" rx="9" ry="7" fill={INK} />
+        <ellipse cx="40" cy="135" rx="5" ry="3.4" fill={PINK} />
+        <ellipse cx="24" cy="128" rx="5" ry="3.4" fill={PINK} opacity=".55" />
       </g>
 
-      <Star x={30} y={44} s={9} />
-      <Star x={170} y={44} s={9} />
-      <Star x={100} y={40} s={6} fill={CREAM} />
-      <TileBand y={176} fillA="#2F6B5E" fillB="#F0DFC6" />
+      {/* right friend — hand to mouth, gasping */}
+      <g>
+        <path d="M 134 190 q 2 -34 26 -40 q 24 6 26 40 Z" fill={MINT} />
+        <circle cx="160" cy="118" r="21" fill={SKIN} />
+        <path d="M 139 118 q 0 -27 21 -27 q 21 0 21 27 q 0 20 -21 22 q -21 -2 -21 -22 Z" fill={INK} />
+        <circle cx="160" cy="120" r="16" fill={SKIN} />
+        <path d="M 144 116 q 0 -22 16 -22 q 16 0 16 22 q -6 -10 -16 -10 q -10 0 -16 10 Z" fill={INK} />
+        <circle cx="153" cy="120" r="2.8" fill={INK} />
+        <circle cx="167" cy="120" r="2.8" fill={INK} />
+        <ellipse cx="160" cy="133" rx="5.5" ry="6.5" fill={INK} />
+        <ellipse cx="145" cy="129" rx="4.5" ry="3" fill={PINK} opacity=".5" />
+      </g>
+
+      {/* centre — the one who got caught, hands clapped over the face */}
+      <g>
+        <path d="M 62 192 q 3 -42 38 -49 q 35 7 38 49 Z" fill={YELLOW} />
+        <circle cx="100" cy="100" r="30" fill={SKIN} />
+        <path d="M 70 98 q 0 -34 30 -34 q 30 0 30 34 q -10 -15 -30 -15 q -20 0 -30 15 Z" fill={INK} />
+        <ellipse cx="88" cy="100" rx="6" ry="7" fill={CREAM} />
+        <ellipse cx="112" cy="100" rx="6" ry="7" fill={CREAM} />
+        <circle cx="88.5" cy="101" r="3.2" fill={INK} />
+        <circle cx="112.5" cy="101" r="3.2" fill={INK} />
+        <path d="M 78 84 q 8 -6 15 -2 M 107 82 q 8 -4 15 2" stroke={INK} strokeWidth="3" fill="none" strokeLinecap="round" />
+        <ellipse cx="74" cy="112" rx="7" ry="4.6" fill={PINK} opacity=".6" />
+        <ellipse cx="126" cy="112" rx="7" ry="4.6" fill={PINK} opacity=".6" />
+        {/* hands */}
+        <rect x="70" y="118" width="32" height="30" rx="13" fill={SKIN_D} />
+        <rect x="98" y="118" width="32" height="30" rx="13" fill={SKIN_D} />
+        <path d="M 79 121 v 24 M 87 119 v 26 M 95 119 v 26" stroke={SKIN} strokeWidth="2.2" strokeLinecap="round" />
+        <path d="M 105 119 v 26 M 113 119 v 26 M 121 121 v 24" stroke={SKIN} strokeWidth="2.2" strokeLinecap="round" />
+      </g>
     </svg>
   );
 }
 
-/* ─────────────── أبي أتزوج — the marriage viewing ─────────────── */
-export function ShofahArt({ size = 96 }: IconProps) {
+/* ───────────── أبي أتزوج — two of them, and a heart ───────────── */
+export function ShofahArt({ size = 120 }: P) {
   return (
-    <svg width={size} height={size} viewBox="0 0 200 200" aria-hidden="true">
-      <rect x="0" y="0" width="200" height="200" rx="34" fill="#2F6B5E" />
-      <rect x="8" y="8" width="184" height="184" rx="28" fill="none" stroke={GOLD} strokeWidth="1.6" opacity=".7" />
-      <Arch fill="#F0DFC6" />
+    <svg width="100%" height="100%" viewBox="0 0 200 200" style={box} aria-hidden="true">
+      <rect width="200" height="200" rx="30" fill={PURPLE} />
+      <Dot x={28} y={38} r={5} f={YELLOW} />
+      <Dot x={172} y={54} r={4} f={MINT} />
+      <Dot x={30} y={158} r={4.5} f={PINK} />
+      <Sp x={170} y={160} s={8} f={YELLOW} />
+      <Sp x={100} y={34} s={7} f={CREAM} o={0.8} />
 
-      {/* the ring, centred in the arch */}
-      <circle cx="100" cy="52" r="11" fill="none" stroke={GOLD} strokeWidth="4" />
-      <path d="M 100 32 l 5 8 h -10 Z" fill="#C7405F" />
+      {/* heart between them */}
+      <path d="M 100 74 q -13 -16 -24 -6 q -10 9 2 22 l 22 21 22 -21 q 12 -13 2 -22 q -11 -10 -24 6 Z" fill={PINK} />
+      <Sp x={82} y={62} s={5} f={CREAM} o={0.9} />
 
-      {/* two figures facing centre, mirrored */}
+      {/* left — ghutra */}
       <g>
-        <path d="M 56 172 Q 58 138 80 133 Q 92 138 93 172 Z" fill="#C7405F" stroke={GOLD} strokeWidth="1.5" />
-        <circle cx="76" cy="110" r="19" fill="#E8B98C" stroke={GOLD} strokeWidth="1.5" />
-        <path d="M 57 108 Q 57 82 76 82 Q 95 82 95 108 Q 88 96 76 96 Q 64 96 57 108 Z" fill={CREAM} stroke={GOLD} strokeWidth="1.4" />
-        <rect x="60" y="82" width="32" height="6" rx="3" fill={INK} />
-        <circle cx="70" cy="112" r="2.4" fill={INK} />
-        <circle cx="82" cy="112" r="2.4" fill={INK} />
-      </g>
-      <g>
-        <path d="M 144 172 Q 142 138 120 133 Q 108 138 107 172 Z" fill="#C7405F" stroke={GOLD} strokeWidth="1.5" />
-        <path d="M 105 112 Q 105 84 124 84 Q 143 84 143 112 Q 143 134 124 137 Q 105 134 105 112 Z" fill={INK} stroke={GOLD} strokeWidth="1.4" />
-        <circle cx="124" cy="112" r="15" fill="#E8B98C" />
-        <path d="M 109 110 Q 109 90 124 90 Q 139 90 139 110 Q 133 100 124 100 Q 115 100 109 110 Z" fill={INK} />
-        <circle cx="118" cy="114" r="2.4" fill={INK} />
-        <circle cx="130" cy="114" r="2.4" fill={INK} />
+        <path d="M 12 192 q 3 -38 32 -45 q 29 7 32 45 Z" fill={MINT} />
+        <circle cx="44" cy="126" r="25" fill={SKIN} />
+        <path d="M 19 124 q 0 -31 25 -31 q 25 0 25 31 q -8 -13 -25 -13 q -17 0 -25 13 Z" fill={CREAM} />
+        <rect x="22" y="92" width="44" height="8" rx="4" fill={INK} />
+        <circle cx="36" cy="128" r="3.2" fill={INK} />
+        <circle cx="52" cy="128" r="3.2" fill={INK} />
+        <path d="M 36 140 q 8 6 16 0" stroke={INK} strokeWidth="3" fill="none" strokeLinecap="round" />
+        <ellipse cx="26" cy="136" rx="5" ry="3.4" fill={PINK} opacity=".5" />
       </g>
 
-      {/* mirrored dallah — the coffee that opens every shofah */}
+      {/* right — hijab */}
       <g>
-        <path d="M 20 128 q -4 -18 10 -20 q 14 2 10 20 Z" fill="#C7405F" stroke={GOLD} strokeWidth="1.3" />
-        <path d="M 30 108 l 0 -8 l 6 4 Z" fill={GOLD} />
-        <path d="M 20 128 h 20 l -3 10 h -14 Z" fill={GOLD} stroke={INK} strokeWidth="1" />
-        <path d="M 180 128 q 4 -18 -10 -20 q -14 2 -10 20 Z" fill="#C7405F" stroke={GOLD} strokeWidth="1.3" />
-        <path d="M 170 108 l 0 -8 l -6 4 Z" fill={GOLD} />
-        <path d="M 180 128 h -20 l 3 10 h 14 Z" fill={GOLD} stroke={INK} strokeWidth="1" />
+        <path d="M 124 192 q 3 -38 32 -45 q 29 7 32 45 Z" fill={PINK} />
+        <path d="M 131 126 q 0 -33 25 -33 q 25 0 25 33 q 0 25 -25 28 q -25 -3 -25 -28 Z" fill={INK} />
+        <circle cx="156" cy="128" r="19" fill={SKIN} />
+        <path d="M 137 124 q 0 -26 19 -26 q 19 0 19 26 q -7 -11 -19 -11 q -12 0 -19 11 Z" fill={INK} />
+        <circle cx="148" cy="130" r="3.2" fill={INK} />
+        <circle cx="164" cy="130" r="3.2" fill={INK} />
+        <path d="M 148 142 q 8 6 16 0" stroke={INK} strokeWidth="3" fill="none" strokeLinecap="round" />
+        <ellipse cx="138" cy="138" rx="5" ry="3.4" fill={PINK} opacity=".6" />
       </g>
-
-      <Star x={30} y={46} s={8} />
-      <Star x={170} y={46} s={8} />
-      <TileBand y={176} fillA="#C7405F" fillB="#F0DFC6" />
     </svg>
   );
 }
 
-/* ─────────────── مين بيتوظف — the interview ─────────────── */
-export function JobArt({ size = 96 }: IconProps) {
+/* ───────────── مين بيتوظف — the interview ───────────── */
+export function JobArt({ size = 120 }: P) {
   return (
-    <svg width={size} height={size} viewBox="0 0 200 200" aria-hidden="true">
-      <rect x="0" y="0" width="200" height="200" rx="34" fill="#2B4C9B" />
-      <rect x="8" y="8" width="184" height="184" rx="28" fill="none" stroke={GOLD} strokeWidth="1.6" opacity=".7" />
-      <Arch fill="#F0DFC6" />
+    <svg width="100%" height="100%" viewBox="0 0 200 200" style={box} aria-hidden="true">
+      <rect width="200" height="200" rx="30" fill={MINT} />
+      <Dot x={28} y={34} r={5} f={PINK} />
+      <Dot x={174} y={44} r={4.5} f={YELLOW} />
+      <Sp x={32} y={150} s={8} f={CREAM} o={0.9} />
+      <Sp x={100} y={26} s={7} f={CREAM} o={0.75} />
+
+      {/* flying paperwork */}
+      <g>
+        <rect x="14" y="60" width="28" height="22" rx="4" fill={CREAM} transform="rotate(-16 28 71)" />
+        <path d="M 20 68 h 16 M 20 74 h 11" stroke={INK} strokeWidth="2" strokeLinecap="round" opacity=".45" transform="rotate(-16 28 71)" />
+        <rect x="158" y="66" width="28" height="22" rx="4" fill={CREAM} transform="rotate(14 172 77)" />
+        <path d="M 164 74 h 16 M 164 80 h 11" stroke={INK} strokeWidth="2" strokeLinecap="round" opacity=".45" transform="rotate(14 172 77)" />
+      </g>
 
       {/* interviewer */}
-      <circle cx="100" cy="86" r="23" fill="#E8B98C" stroke={GOLD} strokeWidth="1.6" />
-      <path d="M 77 84 Q 77 54 100 54 Q 123 54 123 84 Q 115 70 100 70 Q 85 70 77 84 Z" fill={INK} />
-      <circle cx="91" cy="88" r="2.6" fill={INK} />
-      <circle cx="109" cy="88" r="2.6" fill={INK} />
-      <path d="M 84 76 q 7 -5 13 -1 M 103 75 q 7 -4 13 1" stroke={INK} strokeWidth="2.2" fill="none" strokeLinecap="round" />
+      <circle cx="100" cy="86" r="27" fill={SKIN} />
+      <path d="M 73 84 q 0 -33 27 -33 q 27 0 27 33 q -9 -14 -27 -14 q -18 0 -27 14 Z" fill={INK} />
+      <circle cx="90" cy="88" r="3.2" fill={INK} />
+      <circle cx="110" cy="88" r="3.2" fill={INK} />
+      <path d="M 80 74 q 8 -6 15 -2 M 105 72 q 8 -4 15 2" stroke={INK} strokeWidth="3" fill="none" strokeLinecap="round" />
+      <path d="M 92 100 q 8 6 16 0" stroke="#C4703F" strokeWidth="3" fill="none" strokeLinecap="round" />
+      <ellipse cx="76" cy="96" rx="6" ry="4" fill={PINK} opacity=".45" />
+      <ellipse cx="124" cy="96" rx="6" ry="4" fill={PINK} opacity=".45" />
+
       {/* suit */}
-      <path d="M 64 150 Q 66 118 86 111 L 114 111 Q 134 118 136 150 Z" fill="#1B3068" stroke={GOLD} strokeWidth="1.5" />
-      <path d="M 86 111 L 100 132 L 114 111 Q 107 107 100 107 Q 93 107 86 111 Z" fill={CREAM} />
-      <path d="M 100 118 l 5 6 -3 22 -2 3 -2 -3 -3 -22 Z" fill="#C7405F" stroke={GOLD} strokeWidth="0.9" />
+      <path d="M 54 158 q 3 -32 26 -40 l 40 0 q 23 8 26 40 Z" fill={PURPLE} />
+      <path d="M 80 118 l 20 24 20 -24 q -9 -5 -20 -5 q -11 0 -20 5 Z" fill={CREAM} />
+      <path d="M 100 126 l 6 8 -4 26 -2 3 -2 -3 -4 -26 Z" fill={PINK} />
+
       {/* desk */}
-      <rect x="34" y="150" width="132" height="11" rx="4" fill="#8A5A2B" stroke={GOLD} strokeWidth="1.4" />
-      <rect x="34" y="150" width="132" height="4" rx="2" fill={GOLD} opacity=".55" />
-
-      {/* mirrored CVs on the desk */}
-      <g>
-        <rect x="24" y="126" width="24" height="22" rx="3" fill={CREAM} stroke={INK} strokeWidth="1.2" transform="rotate(-8 36 137)" />
-        <path d="M 29 133 h 14 M 29 139 h 10" stroke="#8C8299" strokeWidth="1.6" strokeLinecap="round" transform="rotate(-8 36 137)" />
-        <rect x="152" y="126" width="24" height="22" rx="3" fill={CREAM} stroke={INK} strokeWidth="1.2" transform="rotate(8 164 137)" />
-        <path d="M 157 133 h 14 M 157 139 h 10" stroke="#8C8299" strokeWidth="1.6" strokeLinecap="round" transform="rotate(8 164 137)" />
-      </g>
-
-      <Star x={30} y={44} s={9} />
-      <Star x={170} y={44} s={9} />
-      <Star x={100} y={38} s={6} fill={CREAM} />
-      <TileBand y={176} fillA="#C9A227" fillB="#F0DFC6" />
+      <rect x="22" y="158" width="156" height="14" rx="6" fill={YELLOW} />
+      <rect x="34" y="172" width="132" height="10" rx="4" fill="#E0B800" />
     </svg>
   );
 }
 
-/* ─────────────── عبارات — the daily card ─────────────── */
-export function IbaratArt({ size = 96 }: IconProps) {
+/* ───────────── عبارات — the daily card ───────────── */
+export function IbaratArt({ size = 120 }: P) {
   return (
-    <svg width={size} height={size} viewBox="0 0 200 200" aria-hidden="true">
-      <rect x="0" y="0" width="200" height="200" rx="34" fill="#C9A227" />
-      <rect x="8" y="8" width="184" height="184" rx="28" fill="none" stroke={INK} strokeWidth="1.6" opacity=".45" />
-      <Arch fill="#1B3A55" stroke={GOLD} />
+    <svg width="100%" height="100%" viewBox="0 0 200 200" style={box} aria-hidden="true">
+      <rect width="200" height="200" rx="30" fill={YELLOW} />
+      <Dot x={28} y={38} r={5} f={PINK} />
+      <Dot x={172} y={48} r={4.5} f={PURPLE} />
+      <Dot x={34} y={166} r={4} f={MINT} />
+      <Sp x={168} y={162} s={8} f={CREAM} />
+      <Sp x={100} y={26} s={7} f={CREAM} o={0.8} />
 
-      {/* fanned cards inside the arch */}
-      <rect x="62" y="66" width="54" height="76" rx="7" fill="#C7405F" stroke={GOLD} strokeWidth="1.5" transform="rotate(-11 100 104)" />
-      <rect x="70" y="64" width="54" height="76" rx="7" fill="#2F6B5E" stroke={GOLD} strokeWidth="1.5" transform="rotate(-2 100 104)" />
-      <rect x="74" y="62" width="54" height="78" rx="7" fill={CREAM} stroke={GOLD} strokeWidth="1.8" transform="rotate(8 100 104)" />
-      <g transform="rotate(8 100 104)">
-        <Star x={101} y={88} s={13} fill={GOLD} />
-        <path d="M 84 116 h 34 M 89 126 h 24" stroke="#B9A98F" strokeWidth="3" strokeLinecap="round" />
+      <rect x="52" y="52" width="66" height="94" rx="12" fill={PURPLE} transform="rotate(-14 100 100)" />
+      <rect x="62" y="50" width="66" height="94" rx="12" fill={MINT} transform="rotate(-4 100 100)" />
+      <rect x="68" y="48" width="66" height="96" rx="12" fill={CREAM} transform="rotate(8 100 100)" />
+      <g transform="rotate(8 100 100)">
+        <Sp x={101} y={82} s={19} f={PINK} />
+        <path d="M 78 116 h 46 M 86 130 h 30" stroke={INK} strokeWidth="5" strokeLinecap="round" opacity=".22" />
       </g>
-
-      {/* mirrored palm fronds */}
-      <g stroke={GOLD} strokeWidth="1.6" fill="#2F6B5E">
-        <path d="M 26 150 q -8 -26 4 -44 q 12 18 4 44 Z" />
-        <path d="M 174 150 q 8 -26 -4 -44 q -12 18 -4 44 Z" />
-      </g>
-
-      <Star x={32} y={44} s={8} fill={CREAM} />
-      <Star x={168} y={44} s={8} fill={CREAM} />
-      <TileBand y={176} fillA="#C7405F" fillB="#1B3A55" />
-    </svg>
-  );
-}
-
-/* ─────────── Ornamental arch used as the home-page crest ─────────── */
-export function Crest({ size = 120 }: IconProps) {
-  return (
-    <svg width={size} height={(size * 100) / 140} viewBox="0 0 140 100" aria-hidden="true">
-      <path
-        d="M 26 96 L 26 52 Q 26 18 70 6 Q 114 18 114 52 L 114 96"
-        fill="none"
-        stroke={GOLD}
-        strokeWidth="2.4"
-      />
-      <path
-        d="M 40 96 L 40 56 Q 40 30 70 20 Q 100 30 100 56 L 100 96"
-        fill="none"
-        stroke={GOLD}
-        strokeWidth="1.4"
-        opacity=".6"
-      />
-      <Star x={70} y={44} s={11} />
-      <Star x={22} y={80} s={6} o={0.75} />
-      <Star x={118} y={80} s={6} o={0.75} />
+      <Sp x={54} y={92} s={7} f={PINK} />
+      <Sp x={150} y={118} s={6} f={PURPLE} />
     </svg>
   );
 }

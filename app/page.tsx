@@ -6,7 +6,8 @@ import { STR } from "@/lib/i18n";
 import { SHOFAH_STR } from "@/lib/shofah-i18n";
 import { JOB_STR } from "@/lib/job-i18n";
 import { usePrefs } from "@/lib/usePrefs";
-import { FashlahArt, ShofahArt, JobArt, IbaratArt, Crest } from "@/components/art/GameArt";
+import Blobs from "@/components/Blobs";
+import { FashlahArt, ShofahArt, JobArt, IbaratArt } from "@/components/art/GameArt";
 
 /**
  * Home — the game library.
@@ -36,6 +37,7 @@ export default function Home() {
       className={dark ? "dark" : ""}
       style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}
     >
+      <Blobs />
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "22px 20px 48px", position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
           <button
@@ -55,33 +57,57 @@ export default function Home() {
           </button>
         </div>
 
-        <div style={{ textAlign: "center", marginTop: 14 }}>
-          <Crest size={132} />
-          <h1 className="font-display" style={{ fontSize: 46, fontWeight: 800, margin: "6px 0 0", letterSpacing: "-.01em", lineHeight: 1 }}>
+        <div style={{ textAlign: "center", marginTop: 26 }}>
+          <span
+            className="font-display"
+            style={{
+              display: "inline-block", background: "var(--purple)", color: "#fff",
+              fontSize: 12, fontWeight: 800, padding: "6px 16px", borderRadius: 999,
+              transform: "rotate(-4deg)", marginBottom: 14,
+              boxShadow: "3px 3px 0 var(--ink)",
+            }}
+          >
+            {ar ? "\u{1F389} يلا نلعب!" : "\u{1F389} Let's play!"}
+          </span>
+          <h1
+            className="font-display"
+            style={{
+              fontSize: 56, fontWeight: 800, margin: 0, lineHeight: 1,
+              color: "var(--pink)",
+              textShadow: "3px 3px 0 var(--purple), 6px 6px 0 var(--mint)",
+            }}
+          >
             {t.appName}
           </h1>
-          <div className="tile-rule" style={{ width: 112, margin: "14px auto 0" }} />
           <p className="font-body" style={{ fontSize: 13.5, color: "var(--ink-soft)", margin: "14px auto 0", maxWidth: 285, lineHeight: 1.8, fontWeight: 500 }}>
             {ar ? "اكتشفوا أسرار قروبكم — ألعاب جماعية وتجارب لكل تجمّع" : "Party games and daily experiences for your group"}
           </p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 30 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 34 }}>
           {entries.map(({ href, title, sub, Art }) => (
             <Link
               key={href}
               href={href}
-              className="ornate"
-              style={{ borderRadius: 22, background: "var(--card)", padding: 12, textDecoration: "none", color: "var(--ink)", display: "flex", flexDirection: "column", alignItems: "center", gap: 9, boxShadow: "0 8px 20px rgba(36,21,57,.10)" }}
+              style={{ textDecoration: "none", color: "var(--ink)", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}
             >
-              <Art size={112} />
-              <span className="font-display" style={{ fontSize: 16, fontWeight: 800, lineHeight: 1.1, textAlign: "center" }}>{title}</span>
-              <span className="font-body" style={{ fontSize: 10, fontWeight: 700, color: "var(--ink-soft)", marginTop: -5, textAlign: "center" }}>{sub}</span>
+              {/* The artwork IS the tile — full bleed, no card around it. */}
+              <div
+                style={{
+                  width: "100%", aspectRatio: "1 / 1", borderRadius: 30, overflow: "hidden",
+                  border: "3px solid var(--ink)", boxShadow: "5px 5px 0 var(--ink)",
+                }}
+              >
+                <Art size={400} />
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <div className="font-display" style={{ fontSize: 17, fontWeight: 800, lineHeight: 1.15 }}>{title}</div>
+                <div className="font-body" style={{ fontSize: 10.5, fontWeight: 700, color: "var(--ink-soft)", marginTop: 2 }}>{sub}</div>
+              </div>
             </Link>
           ))}
         </div>
 
-        <div className="tile-rule" style={{ width: 86, margin: "34px auto 0" }} />
         <p className="font-body" style={{ textAlign: "center", fontSize: 10.5, letterSpacing: ".18em", color: "var(--ink-soft)", fontWeight: 700, marginTop: 16 }}>
           BAGDOONIS.APP
         </p>
