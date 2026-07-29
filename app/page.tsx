@@ -102,6 +102,7 @@ export default function Home() {
             >
               {/* The artwork IS the tile — full bleed, no card around it. */}
               <div
+                className="tile-tap"
                 style={{
                   width: "100%", aspectRatio: "1 / 1", borderRadius: 30, overflow: "hidden",
                   border: "3px solid var(--ink)", boxShadow: "5px 5px 0 var(--ink)",

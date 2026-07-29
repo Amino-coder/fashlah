@@ -112,22 +112,36 @@ export function ShofahArt({ size = 120 }: P) {
       {/* left — ghutra */}
       <g>
         <path d="M 12 192 q 3 -38 32 -45 q 29 7 32 45 Z" fill={MINT} />
-        <circle cx="44" cy="126" r="25" fill={SKIN} />
-        <path d="M 19 124 q 0 -31 25 -31 q 25 0 25 31 q -8 -13 -25 -13 q -17 0 -25 13 Z" fill={CREAM} />
-        <rect x="22" y="92" width="44" height="8" rx="4" fill={INK} />
-        <circle cx="36" cy="128" r="3.2" fill={INK} />
-        <circle cx="52" cy="128" r="3.2" fill={INK} />
-        <path d="M 36 140 q 8 6 16 0" stroke={INK} strokeWidth="3" fill="none" strokeLinecap="round" />
-        <ellipse cx="26" cy="136" rx="5" ry="3.4" fill={PINK} opacity=".5" />
+        {/* shemagh: one cloth over the head that drapes down past the
+            shoulders on both sides, then the iqal cord ring on top */}
+        <path d="M 15 186 q -5 -56 11 -74 q 18 -17 36 0 q 16 18 11 74 q -11 5 -20 0 q 5 -34 -3 -48 q -6 -9 -12 -9 q -6 0 -12 9 q -8 14 -3 48 q -9 5 -20 0 Z" fill={CREAM} />
+        <circle cx="44" cy="128" r="24" fill={SKIN} />
+        <path d="M 20 126 q 0 -32 24 -32 q 24 0 24 32 q -8 -14 -24 -14 q -16 0 -24 14 Z" fill={CREAM} />
+        {/* side falls framing the cheeks */}
+        <path d="M 20 122 q -3 32 3 50 q 9 4 13 -3 q -8 -22 -6 -47 Z" fill={CREAM} />
+        <path d="M 68 122 q 3 32 -3 50 q -9 4 -13 -3 q 8 -22 6 -47 Z" fill={CREAM} />
+        {/* red check hinting */}
+        <g stroke="#E4573D" strokeWidth="1.5" opacity=".55" strokeLinecap="round">
+          <path d="M 24 140 h 8 M 24 152 h 8 M 56 140 h 8 M 56 152 h 8 M 26 164 h 7 M 55 164 h 7" />
+        </g>
+        {/* iqal — doubled black cord */}
+        <rect x="19" y="90" width="50" height="6" rx="3" fill={INK} />
+        <rect x="19" y="99" width="50" height="6" rx="3" fill={INK} />
+        <circle cx="36" cy="130" r="3.2" fill={INK} />
+        <circle cx="52" cy="130" r="3.2" fill={INK} />
+        <path d="M 36 142 q 8 6 16 0" stroke={INK} strokeWidth="3" fill="none" strokeLinecap="round" />
+        <ellipse cx="27" cy="138" rx="5" ry="3.4" fill={PINK} opacity=".5" />
       </g>
 
       {/* right — hijab */}
       <g>
         <path d="M 124 192 q 3 -38 32 -45 q 29 7 32 45 Z" fill={PINK} />
-        <path d="M 131 126 q 0 -33 25 -33 q 25 0 25 33 q 0 25 -25 28 q -25 -3 -25 -28 Z" fill={SCARF} />
-        <circle cx="156" cy="128" r="19" fill={SKIN} />
-        <path d="M 137 124 q 0 -26 19 -26 q 19 0 19 26 q -7 -11 -19 -11 q -12 0 -19 11 Z" fill={SCARF} />
-        <path d="M 140 116 q 16 -9 32 0" stroke="#7A46A0" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+        {/* long hair falling behind the shoulders */}
+        <path d="M 130 182 q -6 -50 10 -64 q 16 -14 32 0 q 16 14 10 64 q -9 4 -15 -1 q 5 -34 -3 -46 q -6 -9 -12 -9 q -6 0 -12 9 q -8 12 -3 46 q -6 5 -15 1 Z" fill={HAIR} />
+        <circle cx="156" cy="128" r="20" fill={SKIN} />
+        {/* fringe */}
+        <path d="M 136 126 q 0 -28 20 -28 q 20 0 20 28 q -5 -12 -13 -15 q -7 7 -16 5 q -9 -2 -11 10 Z" fill={HAIR} />
+        <path d="M 142 112 q 14 -8 28 -2" stroke={HAIR_L} strokeWidth="2.4" fill="none" strokeLinecap="round" />
         <circle cx="148" cy="130" r="3.2" fill={INK} />
         <circle cx="164" cy="130" r="3.2" fill={INK} />
         <path d="M 148 142 q 8 6 16 0" stroke={INK} strokeWidth="3" fill="none" strokeLinecap="round" />

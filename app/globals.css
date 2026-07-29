@@ -292,3 +292,20 @@ body::after {
    ornament instead, so it's neutralised globally rather than stripped out
    of every screen that still renders one. */
 
+
+
+/* Tile tap feedback — a quick wobble on press. Pure CSS on :active so it
+   fires instantly on touch without waiting on a JS handler, and it can't
+   be left stuck mid-animation if navigation interrupts it. */
+.tile-tap { transition: transform .12s ease; }
+.tile-tap:active { animation: tileShake .42s cubic-bezier(.36,.07,.19,.97); }
+@keyframes tileShake {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  15% { transform: rotate(-4deg) scale(.96); }
+  35% { transform: rotate(3.5deg) scale(.965); }
+  55% { transform: rotate(-2.5deg) scale(.975); }
+  75% { transform: rotate(1.8deg) scale(.99); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tile-tap:active { animation: none; transform: scale(.97); }
+}
