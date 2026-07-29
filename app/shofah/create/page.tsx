@@ -29,7 +29,12 @@ function ShofahCreate() {
 
   const [character, setCharacter] = useState<ShofahCharacter | null>(null);
   const [nickname, setNickname] = useState("");
-  const [emoji, setEmoji] = useState(SHOFAH_AVATARS[0]);
+  const [emoji, setEmoji] = useState(() =>
+    // Randomised per visit — not persisted, not synced — so two people
+    // who both skip picking an avatar don't silently end up identical.
+    // A repeat is still fine if it happens by chance, just not guaranteed.
+    SHOFAH_AVATARS[Math.floor(Math.random() * SHOFAH_AVATARS.length)]
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

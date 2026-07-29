@@ -17,7 +17,12 @@ export default function JobCreatePage() {
   const router = useRouter();
 
   const [nickname, setNickname] = useState("");
-  const [emoji, setEmoji] = useState(JOB_AVATARS[0]);
+  const [emoji, setEmoji] = useState(() =>
+    // Randomised per visit — not persisted, not synced — so two people
+    // who both skip picking an avatar don't silently end up identical.
+    // A repeat is still fine if it happens by chance, just not guaranteed.
+    JOB_AVATARS[Math.floor(Math.random() * JOB_AVATARS.length)]
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
