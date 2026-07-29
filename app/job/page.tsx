@@ -61,11 +61,9 @@ export default function JobLanding() {
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 14 }}>
           <div style={{ width: 168, height: 168, borderRadius: 30, overflow: "hidden", border: "3px solid var(--ink)", boxShadow: "5px 5px 0 var(--ink)", margin: "0 auto" }}><JobArt size={168} /></div>
           <h1
-            className="font-display"
+            className="font-display title-stack"
             style={{
               fontSize: 48, fontWeight: 800, margin: 0,
-              background: `linear-gradient(135deg, ${BLUE}, ${NAVY})`,
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
             }}
           >
             {t.gameNameArabic}
@@ -80,7 +78,7 @@ export default function JobLanding() {
 
         <Link
           href="/job/create"
-          className="font-display"
+          className="font-display btn-bag"
           style={{
             display: "block", textAlign: "center", padding: 18, fontSize: 18,
             borderRadius: 999, color: "#fff", textDecoration: "none",

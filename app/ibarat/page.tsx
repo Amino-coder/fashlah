@@ -124,7 +124,7 @@ export default function IbaratPage() {
       <Link
         href="/"
         aria-label="الرئيسية"
-        className="font-body"
+        className="font-body btn-bag"
         style={{
           position: "absolute", top: 20, insetInlineStart: 20, zIndex: 3,
           display: "flex", alignItems: "center", gap: 6,
@@ -151,8 +151,12 @@ export default function IbaratPage() {
           <h1
             className="ibarat-fade-up"
             style={{
+              // Echoes the card artwork: the same El Messiri face used for
+              // the quotes, in the deep navy / gold of the ornate borders.
               fontFamily: "'El Messiri', serif",
-              fontSize: 54, fontWeight: 700, margin: 0, letterSpacing: "0.01em",
+              fontSize: 58, fontWeight: 700, margin: 0, letterSpacing: "0.01em",
+              color: "#1B3A55",
+              textShadow: "2px 2px 0 #D9A441, 4px 4px 0 rgba(27,58,85,.28)",
             }}
           >
             عبارات
@@ -205,7 +209,7 @@ export default function IbaratPage() {
             <button
               onClick={onShare}
               disabled={shareState === "working"}
-              className="font-body"
+              className="font-body btn-bag"
               style={{
                 width: "100%", padding: 15, fontSize: 15, fontWeight: 800,
                 borderRadius: 999, border: "none", color: "#fff",
@@ -220,7 +224,7 @@ export default function IbaratPage() {
             <button
               onClick={draw}
               disabled={shuffling}
-              className="font-body"
+              className="font-body btn-bag"
               style={{
                 width: "100%", padding: 14, fontSize: 14, fontWeight: 700,
                 borderRadius: 999, border: "none",

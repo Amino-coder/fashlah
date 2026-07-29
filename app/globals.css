@@ -309,3 +309,21 @@ body::after {
 @media (prefers-reduced-motion: reduce) {
   .tile-tap:active { animation: none; transform: scale(.97); }
 }
+
+/* Freezes the avatars' idle loops when they're used as static menu art. */
+.no-anim, .no-anim * { animation: none !important; }
+
+/* Shared "Bagdoonis" title + button treatment, so game pages match home. */
+.title-stack {
+  color: var(--pink);
+  text-shadow: 3px 3px 0 var(--purple), 6px 6px 0 var(--mint);
+  letter-spacing: -.01em;
+}
+.btn-bag {
+  border-radius: 999px;
+  border: 3px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  font-weight: 800;
+  transition: transform .12s ease;
+}
+.btn-bag:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }

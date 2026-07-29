@@ -20,7 +20,7 @@ export const CARD_H = 1920;
 /** Horizontal breathing room. Arabic at this size needs a lot of it. */
 // 15% of the card width on each side, so the quote never overlaps the
 // ornamental border of the uploaded card art.
-export const PAD_X = Math.round(1080 * 0.15);
+export const PAD_X = Math.round(1080 * 0.20);
 
 export const RADIUS = 56;
 
@@ -135,13 +135,13 @@ export const FRONT_IMAGES = [
   "/ibarat-cards/front-2.jpg",
   "/ibarat-cards/front-3.jpg",
   "/ibarat-cards/front-4.jpg",
-  "/ibarat-cards/front-5.jpg",
   "/ibarat-cards/front-6.jpg",
-  "/ibarat-cards/front-7.jpg",
 ];
 
+// Down to a single back design, repeated across the deck's fanned layers.
+// One back design, repeated across every fanned deck layer — the ones
+// behind the top card are almost fully occluded, so separate art there
+// only cost bundle size.
 export const BACK_IMAGES = [
-  "/ibarat-cards/back-1.jpg",
   "/ibarat-cards/back-2.jpg",
-  "/ibarat-cards/back-3.jpg",
 ];

@@ -52,7 +52,7 @@ export default function BagdoonisHome() {
           <div style={{ width: 168, height: 168, borderRadius: 30, overflow: "hidden", border: "3px solid var(--ink)", boxShadow: "5px 5px 0 var(--ink)", margin: "0 auto" }}><FashlahArt size={168} /></div>
           <div>
             <h1
-              className="font-display"
+              className="font-display title-stack"
               style={{ fontSize: 44, fontWeight: 800, margin: 0 }}
             >
               <span style={{ color: "var(--mint)" }}>{t.gameNamePart1}</span>
@@ -66,7 +66,7 @@ export default function BagdoonisHome() {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <Link href="/fashlah/create" className="btn-primary font-display" style={{ padding: 18, fontSize: 18, textAlign: "center", display: "block" }}>
+          <Link href="/fashlah/create" className="btn-primary btn-bag font-display" style={{ padding: 18, fontSize: 18, textAlign: "center", display: "block" }}>
             {t.startSession}
           </Link>
           <Link href="/fashlah/join" className="btn-ghost font-display" style={{ padding: 18, fontSize: 18, textAlign: "center", display: "block" }}>

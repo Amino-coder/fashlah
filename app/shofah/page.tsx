@@ -64,11 +64,9 @@ export default function ShofahLanding() {
             <div style={{ width: 168, height: 168, borderRadius: 30, overflow: "hidden", border: "3px solid var(--ink)", boxShadow: "5px 5px 0 var(--ink)", margin: "0 auto" }}><ShofahArt size={168} /></div>
           </div>
           <h1
-            className="font-display"
+            className="font-display title-stack"
             style={{
               fontSize: 48, fontWeight: 800, margin: 0,
-              background: `linear-gradient(135deg, ${ROSE}, ${WINE})`,
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
             }}
           >
             {t.gameNameArabic}
@@ -83,7 +81,7 @@ export default function ShofahLanding() {
 
         <Link
           href="/shofah/select"
-          className="font-display"
+          className="font-display btn-bag"
           style={{
             display: "block", textAlign: "center", padding: 18, fontSize: 18,
             borderRadius: 999, color: "#fff", textDecoration: "none",

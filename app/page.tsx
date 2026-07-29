@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Moon, Sun } from "lucide-react";
+import { Instagram, Moon, Sun } from "lucide-react";
 import { STR } from "@/lib/i18n";
 import { SHOFAH_STR } from "@/lib/shofah-i18n";
 import { JOB_STR } from "@/lib/job-i18n";
@@ -79,12 +79,8 @@ export default function Home() {
             </span>
           </div>
           <h1
-            className="font-display"
-            style={{
-              fontSize: 56, fontWeight: 800, margin: 0, lineHeight: 1,
-              color: "var(--pink)",
-              textShadow: "3px 3px 0 var(--purple), 6px 6px 0 var(--mint)",
-            }}
+            className="font-display title-stack"
+            style={{ fontSize: 56, fontWeight: 800, margin: 0, lineHeight: 1 }}
           >
             {t.appName}
           </h1>
@@ -118,8 +114,23 @@ export default function Home() {
           ))}
         </div>
 
+        <div style={{ display: "flex", justifyContent: "center", gap: 10, marginTop: 30 }}>
+          <a
+            href="https://instagram.com/bagdoonis.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram: @bagdoonis.app"
+            style={{
+              width: 40, height: 40, borderRadius: 999, background: "var(--card)",
+              border: "2.5px solid var(--ink)", boxShadow: "3px 3px 0 var(--ink)",
+              display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink)",
+            }}
+          >
+            <Instagram size={18} />
+          </a>
+        </div>
         <p className="font-body" style={{ textAlign: "center", fontSize: 10.5, letterSpacing: ".18em", color: "var(--ink-soft)", fontWeight: 700, marginTop: 16 }}>
-          BAGDOONIS.APP
+          @BAGDOONIS.APP
         </p>
       </div>
     </div>
