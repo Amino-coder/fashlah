@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { unlockAudio } from "@/lib/sound-engine";
 import { SHOFAH_STR, ShofahLang } from "@/lib/shofah-i18n";
 import { usePrefs } from "@/lib/usePrefs";
 import Blobs from "@/components/Blobs";
@@ -98,6 +99,7 @@ export default function ShofahWaitingRoom() {
 
   async function startGame() {
     if (!session) return;
+    unlockAudio(); // a real tap, and the countdown's sound starts moments later
     setStarting(true);
     setStartError(null);
     try {

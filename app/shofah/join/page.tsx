@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase, ensureUser } from "@/lib/supabase";
+import { unlockAudio } from "@/lib/sound-engine";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import { SHOFAH_STR, SHOFAH_AVATARS, ShofahLang } from "@/lib/shofah-i18n";
@@ -55,6 +56,7 @@ function ShofahJoin() {
       : null;
 
   async function handleJoin() {
+    unlockAudio(); // a real tap — carries the unlock through client-side nav into the session page
     setLoading(true);
     setError(null);
     setSessionDead(false);

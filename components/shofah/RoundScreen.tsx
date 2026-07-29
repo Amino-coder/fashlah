@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Volume2, VolumeX } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { SHOFAH_STR, ShofahLang } from "@/lib/shofah-i18n";
+import { playCountdownTick, playCountdownGo, playUrgentTick, unlockAudio } from "@/lib/sound-engine";
+import { useSoundPref } from "@/lib/useSoundPref";
 import NiqabGirl from "./NiqabGirl";
 import ShemaghGuy from "./ShemaghGuy";
 import FinalConversation from "./FinalConversation";
@@ -165,6 +168,46 @@ export default function RoundScreen({
   const remaining = session.phase_started_at
     ? Math.max(0, Math.ceil(duration - (now - new Date(session.phase_started_at).getTime()) / 1000))
     : duration;
+
+  // Sound effects: countdown ticks + "go", and an urgent tick for the final
+  // 5 seconds of the answering/voting timer. `remaining` is recomputed every
+  // 250ms from the ticking clock above, but a sound should fire exactly once
+  // per whole second — this ref remembers the last (phase, value) pair a
+  // sound was already played for, so repeated renders at the same integer
+  // don't repeat the sound.
+  const { enabled: soundOn, setEnabled: setSoundOn } = useSoundPref();
+  const soundLastRef = useRef<{ phase: string; value: number } | null>(null);
+
+  useEffect(() => {
+    if (!soundOn) return;
+    const phase = session.round_phase;
+    if (soundLastRef.current?.phase === phase && soundLastRef.current?.value === remaining) return;
+    soundLastRef.current = { phase, value: remaining };
+
+    if (phase === "countdown") {
+      if (remaining > 0) playCountdownTick();
+      else playCountdownGo();
+    } else if (phase === "answering" || phase === "voting") {
+      // Matches the same <=5 threshold the timer badge below uses to turn red.
+      if (remaining > 0 && remaining <= 5) playUrgentTick();
+    }
+  }, [session.round_phase, remaining, soundOn]);
+
+  const muteButton = (
+    <button
+      onClick={() => setSoundOn(!soundOn)}
+      aria-label={soundOn ? (lang === "ar" ? "كتم الصوت" : "Mute sound") : (lang === "ar" ? "تشغيل الصوت" : "Unmute sound")}
+      style={{
+        position: "absolute", top: 14, insetInlineEnd: 14,
+        width: 34, height: 34, borderRadius: 999, border: "none",
+        background: "var(--card)", color: "var(--ink-soft)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        boxShadow: "0 2px 8px var(--ring)",
+      }}
+    >
+      {soundOn ? <Volume2 size={15} /> : <VolumeX size={15} />}
+    </button>
+  );
 
   // Host-only: countdown -> prewarm (the player-voting warm-up round) once
   // the 5-4-3-2-1 finishes. Round 1's answering phase doesn't start until
@@ -357,6 +400,7 @@ export default function RoundScreen({
 
   async function submitAnswer() {
     if (!myPlayerId || !draft.trim() || myAnswer) return;
+    unlockAudio(); // a real tap — cheap belt-and-suspenders in case nothing upstream unlocked it yet
     await supabase.from("shofah_answers").insert({
       session_id: session.id, round_number: session.current_round,
       player_id: myPlayerId, text: draft.trim().slice(0, MAX_CHARS),
@@ -365,6 +409,7 @@ export default function RoundScreen({
 
   async function castVote(answerId: string, answerPlayerId: string) {
     if (!myPlayerId || myVote) return;
+    unlockAudio();
     await supabase.from("shofah_votes").insert({
       session_id: session.id, round_number: session.current_round,
       voter_player_id: myPlayerId, answer_id: answerId,
@@ -396,7 +441,8 @@ export default function RoundScreen({
 
   if (session.round_phase === "countdown") {
     return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, marginTop: 60 }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, marginTop: 60, position: "relative" }}>
+        {muteButton}
         <Character size={130} />
         <div
           key={remaining}
@@ -443,7 +489,8 @@ export default function RoundScreen({
   // to the voting screen below, which handles the reveal beat itself.
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 18, marginTop: 20 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 18, marginTop: 20, position: "relative" }}>
+      {muteButton}
       <div style={{ textAlign: "center" }}>
         <span className="font-body" style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)" }}>
           {session.current_round} / {TOTAL_ROUNDS}

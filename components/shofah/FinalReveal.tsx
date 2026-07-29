@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { SHOFAH_STR, ShofahLang } from "@/lib/shofah-i18n";
+import { playCelebration } from "@/lib/sound-engine";
+import { useSoundPref } from "@/lib/useSoundPref";
 import NiqabGirl from "./NiqabGirl";
 import ShemaghGuy from "./ShemaghGuy";
 import type { ShofahSessionRow, ShofahPlayerRow } from "@/lib/shofah-types";
@@ -26,6 +28,8 @@ export default function FinalReveal({
   const [winner, setWinner] = useState<ShofahPlayerRow | null>(null);
   const completedRef = useRef(false);
   const winnerComputedRef = useRef(false);
+  const { enabled: soundOn } = useSoundPref();
+  const celebrationPlayedRef = useRef(false);
 
   // Determine the overall winner: highest total_score, tie broken by most
   // first-place round finishes. Computed exactly once — `players` is a prop
@@ -71,6 +75,15 @@ export default function FinalReveal({
     ];
     return () => timers.forEach(clearTimeout);
   }, [winner?.id]);
+
+  // Fires exactly once, the moment the winner card actually appears (stage
+  // 3) — not on every re-render at stage>=3, which polling props would
+  // otherwise cause.
+  useEffect(() => {
+    if (stage < 3 || celebrationPlayedRef.current || !soundOn) return;
+    celebrationPlayedRef.current = true;
+    playCelebration();
+  }, [stage, soundOn]);
 
   // Host-only: mark the session as completed once the reveal is showing.
   useEffect(() => {
