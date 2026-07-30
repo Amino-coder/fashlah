@@ -12,6 +12,20 @@ import Mascot from "@/components/Mascot";
 import { FashlahArt, ShofahArt, JobArt, IbaratArt, QaseedaArt } from "@/components/art/GameArt";
 
 /**
+ * lucide-react (used for every other icon on this page) deliberately
+ * ships no brand/social glyphs, so TikTok's mark is hand-drawn here —
+ * same viewBox/sizing convention as a lucide icon (currentColor fill,
+ * size prop) so it drops into the same icon-button styling as Instagram.
+ */
+function TikTokIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
+    </svg>
+  );
+}
+
+/**
  * Home — the game library.
  *
  * Rebuilt around the illustration set: each game is a framed panel with
@@ -31,10 +45,10 @@ export default function Home() {
 
   const entries = [
     { href: "/fashlah", title: t.gameName, sub: ar ? "اكتشفوا أسرار شلتكم 😂" : "Uncover your group's secrets 😂", Art: FashlahArt, badge: ar ? "مجاناً" : "Free", badgeColor: ALWAYS_FREE },
-    { href: "/shofah", title: SHOFAH_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين بيتزوج أول" : "Who gets married first?", Art: ShofahArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
+    { href: "/shofah", title: SHOFAH_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين بيتزوج أول" : "Who gets married first?", Art: ShofahArt, badge: ar ? "مجاناً" : "Free", badgeColor: ALWAYS_FREE },
     { href: "/job", title: JOB_STR[lang].gameNameArabic, sub: ar ? "لعبة للعاطلين 👀" : "A game for the unemployed 👀", Art: JobArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
     { href: "/qaseeda", title: QASEEDA_STR[lang].gameNameArabic, sub: ar ? "اكتبوا قصيدة سوا، بيت بيت 🪶" : "Write a poem together, line by line 🪶", Art: QaseedaArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
-    { href: "/ibarat", title: "عبارات", sub: ar ? "بطاقة إلهام يومية" : "A daily card of inspiration", Art: IbaratArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
+    { href: "/ibarat", title: "عبارات", sub: ar ? "بطاقة إلهام يومية" : "A daily card of inspiration", Art: IbaratArt, badge: ar ? "مجاناً" : "Free", badgeColor: ALWAYS_FREE },
   ];
 
   return (
@@ -152,6 +166,19 @@ export default function Home() {
             }}
           >
             <Instagram size={18} />
+          </a>
+          <a
+            href="https://tiktok.com/@bagdoonis.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="TikTok: @bagdoonis.app"
+            style={{
+              width: 40, height: 40, borderRadius: 999, background: "var(--card)",
+              border: "2.5px solid var(--ink)", boxShadow: "3px 3px 0 var(--ink)",
+              display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink)",
+            }}
+          >
+            <TikTokIcon size={18} />
           </a>
         </div>
         <p className="font-body" style={{ textAlign: "center", fontSize: 10.5, letterSpacing: ".18em", color: "var(--ink-soft)", fontWeight: 700, marginTop: 16 }}>
