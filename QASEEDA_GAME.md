@@ -34,10 +34,16 @@ underneath is different:
 - **No prewarm round.** There's nothing to warm up with here — it's one
   continuous collaborative write, so that phase and its tables are skipped
   entirely.
-- **Self-voting is actually blocked**, not just documented. A player's own
-  submission is shown during voting but the button is disabled — Shofah's
-  current code has a matching RLS comment but never enforces it in the UI,
-  so this closes that gap for the new game rather than carrying it over.
+- **Self-voting is allowed.** Unlike شوفة/job, a player's own submission is
+  shown during voting like any other and can be selected — with groups
+  sometimes playing solo, and since the "prize" is just which line joins
+  the poem rather than a competitive win, blocking it would be more
+  annoyance than safeguard.
+- **Solo play is supported.** The lobby only requires one player to start.
+  Whenever a round ends with 0 or 1 submissions (a solo game, or a round
+  where only one person got their line in before time), voting is skipped
+  entirely and that line becomes the round's line uncontested — no empty
+  20-second timer over nothing to vote on.
 - **The ending is a poem, not a winner.** Instead of شوفة's two-step
   chat-recap → single-winner reveal, round 5's reveal hands off straight to
   one cinematic sequence (`components/qaseeda/FinalReveal.tsx`): fade →

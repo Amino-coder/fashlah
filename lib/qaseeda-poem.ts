@@ -1,6 +1,17 @@
 import { supabase } from "@/lib/supabase";
 import type { QaseedaSessionRow } from "@/lib/qaseeda-types";
 
+// Every line of the poem — the opening AND every round's submission — is a
+// full بيت with two hemistichs, shown side by side on one line with this
+// mark between them rather than stacked. Shared so the in-app screens and
+// the exported card render it identically.
+export const SHATR_SEPARATOR = "\u2756"; // ❖
+export const MAX_SHATR_CHARS = 90;
+
+export function combineShatrs(line1: string, line2?: string | null): string {
+  return line2 ? `${line1}   ${SHATR_SEPARATOR}   ${line2}` : line1;
+}
+
 /**
  * One line of the growing poem, ready to render. round 0 is always the
  * opening (two hemistichs); rounds 1-5 are single community-written lines.
@@ -55,7 +66,7 @@ export async function fetchPoemSoFar(
   if (upToRound >= 1) {
     const { data: results } = await supabase
       .from("qaseeda_round_results")
-      .select("round_number, qaseeda_answers(text), qaseeda_players(nickname)")
+      .select("round_number, qaseeda_answers(line1, line2), qaseeda_players(nickname)")
       .eq("session_id", session.id)
       .lte("round_number", upToRound)
       .order("round_number");
@@ -66,8 +77,8 @@ export async function fetchPoemSoFar(
       if (!answerRow || !playerRow) continue;
       lines.push({
         round: r.round_number,
-        line1: answerRow.text,
-        line2: null,
+        line1: answerRow.line1,
+        line2: answerRow.line2,
         authorName: playerRow.nickname,
         isOpening: false,
         isCustomOpening: false,

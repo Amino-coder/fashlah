@@ -28,6 +28,19 @@
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
+-- Safe to re-run: drops any previous (possibly partial) version of this
+-- game's tables/function first, so re-running this whole file after an
+-- earlier failed/partial run — or during active development — just works.
+-- ----------------------------------------------------------------------------
+drop function if exists qaseeda_compute_round_result(uuid, int);
+drop table if exists qaseeda_round_results cascade;
+drop table if exists qaseeda_votes cascade;
+drop table if exists qaseeda_answers cascade;
+drop table if exists qaseeda_players cascade;
+drop table if exists qaseeda_sessions cascade;
+drop table if exists qaseeda_openings cascade;
+
+-- ----------------------------------------------------------------------------
 -- OPENINGS  (curated bank of famous opening أبيات — small and fixed, not
 -- drawn at random: the five cards on the opening-select screen are always
 -- the same well-known set, ordered by sort_order)
@@ -92,14 +105,16 @@ alter table qaseeda_sessions
   add column opening_author_player_id uuid references qaseeda_players(id);
 
 -- ----------------------------------------------------------------------------
--- ANSWERS  (each round's submitted next-line)
+-- ANSWERS  (each round's submitted next بيت — two hemistichs, same shape as
+-- the opening line)
 -- ----------------------------------------------------------------------------
 create table qaseeda_answers (
   id            uuid primary key default gen_random_uuid(),
   session_id    uuid references qaseeda_sessions(id) on delete cascade,
   round_number  int not null,
   player_id     uuid references qaseeda_players(id) on delete cascade,
-  text          text not null check (char_length(text) <= 120),
+  line1         text not null check (char_length(line1) <= 120),
+  line2         text not null check (char_length(line2) <= 120),
   submitted_at  timestamptz default now(),
   unique (session_id, round_number, player_id)
 );
@@ -107,8 +122,10 @@ create table qaseeda_answers (
 -- ----------------------------------------------------------------------------
 -- VOTES
 -- ----------------------------------------------------------------------------
--- Self-voting is blocked in the UI (a player's own submission is shown but
--- not selectable during voting), same pattern as the other games.
+-- Self-voting is allowed here (unlike شوفة/job) — with groups sometimes
+-- playing solo, and since the "prize" is just which line joins the poem
+-- rather than a competitive win, blocking your own line would be an
+-- annoyance more than a safeguard.
 create table qaseeda_votes (
   id                uuid primary key default gen_random_uuid(),
   session_id        uuid references qaseeda_sessions(id) on delete cascade,
@@ -212,13 +229,14 @@ declare
   v_points int;
   v_winner_answer_id uuid;
   v_winner_player_id uuid;
-  v_winner_text text;
+  v_winner_line1 text;
+  v_winner_line2 text;
   v_winner_nickname text;
   v_winner_avatar text;
 begin
   -- Idempotency: if this round was already scored (two clients can both
   -- detect "voting done" at once), return the existing result.
-  select rr.winner_player_id, a.text as answer_text, p.nickname, p.avatar_emoji
+  select rr.winner_player_id, a.line1 as answer_line1, a.line2 as answer_line2, p.nickname, p.avatar_emoji
   into v_existing
   from qaseeda_round_results rr
   join qaseeda_answers a on a.id = rr.winner_answer_id
@@ -233,7 +251,8 @@ begin
     return jsonb_build_object(
       'already_computed', true,
       'winner_player_id', v_existing.winner_player_id,
-      'winner_answer_text', v_existing.answer_text,
+      'winner_line1', v_existing.answer_line1,
+      'winner_line2', v_existing.answer_line2,
       'winner_nickname', v_existing.nickname,
       'winner_avatar', v_existing.avatar_emoji
     );
@@ -241,12 +260,12 @@ begin
 
   -- Rank this round's lines by vote count, hand out 5/3/2/1 points.
   for v_row in
-    select a.id as answer_id, a.player_id, a.text,
+    select a.id as answer_id, a.player_id, a.line1, a.line2,
            count(v.id) as votes
     from qaseeda_answers a
     left join qaseeda_votes v on v.answer_id = a.id
     where a.session_id = p_session_id and a.round_number = p_round_number
-    group by a.id, a.player_id, a.text
+    group by a.id, a.player_id, a.line1, a.line2
     order by count(v.id) desc, a.submitted_at asc
   loop
     v_rank := v_rank + 1;
@@ -259,7 +278,8 @@ begin
     if v_rank = 1 then
       v_winner_answer_id := v_row.answer_id;
       v_winner_player_id := v_row.player_id;
-      v_winner_text := v_row.text;
+      v_winner_line1 := v_row.line1;
+      v_winner_line2 := v_row.line2;
     end if;
   end loop;
 
@@ -281,7 +301,8 @@ begin
   return jsonb_build_object(
     'already_computed', false,
     'winner_player_id', v_winner_player_id,
-    'winner_answer_text', v_winner_text,
+    'winner_line1', v_winner_line1,
+    'winner_line2', v_winner_line2,
     'winner_nickname', v_winner_nickname,
     'winner_avatar', v_winner_avatar
   );

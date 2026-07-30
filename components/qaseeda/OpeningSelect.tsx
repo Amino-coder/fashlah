@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import { Feather, Plus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { QASEEDA_STR, QaseedaLang } from "@/lib/qaseeda-i18n";
+import { MAX_SHATR_CHARS } from "@/lib/qaseeda-poem";
+import ShatrLine from "./ShatrLine";
 import type { QaseedaSessionRow, QaseedaOpeningRow } from "@/lib/qaseeda-types";
 
 const GOLD = "#D9A441";
 const NAVY = "#1B3A55";
-
-const MAX_LINE_CHARS = 90;
 
 export default function OpeningSelect({
   session, isHost, myPlayerId, lang,
@@ -65,8 +65,8 @@ export default function OpeningSelect({
     const { error: err } = await supabase
       .from("qaseeda_sessions")
       .update({
-        opening_line1: line1.trim().slice(0, MAX_LINE_CHARS),
-        opening_line2: line2.trim().slice(0, MAX_LINE_CHARS),
+        opening_line1: line1.trim().slice(0, MAX_SHATR_CHARS),
+        opening_line2: line2.trim().slice(0, MAX_SHATR_CHARS),
         opening_poet: null,
         opening_category: null,
         opening_is_custom: true,
@@ -141,12 +141,7 @@ export default function OpeningSelect({
             >
               {o.category}
             </span>
-            <p className="font-quote" dir="rtl" style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.75, margin: 0, color: "var(--ink)" }}>
-              {o.line1}
-            </p>
-            <p className="font-quote" dir="rtl" style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.75, margin: 0, color: "var(--ink)" }}>
-              {o.line2}
-            </p>
+            <ShatrLine line1={o.line1} line2={o.line2} fontSize={20} />
             <p className="font-body" style={{ fontSize: 12.5, color: "var(--ink-soft)", marginTop: 12, fontWeight: 700 }}>
               {t.poetLabel}: {o.poet}
             </p>
@@ -180,33 +175,55 @@ export default function OpeningSelect({
           </button>
         ) : (
           <div className="card pop" style={{ padding: 20, border: "1.5px solid rgba(217,164,65,0.3)" }}>
-            <textarea
-              value={line1}
-              onChange={(e) => setLine1(e.target.value.slice(0, MAX_LINE_CHARS))}
-              placeholder={t.customOpeningLine1Ph}
-              dir="rtl"
-              rows={1}
-              autoFocus
-              className="font-quote"
-              style={{
-                width: "100%", padding: 12, borderRadius: 14, border: "2px solid var(--ring)",
-                background: "transparent", color: "var(--ink)", fontSize: 18, outline: "none",
-                resize: "none", textAlign: "center", marginBottom: 10, fontFamily: "inherit",
-              }}
-            />
-            <textarea
-              value={line2}
-              onChange={(e) => setLine2(e.target.value.slice(0, MAX_LINE_CHARS))}
-              placeholder={t.customOpeningLine2Ph}
-              dir="rtl"
-              rows={1}
-              className="font-quote"
-              style={{
-                width: "100%", padding: 12, borderRadius: 14, border: "2px solid var(--ring)",
-                background: "transparent", color: "var(--ink)", fontSize: 18, outline: "none",
-                resize: "none", textAlign: "center", marginBottom: 14, fontFamily: "inherit",
-              }}
-            />
+            <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <label
+                  htmlFor="qaseeda-opening-shatr1"
+                  className="font-body"
+                  style={{ display: "block", textAlign: "center", fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}
+                >
+                  {t.shatr1Label}
+                </label>
+                <textarea
+                  id="qaseeda-opening-shatr1"
+                  value={line1}
+                  onChange={(e) => setLine1(e.target.value.slice(0, MAX_SHATR_CHARS))}
+                  placeholder={t.shatr1Ph}
+                  dir="rtl"
+                  rows={3}
+                  autoFocus
+                  className="font-quote"
+                  style={{
+                    width: "100%", padding: 10, borderRadius: 14, border: "2px solid var(--ring)",
+                    background: "transparent", color: "var(--ink)", fontSize: 15, outline: "none",
+                    resize: "none", textAlign: "center", fontFamily: "inherit",
+                  }}
+                />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <label
+                  htmlFor="qaseeda-opening-shatr2"
+                  className="font-body"
+                  style={{ display: "block", textAlign: "center", fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}
+                >
+                  {t.shatr2Label}
+                </label>
+                <textarea
+                  id="qaseeda-opening-shatr2"
+                  value={line2}
+                  onChange={(e) => setLine2(e.target.value.slice(0, MAX_SHATR_CHARS))}
+                  placeholder={t.shatr2Ph}
+                  dir="rtl"
+                  rows={3}
+                  className="font-quote"
+                  style={{
+                    width: "100%", padding: 10, borderRadius: 14, border: "2px solid var(--ring)",
+                    background: "transparent", color: "var(--ink)", fontSize: 15, outline: "none",
+                    resize: "none", textAlign: "center", fontFamily: "inherit",
+                  }}
+                />
+              </div>
+            </div>
             <button
               onClick={confirmCustom}
               disabled={!line1.trim() || !line2.trim() || submitting}

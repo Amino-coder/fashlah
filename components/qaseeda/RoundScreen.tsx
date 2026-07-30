@@ -6,7 +6,8 @@ import { supabase } from "@/lib/supabase";
 import { QASEEDA_STR, QaseedaLang } from "@/lib/qaseeda-i18n";
 import { playCountdownTick, playCountdownGo, playUrgentTick, unlockAudio } from "@/lib/sound-engine";
 import { useSoundPref } from "@/lib/useSoundPref";
-import { fetchPoemSoFar, type PoemLine } from "@/lib/qaseeda-poem";
+import { fetchPoemSoFar, MAX_SHATR_CHARS, type PoemLine } from "@/lib/qaseeda-poem";
+import ShatrLine from "./ShatrLine";
 import FinalReveal from "./FinalReveal";
 import type {
   QaseedaSessionRow, QaseedaPlayerRow, QaseedaAnswerRow, QaseedaVoteRow,
@@ -21,7 +22,6 @@ const COUNTDOWN_SECONDS = 5;
 // bottom of the voting screen before auto-advancing — same pattern as
 // شوفة, just held a beat longer so the newly-landed poem line can be read.
 const REVEAL_SECONDS = 3;
-const MAX_CHARS = 100;
 const TOTAL_ROUNDS = 5;
 
 export default function RoundScreen({
@@ -37,7 +37,8 @@ export default function RoundScreen({
   const [answers, setAnswers] = useState<QaseedaAnswerRow[]>([]);
   const [votes, setVotes] = useState<QaseedaVoteRow[]>([]);
   const [poemSoFar, setPoemSoFar] = useState<PoemLine[]>([]);
-  const [draft, setDraft] = useState("");
+  const [draft1, setDraft1] = useState("");
+  const [draft2, setDraft2] = useState("");
   const [selectedAnswerId, setSelectedAnswerId] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const shuffleKeysRef = useRef<Map<string, number>>(new Map());
@@ -72,7 +73,8 @@ export default function RoundScreen({
     answeringDeadlineRef.current = null;
     autoVoteRef.current = false;
     votingDeadlineRef.current = null;
-    setDraft("");
+    setDraft1("");
+    setDraft2("");
     setSelectedAnswerId(null);
     setAnswers([]);
     setVotes([]);
@@ -196,10 +198,19 @@ export default function RoundScreen({
   async function advancePastAnswering() {
     if (transitionedRef.current) return;
     transitionedRef.current = true;
-    // Nothing to vote on if literally nobody wrote a line — skip voting and
-    // go straight to the brief reveal beat, matching شوفة's "no answers"
-    // handling instead of a pointless 20s timer over an empty list.
-    const nextPhase = currentAnswers.length === 0 ? "reveal" : "voting";
+    // With 0 or 1 lines there's nothing meaningful to vote between — skip
+    // straight to the reveal beat instead of a pointless timer. This is
+    // also what makes solo play work: a lone player's line just becomes
+    // the round's line uncontested, no vote needed.
+    const skipVoting = currentAnswers.length <= 1;
+    const nextPhase = skipVoting ? "reveal" : "voting";
+    if (currentAnswers.length === 1) {
+      // Normally scoring fires when voting closes; with voting skipped,
+      // fire it here instead so the sole line still gets recorded as the
+      // round's winner (and the writer still gets their points).
+      scoringRef.current = true;
+      computeRoundResult();
+    }
     const { error } = await supabase.from("qaseeda_sessions")
       .update({ round_phase: nextPhase, phase_started_at: new Date().toISOString() })
       .eq("id", session.id);
@@ -303,13 +314,13 @@ export default function RoundScreen({
   }, [session.round_phase, session.phase_started_at]);
 
   useEffect(() => {
-    if (autoSubmitRef.current || myAnswer || !draft.trim()) return;
+    if (autoSubmitRef.current || myAnswer || !draft1.trim() || !draft2.trim()) return;
     if (!answeringDeadlineRef.current) return;
     if (now >= answeringDeadlineRef.current) {
       autoSubmitRef.current = true;
       submitAnswer();
     }
-  }, [now, myAnswer, draft]);
+  }, [now, myAnswer, draft1, draft2]);
 
   // Same pattern for voting.
   useEffect(() => {
@@ -324,23 +335,27 @@ export default function RoundScreen({
     if (now >= votingDeadlineRef.current) {
       autoVoteRef.current = true;
       const target = shuffledAnswers.find((a) => a.id === selectedAnswerId);
-      if (target) castVote(target.id, target.player_id);
+      if (target) castVote(target.id);
     }
   }, [now, myVote, selectedAnswerId]);
 
   async function submitAnswer() {
-    if (!myPlayerId || !draft.trim() || myAnswer) return;
+    if (!myPlayerId || !draft1.trim() || !draft2.trim() || myAnswer) return;
     unlockAudio();
     await supabase.from("qaseeda_answers").insert({
       session_id: session.id, round_number: session.current_round,
-      player_id: myPlayerId, text: draft.trim().slice(0, MAX_CHARS),
+      player_id: myPlayerId,
+      line1: draft1.trim().slice(0, MAX_SHATR_CHARS),
+      line2: draft2.trim().slice(0, MAX_SHATR_CHARS),
     });
   }
 
-  async function castVote(answerId: string, answerPlayerId: string) {
-    // Self-votes are blocked at the call site (the button is disabled for
-    // your own line), but guard here too in case of a stale click.
-    if (!myPlayerId || myVote || answerPlayerId === myPlayerId) return;
+  async function castVote(answerId: string) {
+    // Self-voting is allowed here — with groups sometimes playing solo,
+    // and since the "prize" is just which line joins the poem rather than
+    // a competitive win, blocking your own line would be an annoyance
+    // more than a safeguard.
+    if (!myPlayerId || myVote) return;
     unlockAudio();
     await supabase.from("qaseeda_votes").insert({
       session_id: session.id, round_number: session.current_round,
@@ -368,15 +383,8 @@ export default function RoundScreen({
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {poemSoFar.map((line) => (
-          <div key={line.round} className="pop" dir="rtl" style={{ textAlign: "center" }}>
-            <p className="font-quote" style={{ fontSize: line.isOpening ? 18 : 16, fontWeight: 600, lineHeight: 1.7, margin: 0, color: "var(--ink)" }}>
-              {line.line1}
-            </p>
-            {line.line2 && (
-              <p className="font-quote" style={{ fontSize: 18, fontWeight: 600, lineHeight: 1.7, margin: 0, color: "var(--ink)" }}>
-                {line.line2}
-              </p>
-            )}
+          <div key={line.round} className="pop" style={{ textAlign: "center" }}>
+            <ShatrLine line1={line.line1} line2={line.line2} fontSize={line.isOpening ? 18 : 16} />
             {line.authorName && (
               <p className="font-body" style={{ fontSize: 11, color: "var(--ink-soft)", margin: "4px 0 0", fontWeight: 700 }}>
                 {line.isOpening
@@ -465,32 +473,66 @@ export default function RoundScreen({
           </p>
           {!myAnswer ? (
             <div className="card" style={{ padding: 16 }}>
-              <textarea
-                value={draft}
-                onChange={(e) => setDraft(e.target.value.slice(0, MAX_CHARS))}
-                rows={3}
-                dir="rtl"
-                placeholder={t.yourLinePh}
-                aria-label={t.yourLinePh}
-                maxLength={MAX_CHARS}
-                autoFocus
-                className="font-quote"
-                style={{
-                  width: "100%", padding: 12, borderRadius: 14, border: "2px solid var(--ring)",
-                  background: "transparent", color: "var(--ink)", fontSize: 17, outline: "none", resize: "none",
-                  fontFamily: "inherit", textAlign: "center",
-                }}
-              />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
-                <span className="font-body" style={{ fontSize: 12, color: "var(--ink-soft)" }}>{draft.length}/{MAX_CHARS}</span>
+              <div style={{ display: "flex", gap: 10 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <label
+                    htmlFor="qaseeda-round-shatr1"
+                    className="font-body"
+                    style={{ display: "block", textAlign: "center", fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}
+                  >
+                    {t.shatr1Label}
+                  </label>
+                  <textarea
+                    id="qaseeda-round-shatr1"
+                    value={draft1}
+                    onChange={(e) => setDraft1(e.target.value.slice(0, MAX_SHATR_CHARS))}
+                    rows={3}
+                    dir="rtl"
+                    placeholder={t.shatr1Ph}
+                    maxLength={MAX_SHATR_CHARS}
+                    autoFocus
+                    className="font-quote"
+                    style={{
+                      width: "100%", padding: 10, borderRadius: 14, border: "2px solid var(--ring)",
+                      background: "transparent", color: "var(--ink)", fontSize: 15, outline: "none", resize: "none",
+                      fontFamily: "inherit", textAlign: "center",
+                    }}
+                  />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <label
+                    htmlFor="qaseeda-round-shatr2"
+                    className="font-body"
+                    style={{ display: "block", textAlign: "center", fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}
+                  >
+                    {t.shatr2Label}
+                  </label>
+                  <textarea
+                    id="qaseeda-round-shatr2"
+                    value={draft2}
+                    onChange={(e) => setDraft2(e.target.value.slice(0, MAX_SHATR_CHARS))}
+                    rows={3}
+                    dir="rtl"
+                    placeholder={t.shatr2Ph}
+                    maxLength={MAX_SHATR_CHARS}
+                    className="font-quote"
+                    style={{
+                      width: "100%", padding: 10, borderRadius: 14, border: "2px solid var(--ring)",
+                      background: "transparent", color: "var(--ink)", fontSize: 15, outline: "none", resize: "none",
+                      fontFamily: "inherit", textAlign: "center",
+                    }}
+                  />
+                </div>
+              </div>
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
                 <button
                   onClick={submitAnswer}
-                  disabled={!draft.trim()}
+                  disabled={!draft1.trim() || !draft2.trim()}
                   className="font-display"
                   style={{
                     padding: "10px 24px", fontSize: 14, borderRadius: 999, border: "none", color: "#fff",
-                    background: draft.trim() ? `linear-gradient(135deg, ${GOLD}, ${NAVY})` : "var(--ring)",
-                    opacity: draft.trim() ? 1 : 0.6,
+                    background: (draft1.trim() && draft2.trim()) ? `linear-gradient(135deg, ${GOLD}, ${NAVY})` : "var(--ring)",
+                    opacity: (draft1.trim() && draft2.trim()) ? 1 : 0.6,
                   }}
                 >
                   {t.submitLine}
@@ -502,9 +544,7 @@ export default function RoundScreen({
               <p className="font-body" style={{ color: "var(--ink-soft)", fontWeight: 700, marginBottom: 8 }}>
                 {t.lineSubmitted}
               </p>
-              <p className="font-quote" dir="rtl" style={{ fontSize: 16, fontStyle: "italic", opacity: 0.85 }}>
-                "{myAnswer.text}"
-              </p>
+              <ShatrLine line1={myAnswer.line1} line2={myAnswer.line2} fontSize={16} weight={400} />
             </div>
           )}
           <p className="font-body" style={{ textAlign: "center", fontSize: 12, color: "var(--ink-soft)" }}>
@@ -549,25 +589,22 @@ export default function RoundScreen({
               // Only de-anonymized once the round is locked (reveal beat).
               const revealed = session.round_phase === "reveal";
               const author = revealed ? players.find((p) => p.id === a.player_id) : undefined;
-              // Self-votes are blocked outright — your own line is shown
-              // but never selectable, so nobody can accidentally vote
-              // themselves the winner.
-              const disabled = !!myVote || revealed || isMine;
+              // Self-voting is allowed — your own line is shown like any
+              // other and can be selected, same reasoning as castVote().
+              const disabled = !!myVote || revealed;
               return (
                 <button
                   key={a.id}
                   onClick={() => !disabled && setSelectedAnswerId(a.id)}
                   disabled={disabled}
                   className="card"
-                  dir="rtl"
                   style={{
-                    padding: 16, textAlign: "center", fontSize: 16,
+                    padding: 16, textAlign: "center",
                     border: (isSelected || isCommitted) ? `3px solid ${GOLD}` : "3px solid transparent",
-                    opacity: isMine && !revealed ? 0.75 : 1,
                     cursor: !disabled ? "pointer" : "default",
                   }}
                 >
-                  <span className="font-quote" style={{ lineHeight: 1.7 }}>{a.text}</span>
+                  <ShatrLine line1={a.line1} line2={a.line2} fontSize={16} />
                   {revealed && author && (
                     <span
                       className="font-body pop"
@@ -590,7 +627,7 @@ export default function RoundScreen({
           </div>
           {session.round_phase === "voting" && !myVote && (
             <button
-              onClick={() => selectedAnswerId && castVote(selectedAnswerId, shuffledAnswers.find((a) => a.id === selectedAnswerId)?.player_id || "")}
+              onClick={() => selectedAnswerId && castVote(selectedAnswerId)}
               disabled={!selectedAnswerId}
               className="font-display"
               style={{

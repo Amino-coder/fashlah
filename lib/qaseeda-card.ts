@@ -74,17 +74,18 @@ export const BRAND_URL = "bagdoonis.app";
 
 /**
  * Shared between the on-screen preview and the canvas export so the two
- * never drift: poem length (in "line units" — a two-hemistich opening
- * counts as 2) maps to one of four steps, biggest for a short poem down to
- * a smaller size once there's a full seven-line poem to fit.
+ * never drift. Every poem entry (opening or round) is now rendered as ONE
+ * flowing two-hemistich line, so length is just "how many couplets" —
+ * from a single opening line up to a full opening + 5 rounds.
  */
 export function poemFontSizeFor(lineUnits: number): number {
-  if (lineUnits <= 5) return 46;
-  if (lineUnits <= 8) return 40;
-  if (lineUnits <= 11) return 34;
-  return 29;
+  if (lineUnits <= 2) return 44;
+  if (lineUnits <= 3) return 40;
+  if (lineUnits <= 4) return 36;
+  if (lineUnits <= 5) return 32;
+  return 28;
 }
 
-export function lineUnitsFor(poem: { line2?: string | null }[]): number {
-  return poem.reduce((sum, l) => sum + 1 + (l.line2 ? 1 : 0), 0);
+export function lineUnitsFor(poem: { line1: string }[]): number {
+  return poem.length;
 }

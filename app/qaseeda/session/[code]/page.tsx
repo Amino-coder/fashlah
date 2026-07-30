@@ -201,13 +201,13 @@ export default function QaseedaWaitingRoom() {
                   </p>
                 )}
                 <button
-                  disabled={players.length < 2 || starting}
+                  disabled={players.length < 1 || starting}
                   onClick={startGame}
                   className="font-display"
                   style={{
                     padding: 18, fontSize: 17, width: "100%", borderRadius: 999, border: "none", color: "#fff",
                     background: `linear-gradient(135deg, ${GOLD}, ${NAVY})`,
-                    opacity: players.length < 2 || starting ? 0.5 : 1,
+                    opacity: players.length < 1 || starting ? 0.5 : 1,
                   }}
                 >
                   {starting ? t.loading : t.startGame}

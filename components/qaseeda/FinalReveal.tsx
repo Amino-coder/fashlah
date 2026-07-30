@@ -8,6 +8,7 @@ import { QASEEDA_STR, QaseedaLang } from "@/lib/qaseeda-i18n";
 import { playCelebration } from "@/lib/sound-engine";
 import { useSoundPref } from "@/lib/useSoundPref";
 import { fetchPoemSoFarWithRetry, type PoemLine } from "@/lib/qaseeda-poem";
+import ShatrLine from "./ShatrLine";
 import PoemShareCard from "./PoemShareCard";
 import { sharePoemCard } from "./exportPoemCard";
 import { CARD_W, CARD_H } from "@/lib/qaseeda-card";
@@ -171,15 +172,13 @@ export default function FinalReveal({
 
           <div style={{ display: "flex", flexDirection: "column", gap: 20, width: "100%" }}>
             {poem?.slice(0, revealedCount).map((line) => (
-              <div key={line.round} className="pop" dir="rtl" style={{ textAlign: "center" }}>
-                <p className="font-quote" style={{ fontSize: line.isOpening ? 21 : 19, fontWeight: 600, lineHeight: 1.75, margin: 0 }}>
-                  {line.line1}
-                </p>
-                {line.line2 && (
-                  <p className="font-quote" style={{ fontSize: 21, fontWeight: 600, lineHeight: 1.75, margin: 0 }}>
-                    {line.line2}
-                  </p>
-                )}
+              <div key={line.round} className="pop" style={{ textAlign: "center" }}>
+                <ShatrLine
+                  line1={line.line1}
+                  line2={line.line2}
+                  fontSize={line.isOpening ? 21 : 19}
+                  color="#FBF6E9"
+                />
                 {line.authorName && (
                   <p className="font-body" style={{ fontSize: 12, opacity: 0.75, margin: "6px 0 0", fontWeight: 600 }}>
                     {line.isOpening

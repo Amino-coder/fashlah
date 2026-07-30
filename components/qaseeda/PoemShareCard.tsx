@@ -5,6 +5,7 @@ import {
   FONT_QUOTE, FONT_UI, SIZE, RULE, BRAND_URL, paletteForCode,
   poemFontSizeFor, lineUnitsFor,
 } from "@/lib/qaseeda-card";
+import { SHATR_SEPARATOR } from "@/lib/qaseeda-poem";
 import type { PoemLine } from "@/lib/qaseeda-poem";
 
 /**
@@ -70,16 +71,15 @@ export default function PoemShareCard({
 
           <div style={{ display: "flex", flexDirection: "column", gap: 32, width: "100%" }}>
             {poem.map((line, i) => (
-              <div key={i} style={{ textAlign: "center" }}>
-                <p style={{ fontFamily: `'${FONT_QUOTE}', serif`, fontSize: poemFontSize, fontWeight: 600, lineHeight: 1.55, color: palette.ink, margin: 0 }}>
-                  {line.line1}
-                </p>
+              <p key={i} style={{ fontFamily: `'${FONT_QUOTE}', serif`, fontSize: poemFontSize, fontWeight: 600, lineHeight: 1.55, color: palette.ink, margin: 0, textAlign: "center" }}>
+                {line.line1}
                 {line.line2 && (
-                  <p style={{ fontFamily: `'${FONT_QUOTE}', serif`, fontSize: poemFontSize, fontWeight: 600, lineHeight: 1.55, color: palette.ink, margin: 0 }}>
-                    {line.line2}
-                  </p>
+                  <span style={{ color: palette.gold, fontSize: poemFontSize * 0.55, margin: "0 14px", opacity: 0.85 }}>
+                    {" "}{SHATR_SEPARATOR}{" "}
+                  </span>
                 )}
-              </div>
+                {line.line2}
+              </p>
             ))}
           </div>
         </div>

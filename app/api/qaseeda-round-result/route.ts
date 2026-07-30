@@ -39,7 +39,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       alreadyComputed: data.already_computed,
       winnerPlayerId: data.winner_player_id,
-      winnerAnswerText: data.winner_answer_text,
+      winnerLine1: data.winner_line1,
+      winnerLine2: data.winner_line2,
     });
   } catch (e: any) {
     return NextResponse.json({ error: e.message || "Unknown error" }, { status: 500 });

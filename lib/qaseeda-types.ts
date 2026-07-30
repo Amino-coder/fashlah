@@ -58,7 +58,8 @@ export interface QaseedaAnswerRow {
   session_id: string;
   round_number: number;
   player_id: string;
-  text: string;
+  line1: string;
+  line2: string;
   submitted_at: string;
 }
 

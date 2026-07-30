@@ -3,6 +3,7 @@ import {
   FONT_QUOTE, FONT_UI, SIZE, RULE, BRAND_URL, paletteForCode,
   poemFontSizeFor, lineUnitsFor,
 } from "@/lib/qaseeda-card";
+import { SHATR_SEPARATOR } from "@/lib/qaseeda-poem";
 import type { PoemLine } from "@/lib/qaseeda-poem";
 
 function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
@@ -116,8 +117,9 @@ export async function renderPoemCardToCanvas(
   ctx.globalAlpha = 1;
   y += 76;
 
-  // Poem body — wrap each hemistich independently so a long custom line
-  // still fits, then stack with generous spacing between couplets.
+  // Poem body — each couplet ("line1  ❖  line2") wrapped as ONE flowing
+  // block rather than two separately-wrapped hemistichs, so short lines
+  // sit side by side the way a بيت is traditionally printed.
   ctx.font = `600 ${poemSize}px "${FONT_QUOTE}", serif`;
   ctx.fillStyle = palette.ink;
   const poemLineH = poemSize * 1.55;
@@ -126,11 +128,10 @@ export async function renderPoemCardToCanvas(
   // Compute total height first so the block can be vertically balanced
   // within the remaining card space, same idea as the عبارات export.
   const wrapped = poem.map((l) => {
-    const l1 = wrapText(ctx, l.line1, maxWidth);
-    const l2 = l.line2 ? wrapText(ctx, l.line2, maxWidth) : [];
-    return { l1, l2 };
+    const combined = l.line2 ? `${l.line1}   ${SHATR_SEPARATOR}   ${l.line2}` : l.line1;
+    return wrapText(ctx, combined, maxWidth);
   });
-  const bodyLineCount = wrapped.reduce((sum, w) => sum + w.l1.length + w.l2.length, 0);
+  const bodyLineCount = wrapped.reduce((sum, w) => sum + w.length, 0);
   const bodyHeight = bodyLineCount * poemLineH + Math.max(0, poem.length - 1) * coupletGap;
 
   const footerTop = CARD_H - 96 - (playerNames.length > 0 ? SIZE.footerLabel + SIZE.footerNames + 40 : 0) - SIZE.brand - 40;
@@ -140,8 +141,7 @@ export async function renderPoemCardToCanvas(
   y += extraSpace / 2;
 
   for (const w of wrapped) {
-    for (const line of w.l1) { ctx.fillText(line, CARD_W / 2, y); y += poemLineH; }
-    for (const line of w.l2) { ctx.fillText(line, CARD_W / 2, y); y += poemLineH; }
+    for (const line of w) { ctx.fillText(line, CARD_W / 2, y); y += poemLineH; }
     y += coupletGap;
   }
 
