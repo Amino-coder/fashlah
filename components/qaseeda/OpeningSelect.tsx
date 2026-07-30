@@ -141,7 +141,7 @@ export default function OpeningSelect({
             >
               {o.category}
             </span>
-            <ShatrLine line1={o.line1} line2={o.line2} fontSize={20} />
+            <ShatrLine line1={o.line1} line2={o.line2} fontSize={18} />
             <p className="font-body" style={{ fontSize: 12.5, color: "var(--ink-soft)", marginTop: 12, fontWeight: 700 }}>
               {t.poetLabel}: {o.poet}
             </p>

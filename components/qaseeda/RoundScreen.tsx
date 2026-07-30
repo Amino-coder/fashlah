@@ -339,15 +339,24 @@ export default function RoundScreen({
     }
   }, [now, myVote, selectedAnswerId]);
 
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   async function submitAnswer() {
     if (!myPlayerId || !draft1.trim() || !draft2.trim() || myAnswer) return;
     unlockAudio();
-    await supabase.from("qaseeda_answers").insert({
+    setSubmitError(null);
+    const { error } = await supabase.from("qaseeda_answers").insert({
       session_id: session.id, round_number: session.current_round,
       player_id: myPlayerId,
       line1: draft1.trim().slice(0, MAX_SHATR_CHARS),
       line2: draft2.trim().slice(0, MAX_SHATR_CHARS),
     });
+    if (error) {
+      // Surfaced rather than swallowed — a silent failure here looks
+      // exactly like "nothing happens" and the round count never moves.
+      autoSubmitRef.current = false;
+      setSubmitError(error.message);
+    }
   }
 
   async function castVote(answerId: string) {
@@ -384,7 +393,7 @@ export default function RoundScreen({
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {poemSoFar.map((line) => (
           <div key={line.round} className="pop" style={{ textAlign: "center" }}>
-            <ShatrLine line1={line.line1} line2={line.line2} fontSize={line.isOpening ? 18 : 16} />
+            <ShatrLine line1={line.line1} line2={line.line2} fontSize={line.isOpening ? 16 : 15} />
             {line.authorName && (
               <p className="font-body" style={{ fontSize: 11, color: "var(--ink-soft)", margin: "4px 0 0", fontWeight: 700 }}>
                 {line.isOpening
@@ -544,12 +553,15 @@ export default function RoundScreen({
               <p className="font-body" style={{ color: "var(--ink-soft)", fontWeight: 700, marginBottom: 8 }}>
                 {t.lineSubmitted}
               </p>
-              <ShatrLine line1={myAnswer.line1} line2={myAnswer.line2} fontSize={16} weight={400} />
+              <ShatrLine line1={myAnswer.line1} line2={myAnswer.line2} fontSize={15} weight={400} />
             </div>
           )}
           <p className="font-body" style={{ textAlign: "center", fontSize: 12, color: "var(--ink-soft)" }}>
             {currentAnswers.length}/{players.length} {lang === "ar" ? "كتبوا" : "wrote"}
           </p>
+          {submitError && (
+            <p className="font-body" style={{ fontSize: 12, color: "#E63946", textAlign: "center" }}>{submitError}</p>
+          )}
           {remaining <= 0 && isHost && (
             <button
               onClick={advancePastAnswering}
@@ -604,7 +616,7 @@ export default function RoundScreen({
                     cursor: !disabled ? "pointer" : "default",
                   }}
                 >
-                  <ShatrLine line1={a.line1} line2={a.line2} fontSize={16} />
+                  <ShatrLine line1={a.line1} line2={a.line2} fontSize={15} />
                   {revealed && author && (
                     <span
                       className="font-body pop"

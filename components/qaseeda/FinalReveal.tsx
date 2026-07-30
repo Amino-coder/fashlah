@@ -176,7 +176,7 @@ export default function FinalReveal({
                 <ShatrLine
                   line1={line.line1}
                   line2={line.line2}
-                  fontSize={line.isOpening ? 21 : 19}
+                  fontSize={line.isOpening ? 18 : 17}
                   color="#FBF6E9"
                 />
                 {line.authorName && (
