@@ -26,12 +26,15 @@ export default function Home() {
 
   if (!ready) return null;
 
+  const ALWAYS_FREE = "#22C55E";
+  const LIMITED_FREE = "#FF7A1A";
+
   const entries = [
-    { href: "/fashlah", title: t.gameName, sub: ar ? "اكتشفوا أسرار شلتكم 😂" : "Uncover your group's secrets 😂", Art: FashlahArt },
-    { href: "/shofah", title: SHOFAH_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين بيتزوج أول" : "Who gets married first?", Art: ShofahArt },
-    { href: "/job", title: JOB_STR[lang].gameNameArabic, sub: ar ? "لعبة للعاطلين 👀" : "A game for the unemployed 👀", Art: JobArt },
-    { href: "/qaseeda", title: QASEEDA_STR[lang].gameNameArabic, sub: ar ? "اكتبوا قصيدة سوا، بيت بيت 🪶" : "Write a poem together, line by line 🪶", Art: QaseedaArt },
-    { href: "/ibarat", title: "عبارات", sub: ar ? "بطاقة إلهام يومية" : "A daily card of inspiration", Art: IbaratArt },
+    { href: "/fashlah", title: t.gameName, sub: ar ? "اكتشفوا أسرار شلتكم 😂" : "Uncover your group's secrets 😂", Art: FashlahArt, badge: ar ? "مجاناً" : "Free", badgeColor: ALWAYS_FREE },
+    { href: "/shofah", title: SHOFAH_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين بيتزوج أول" : "Who gets married first?", Art: ShofahArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
+    { href: "/job", title: JOB_STR[lang].gameNameArabic, sub: ar ? "لعبة للعاطلين 👀" : "A game for the unemployed 👀", Art: JobArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
+    { href: "/qaseeda", title: QASEEDA_STR[lang].gameNameArabic, sub: ar ? "اكتبوا قصيدة سوا، بيت بيت 🪶" : "Write a poem together, line by line 🪶", Art: QaseedaArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
+    { href: "/ibarat", title: "عبارات", sub: ar ? "بطاقة إلهام يومية" : "A daily card of inspiration", Art: IbaratArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
   ];
 
   return (
@@ -92,21 +95,41 @@ export default function Home() {
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 34 }}>
-          {entries.map(({ href, title, sub, Art }) => (
+          {entries.map(({ href, title, sub, Art, badge, badgeColor }) => (
             <Link
               key={href}
               href={href}
               style={{ textDecoration: "none", color: "var(--ink)", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}
             >
-              {/* The artwork IS the tile — full bleed, no card around it. */}
-              <div
-                className="tile-tap"
-                style={{
-                  width: "100%", aspectRatio: "1 / 1", borderRadius: 30, overflow: "hidden",
-                  border: "3px solid var(--ink)", boxShadow: "5px 5px 0 var(--ink)",
-                }}
-              >
-                <Art size={400} />
+              {/* Outer wrapper stays overflow-visible so the badge can hang
+                  off the corner; the inner tile keeps overflow-hidden so
+                  the artwork's corners stay clipped to the rounded frame. */}
+              <div style={{ position: "relative", width: "100%" }}>
+                <div
+                  className="tile-tap"
+                  style={{
+                    width: "100%", aspectRatio: "1 / 1", borderRadius: 30, overflow: "hidden",
+                    border: "3px solid var(--ink)", boxShadow: "5px 5px 0 var(--ink)",
+                  }}
+                >
+                  <Art size={400} />
+                </div>
+                {badge && (
+                  <span
+                    className="font-body"
+                    style={{
+                      position: "absolute", top: -10, right: -8, zIndex: 2,
+                      maxWidth: 92, textAlign: "center",
+                      background: badgeColor, color: "#fff",
+                      fontSize: 8.5, fontWeight: 800, lineHeight: 1.3,
+                      padding: "5px 8px", borderRadius: 10,
+                      border: "2px solid var(--ink)", boxShadow: "2px 2px 0 var(--ink)",
+                      transform: "rotate(-8deg)",
+                    }}
+                  >
+                    {badge}
+                  </span>
+                )}
               </div>
               <div style={{ textAlign: "center" }}>
                 <div className="font-display" style={{ fontSize: 17, fontWeight: 800, lineHeight: 1.15 }}>{title}</div>
