@@ -20,16 +20,18 @@ import type { Lang } from "@/lib/i18n";
 const PARSLEY = "\u{1F33F}";   // 🌿
 const RING = "\u{1F48D}";      // 💍
 const BRIEFCASE = "\u{1F4BC}"; // 💼
+const QUILL = "\u{1FAB6}";     // 🪶
 const SEND = "\u{1F4E4}";      // 📤
 const CHAT = "\u{1F4AC}";      // 💬
 const GAMES = "\u{1F3AE}";     // 🎮
 
-export type EndGameKey = "fashlah" | "shofah" | "job";
+export type EndGameKey = "fashlah" | "shofah" | "job" | "qaseeda";
 
 const GAME_META: Record<EndGameKey, { emoji: string; nameAr: string; nameEn: string }> = {
   fashlah: { emoji: PARSLEY, nameAr: "بقدونس", nameEn: "Fashlah" },
   shofah: { emoji: RING, nameAr: "ابي اتزوج", nameEn: "Marry Me!" },
   job: { emoji: BRIEFCASE, nameAr: "مين بيتوظف", nameEn: "Job Interview!" },
+  qaseeda: { emoji: QUILL, nameAr: "كمل القصيدة", nameEn: "Complete the Poem" },
 };
 
 export default function EndGameShare({

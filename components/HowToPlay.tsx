@@ -15,7 +15,7 @@ import type { Lang } from "@/lib/i18n";
  * from memory.
  */
 
-export type GameKey = "fashlah" | "shofah" | "job";
+export type GameKey = "fashlah" | "shofah" | "job" | "qaseeda";
 
 type Step = { icon: string; title: string; body: string };
 type Content = { title: string; tagline: string; steps: Step[]; footer: string };
@@ -105,12 +105,41 @@ const CONTENT: Record<GameKey, Record<Lang, Content>> = {
       footer: "The bolder answers usually win 👀",
     },
   },
+  qaseeda: {
+    ar: {
+      title: "كيف تلعبون كمل القصيدة؟",
+      tagline: "بيت البداية، خمس جولات، وقصيدة كاملة 🪶",
+      steps: [
+        { icon: "📜", title: "اختاروا بيت البداية", body: "المضيف يختار من أربع أبيات مشهورة، أو يكتب بيت خاص بكم." },
+        { icon: "📱", title: "جهاز لكل شخص", body: "المضيف ينشئ غرفة ويشارك الكود مع الشلة." },
+        { icon: "✍️", title: "٥ جولات", body: "كل جولة، الكل يكتب البيت التالي بنفس الوقت." },
+        { icon: "🗳️", title: "صوّتوا", body: "صوّتوا لأحلى بيت — ما تقدر تصوّت لبيتك. البيت الفايز يصير رسمي." },
+        { icon: "🪶", title: "القصيدة", body: "بالنهاية تشوفون القصيدة كاملة، بيت بيت، ومين كتب كل واحد." },
+        { icon: "🖼️", title: "شاركوها", body: "بطاقة أنيقة جاهزة للمشاركة — قصيدتكم الجماعية." },
+      ],
+      footer: "ما فيه قافية صح أو غلط — المهم الإحساس 🪶",
+    },
+    en: {
+      title: "How to play Complete the Poem",
+      tagline: "One opening line, five rounds, one finished poem 🪶",
+      steps: [
+        { icon: "📜", title: "Pick the opening line", body: "The host chooses from four famous أبيات, or writes a custom one." },
+        { icon: "📱", title: "One phone each", body: "The host creates a room and shares the code with the group." },
+        { icon: "✍️", title: "5 rounds", body: "Each round, everyone writes the next line at the same time." },
+        { icon: "🗳️", title: "Vote", body: "Vote for the best line — you can't vote for your own. The winner becomes official." },
+        { icon: "🪶", title: "The poem", body: "At the end you'll see the whole poem, line by line, and who wrote each one." },
+        { icon: "🖼️", title: "Share it", body: "A beautifully designed card, ready to share — your group's collaborative poem." },
+      ],
+      footer: "There's no right or wrong rhyme — it's about the feeling 🪶",
+    },
+  },
 };
 
 const ACCENTS: Record<GameKey, { from: string; to: string }> = {
   fashlah: { from: "#FF2E93", to: "#7C3AED" },
   shofah: { from: "#E63946", to: "#C2185B" },
   job: { from: "#3B82F6", to: "#1E40AF" },
+  qaseeda: { from: "#D9A441", to: "#1B3A55" },
 };
 
 function storageKey(game: GameKey) {

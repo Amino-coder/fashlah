@@ -94,6 +94,34 @@ export function JobArt({ size = 120 }: P) {
   );
 }
 
+/* ─── كمل القصيدة — a quill writing across an unfurled scroll ─── */
+const CARD_NAVY = "#1B3A55";
+const CARD_GOLD = "#D9A441";
+const CARD_CREAM = "#FBF6E9";
+
+export function QaseedaArt({ size = 120 }: P) {
+  return (
+    <Tile bg={CARD_NAVY}>
+      <circle cx="26" cy="34" r="4.5" fill={CARD_GOLD} opacity=".8" />
+      <circle cx="174" cy="46" r="4" fill={CARD_GOLD} opacity=".6" />
+      <circle cx="30" cy="166" r="4" fill={CARD_GOLD} opacity=".7" />
+      {/* unfurled scroll */}
+      <g>
+        <rect x="46" y="96" width="108" height="58" rx="6" fill={CARD_CREAM} stroke={CARD_GOLD} strokeWidth="3" />
+        <rect x="38" y="92" width="16" height="66" rx="8" fill={CARD_GOLD} />
+        <rect x="146" y="92" width="16" height="66" rx="8" fill={CARD_GOLD} />
+        <path d="M 62 112 h 58 M 62 124 h 44 M 62 136 h 52" stroke={CARD_NAVY} strokeWidth="3.4" strokeLinecap="round" opacity=".38" />
+      </g>
+      {/* quill, tilted across the scroll */}
+      <g transform="rotate(-32 130 78)">
+        <path d="M 130 40 Q 150 60 132 100 Q 128 108 120 104 Q 116 96 126 92 Q 116 78 118 58 Q 120 46 130 40 Z" fill={CARD_CREAM} stroke={CARD_NAVY} strokeWidth="2.6" />
+        <path d="M 128 46 Q 124 70 122 96" stroke={CARD_GOLD} strokeWidth="2.4" strokeLinecap="round" fill="none" />
+      </g>
+      <Sp x={168} y={158} s={7} f={CARD_CREAM} o={0.5} />
+    </Tile>
+  );
+}
+
 /* ─── عبارات — the fanned cards (unchanged) ─── */
 export function IbaratArt({ size = 120 }: P) {
   return (

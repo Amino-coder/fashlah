@@ -5,10 +5,11 @@ import { Instagram, Moon, Sun } from "lucide-react";
 import { STR } from "@/lib/i18n";
 import { SHOFAH_STR } from "@/lib/shofah-i18n";
 import { JOB_STR } from "@/lib/job-i18n";
+import { QASEEDA_STR } from "@/lib/qaseeda-i18n";
 import { usePrefs } from "@/lib/usePrefs";
 import Blobs from "@/components/Blobs";
 import Mascot from "@/components/Mascot";
-import { FashlahArt, ShofahArt, JobArt, IbaratArt } from "@/components/art/GameArt";
+import { FashlahArt, ShofahArt, JobArt, IbaratArt, QaseedaArt } from "@/components/art/GameArt";
 
 /**
  * Home — the game library.
@@ -29,6 +30,7 @@ export default function Home() {
     { href: "/fashlah", title: t.gameName, sub: ar ? "اكتشفوا أسرار شلتكم 😂" : "Uncover your group's secrets 😂", Art: FashlahArt },
     { href: "/shofah", title: SHOFAH_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين بيتزوج أول" : "Who gets married first?", Art: ShofahArt },
     { href: "/job", title: JOB_STR[lang].gameNameArabic, sub: ar ? "لعبة للعاطلين 👀" : "A game for the unemployed 👀", Art: JobArt },
+    { href: "/qaseeda", title: QASEEDA_STR[lang].gameNameArabic, sub: ar ? "اكتبوا قصيدة سوا، بيت بيت 🪶" : "Write a poem together, line by line 🪶", Art: QaseedaArt },
     { href: "/ibarat", title: "عبارات", sub: ar ? "بطاقة إلهام يومية" : "A daily card of inspiration", Art: IbaratArt },
   ];
 
