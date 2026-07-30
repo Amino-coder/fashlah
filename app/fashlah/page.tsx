@@ -52,11 +52,11 @@ export default function BagdoonisHome() {
           <div style={{ width: 168, height: 168, borderRadius: 30, overflow: "hidden", border: "3px solid var(--ink)", boxShadow: "5px 5px 0 var(--ink)", margin: "0 auto" }}><FashlahArt size={168} /></div>
           <div>
             <h1
-              className="font-display title-stack"
-              style={{ fontSize: 44, fontWeight: 800, margin: 0 }}
+              className="font-display"
+              style={{ textShadow: "3px 3px 0 #17122B",  fontSize: 44, fontWeight: 800, margin: 0 }}
             >
               <span style={{ color: "var(--mint)" }}>{t.gameNamePart1}</span>
-              {t.gameNamePart2 && <span style={{ color: MAGENTA, fontStyle: "italic" }}> {t.gameNamePart2}</span>}
+              {t.gameNamePart2 && <span style={{ color: "#FF2E93", fontStyle: "italic" }}> {t.gameNamePart2}</span>}
               {" 🌿"}
             </h1>
             <p className="font-body" style={{ fontSize: 17, color: "var(--ink-soft)", marginTop: 8, fontWeight: 600 }}>
