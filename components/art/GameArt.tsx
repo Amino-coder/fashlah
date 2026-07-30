@@ -94,30 +94,41 @@ export function JobArt({ size = 120 }: P) {
   );
 }
 
-/* ─── كمل القصيدة — a quill writing across an unfurled scroll ─── */
+/* ─── كمل القصيدة — a feather quill dipped in an inkwell ─── */
 const CARD_NAVY = "#1B3A55";
 const CARD_GOLD = "#D9A441";
 const CARD_CREAM = "#FBF6E9";
+const CARD_INK = "#0A1526";
 
 export function QaseedaArt({ size = 120 }: P) {
   return (
     <Tile bg={CARD_NAVY}>
-      <circle cx="26" cy="34" r="4.5" fill={CARD_GOLD} opacity=".8" />
-      <circle cx="174" cy="46" r="4" fill={CARD_GOLD} opacity=".6" />
-      <circle cx="30" cy="166" r="4" fill={CARD_GOLD} opacity=".7" />
-      {/* unfurled scroll */}
+      <Sp x={28} y={32} s={7} f={CARD_GOLD} o={0.8} />
+      <Sp x={178} y={54} s={6} f={CARD_GOLD} o={0.6} />
+      <circle cx="30" cy="168" r="4" fill={CARD_GOLD} opacity=".7" />
+
+      {/* inkwell */}
       <g>
-        <rect x="46" y="96" width="108" height="58" rx="6" fill={CARD_CREAM} stroke={CARD_GOLD} strokeWidth="3" />
-        <rect x="38" y="92" width="16" height="66" rx="8" fill={CARD_GOLD} />
-        <rect x="146" y="92" width="16" height="66" rx="8" fill={CARD_GOLD} />
-        <path d="M 62 112 h 58 M 62 124 h 44 M 62 136 h 52" stroke={CARD_NAVY} strokeWidth="3.4" strokeLinecap="round" opacity=".38" />
+        <path
+          d="M 46 152 Q 46 140 58 140 L 84 140 Q 96 140 96 152 L 96 176 Q 96 186 84 186 L 58 186 Q 46 186 46 176 Z"
+          fill={CARD_CREAM} stroke={CARD_GOLD} strokeWidth="3"
+        />
+        <ellipse cx="71" cy="140" rx="21" ry="7" fill={CARD_INK} />
+        <ellipse cx="71" cy="140" rx="21" ry="7" fill="none" stroke={CARD_GOLD} strokeWidth="2.4" />
+        <ellipse cx="58" cy="153" rx="5.5" ry="15" fill="#FFFFFF" opacity=".16" transform="rotate(-12 58 153)" />
       </g>
-      {/* quill, tilted across the scroll */}
-      <g transform="rotate(-32 130 78)">
-        <path d="M 130 40 Q 150 60 132 100 Q 128 108 120 104 Q 116 96 126 92 Q 116 78 118 58 Q 120 46 130 40 Z" fill={CARD_CREAM} stroke={CARD_NAVY} strokeWidth="2.6" />
-        <path d="M 128 46 Q 124 70 122 96" stroke={CARD_GOLD} strokeWidth="2.4" strokeLinecap="round" fill="none" />
+
+      {/* quill feather, nib dipping toward the ink */}
+      <g>
+        <path d="M 72 136 L 64 150 L 76 140 Z" fill={CARD_GOLD} />
+        <path
+          d="M 74 138 Q 84 62 158 42 Q 128 101 74 138 Z"
+          fill={CARD_CREAM} stroke={CARD_GOLD} strokeWidth="3" strokeLinejoin="round"
+        />
+        <path d="M 74 138 Q 107 82 158 42" fill="none" stroke={CARD_GOLD} strokeWidth="2.2" opacity=".55" strokeLinecap="round" />
+        <path d="M 99 109 L 92 96 M 116 90 L 109 77 M 133 71 L 126 58" stroke={CARD_GOLD} strokeWidth="2" opacity=".4" strokeLinecap="round" />
+        <path d="M 118 80 Q 130 66 149 51" stroke="#FFFFFF" strokeWidth="1.6" opacity=".22" strokeLinecap="round" fill="none" />
       </g>
-      <Sp x={168} y={158} s={7} f={CARD_CREAM} o={0.5} />
     </Tile>
   );
 }
