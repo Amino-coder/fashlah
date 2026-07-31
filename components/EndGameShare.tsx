@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { Lang } from "@/lib/i18n";
-import { FashlahArt, ShofahArt, JobArt, QaseedaArt } from "@/components/art/GameArt";
+import { FashlahArt, ShofahArt, JobArt, QaseedaArt, QissaArt } from "@/components/art/GameArt";
 
 /**
  * The end-of-game block. Used to be three competing calls to action (share
@@ -24,9 +24,10 @@ const PARSLEY = "\u{1F33F}";   // 🌿
 const RING = "\u{1F48D}";      // 💍
 const BRIEFCASE = "\u{1F4BC}"; // 💼
 const QUILL = "\u{1FAB6}";     // 🪶
+const BOOK = "\u{1F4D6}";      // 📖
 const SEND = "\u{1F4E4}";      // 📤
 
-export type EndGameKey = "fashlah" | "shofah" | "job" | "qaseeda";
+export type EndGameKey = "fashlah" | "shofah" | "job" | "qaseeda" | "qissa";
 
 const GAME_META: Record<
   EndGameKey,
@@ -36,6 +37,7 @@ const GAME_META: Record<
   shofah: { emoji: RING, nameAr: "ابي اتزوج", nameEn: "Marry Me!", href: "/shofah", Art: ShofahArt, accent: "linear-gradient(135deg, #E63946, #C2185B)" },
   job: { emoji: BRIEFCASE, nameAr: "مين بيتوظف", nameEn: "Job Interview!", href: "/job", Art: JobArt, accent: "linear-gradient(135deg, #3B82F6, #1E40AF)" },
   qaseeda: { emoji: QUILL, nameAr: "كمل القصيدة", nameEn: "Complete the Poem", href: "/qaseeda", Art: QaseedaArt, accent: "linear-gradient(135deg, #D9A441, #1B3A55)" },
+  qissa: { emoji: BOOK, nameAr: "كمل القصة", nameEn: "Complete the Story", href: "/qissa", Art: QissaArt, accent: "linear-gradient(135deg, #FF8A3D, #6B2A1E)" },
 };
 
 function buildShareText(lang: Lang, game: EndGameKey, resultLine: string): string {

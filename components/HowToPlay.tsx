@@ -15,7 +15,7 @@ import type { Lang } from "@/lib/i18n";
  * from memory.
  */
 
-export type GameKey = "fashlah" | "shofah" | "job" | "qaseeda";
+export type GameKey = "fashlah" | "shofah" | "job" | "qaseeda" | "qissa";
 
 type Step = { icon: string; title: string; body: string };
 type Content = { title: string; tagline: string; steps: Step[]; footer: string };
@@ -133,6 +133,32 @@ const CONTENT: Record<GameKey, Record<Lang, Content>> = {
       footer: "There's no right or wrong rhyme — it's about the feeling 🪶",
     },
   },
+  qissa: {
+    ar: {
+      title: "كيف تلعبون كمل القصة؟",
+      tagline: "كل واحد يبدأ قصة... وتضيع بين الكل 😂",
+      steps: [
+        { icon: "📱", title: "جهاز لكل شخص", body: "المضيف ينشئ غرفة ويشارك الكود مع الشلة (لازم شخصين على الأقل)." },
+        { icon: "✍️", title: "كل واحد يبدأ قصته", body: "بالجولة الأولى، كل شخص يكتب أول جملة من قصته الخاصة." },
+        { icon: "🔄", title: "تنتقل القصة", body: "بعد كل جولة، كل قصة تنتقل للاعب التالي — بس هو يشوف آخر جملة بس، مو القصة كاملة!" },
+        { icon: "🌀", title: "٣ جولات", body: "التكرار يصير ٣ مرات، وكل قصة تتكون من ٣ جمل كتبها ٣ أشخاص مختلفين." },
+        { icon: "📖", title: "القصص", body: "بالنهاية تشوفون كل قصة كاملة، جملة جملة، ومين كتب كل واحدة." },
+      ],
+      footer: "كل ما قلّ اللي تشوفه، زادت الطرافة 😂",
+    },
+    en: {
+      title: "How to play Complete the Story",
+      tagline: "Everyone starts a story... and it gets lost along the way 😂",
+      steps: [
+        { icon: "📱", title: "One phone each", body: "The host creates a room and shares the code (at least 2 players needed)." },
+        { icon: "✍️", title: "Everyone starts their own story", body: "In round 1, everyone writes the first sentence of their own story." },
+        { icon: "🔄", title: "Stories pass along", body: "After each round, every story moves to the next player — who only sees the last sentence, never the whole story!" },
+        { icon: "🌀", title: "3 rounds", body: "This repeats 3 times, so every story ends up with 3 sentences from 3 different people." },
+        { icon: "📖", title: "The stories", body: "At the end you'll see every complete story, line by line, and who wrote each part." },
+      ],
+      footer: "The less you can see, the funnier it gets 😂",
+    },
+  },
 };
 
 const ACCENTS: Record<GameKey, { from: string; to: string }> = {
@@ -140,6 +166,7 @@ const ACCENTS: Record<GameKey, { from: string; to: string }> = {
   shofah: { from: "#E63946", to: "#C2185B" },
   job: { from: "#3B82F6", to: "#1E40AF" },
   qaseeda: { from: "#D9A441", to: "#1B3A55" },
+  qissa: { from: "#FF8A3D", to: "#6B2A1E" },
 };
 
 function storageKey(game: GameKey) {
