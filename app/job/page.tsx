@@ -59,7 +59,7 @@ export default function JobLanding() {
         </div>
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 14 }}>
-          <div style={{ width: 168, height: 168, borderRadius: 30, overflow: "hidden", border: "3px solid var(--outline)", boxShadow: "5px 5px 0 var(--outline)", margin: "0 auto" }}><JobArt size={168} /></div>
+          <div style={{ width: 168, height: 168, borderRadius: 30, overflow: "hidden", border: "3px solid var(--icon-outline)", boxShadow: "5px 5px 0 var(--icon-outline)", margin: "0 auto" }}><JobArt size={168} /></div>
           <h1
             className="font-display"
             style={{

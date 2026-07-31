@@ -21,11 +21,12 @@
   --ink: #17122B;
   --ink-soft: #6b6280;
   --ring: rgba(23, 18, 43, 0.08);
-  /* Used for the bold decorative borders/shadows (tiles, buttons, badges)
-     — kept separate from --ink so dark mode can give those a different
-     color without touching actual text, which needs to stay light for
-     readability. Same as --ink here, so light mode is unaffected. */
-  --outline: var(--ink);
+  /* Used only for the frame around game icons (homepage tiles, each
+     game's landing-page hero icon) — kept separate from --ink so dark
+     mode can give icon frames a different treatment without touching
+     actual text or any other border/shadow in the app. Same as --ink
+     here, so light mode is unaffected. */
+  --icon-outline: var(--ink);
   --pink: #FF2E93;
   --yellow: #FFD400;
   --mint: #2EE6A6;
@@ -42,7 +43,11 @@
   --ink: #F6F3FF;
   --ink-soft: #B4AAD9;
   --ring: rgba(255, 255, 255, 0.08);
-  --outline: #9B1D63;
+  /* A dark, desaturated blue — reads as "black, the way black looks in
+     the dark" rather than a bright accent, so icon frames stay quiet and
+     let the icon artwork itself be the focus. Everything else (buttons,
+     badges, cards) intentionally keeps using --ink (white) directly. */
+  --icon-outline: #2E3A56;
 }
 
 /* The theme lives on <html> (set pre-paint by the inline script in
@@ -327,9 +332,9 @@ body::after {
 }
 .btn-bag {
   border-radius: 999px;
-  border: 3px solid var(--outline);
-  box-shadow: 4px 4px 0 var(--outline);
+  border: 3px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
   font-weight: 800;
   transition: transform .12s ease;
 }
-.btn-bag:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--outline); }
+.btn-bag:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }

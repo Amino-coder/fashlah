@@ -61,7 +61,7 @@ export default function ShofahLanding() {
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, direction: "ltr" }}>
-            <div style={{ width: 168, height: 168, borderRadius: 30, overflow: "hidden", border: "3px solid var(--outline)", boxShadow: "5px 5px 0 var(--outline)", margin: "0 auto" }}><ShofahArt size={168} /></div>
+            <div style={{ width: 168, height: 168, borderRadius: 30, overflow: "hidden", border: "3px solid var(--icon-outline)", boxShadow: "5px 5px 0 var(--icon-outline)", margin: "0 auto" }}><ShofahArt size={168} /></div>
           </div>
           <h1
             className="font-display"
