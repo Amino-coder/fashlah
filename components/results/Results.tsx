@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer } from "recharts";
 import { supabase } from "@/lib/supabase";
@@ -123,6 +123,8 @@ export default function Results({
   >(null);
 
   const me = summary.players.find((p) => p.player_id === player.id) || summary.players[0];
+  const isHost = player.user_id === session.host_user_id;
+  const completedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -453,6 +455,20 @@ export default function Results({
 
   const total = slides.length;
   const bg = BG_COLORS[slide % BG_COLORS.length];
+
+  // Unlike the other four games (which stage their reveal across a
+  // dedicated FinalReveal component and mark completion at its last
+  // stage), فشلة's results ARE the final reveal from the moment this
+  // component mounts — there's no further staging. The share slide
+  // (always the last one, pushed above) is the closest equivalent to
+  // "reached the end", so that's the trigger point here.
+  useEffect(() => {
+    if (!isHost || slide !== total - 1 || completedRef.current) return;
+    completedRef.current = true;
+    supabase.from("sessions")
+      .update({ status: "completed", ended_at: new Date().toISOString() })
+      .eq("id", session.id);
+  }, [isHost, slide, total, session.id]);
 
   return (
     <div

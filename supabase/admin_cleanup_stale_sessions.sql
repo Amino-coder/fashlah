@@ -2,9 +2,9 @@
 -- SCHEDULED CLEANUP — mark long-idle sessions as cancelled
 -- ============================================================================
 -- Run this once in the Supabase SQL editor. It does three things:
---   1. Extends شوفة/مين بيتوظف/كمل القصيدة's status column to allow
---      'cancelled' (فشلة already has it — its status check already included
---      'cancelled' from the start, the others never did).
+--   1. Extends شوفة/مين بيتوظف/كمل القصيدة/كمل القصة's status column to
+--      allow 'cancelled' (فشلة already has it — its status check already
+--      included 'cancelled' from the start, the others never did).
 --   2. Creates cleanup_stale_sessions(), which marks any session that's
 --      been idle past a threshold as cancelled instead of leaving it
 --      lying about being 'waiting'/'in_progress' forever.
@@ -17,7 +17,7 @@
 -- actual live session. Tune the intervals below if you want it tighter.
 --
 -- CAVEAT: the client apps don't currently have any UI for a 'cancelled'
--- status — none of the four games' session pages branch on it. In
+-- status — none of the five games' session pages branch on it. In
 -- practice this is a non-issue given how generous the thresholds are (no
 -- real player is ever mid-game 2+ hours after their last round), but if
 -- you ever want a graceful "this session was cancelled" screen instead of
@@ -26,17 +26,19 @@
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
--- 1. Allow 'cancelled' on شوفة / مين بيتوظف / كمل القصيدة (فشلة already
---    allows it). Looks up each table's actual status check constraint by
---    name rather than guessing it, so this is safe to re-run regardless
---    of how Postgres happened to auto-name it.
+-- 1. Allow 'cancelled' on شوفة / مين بيتوظف / كمل القصيدة / كمل القصة
+--    (فشلة already allows it). Looks up each table's actual status check
+--    constraint by name rather than guessing it, so this is safe to
+--    re-run regardless of how Postgres happened to auto-name it — and
+--    safe to re-run even for tables that already got 'cancelled' added by
+--    an earlier run of this same script.
 -- ----------------------------------------------------------------------------
 do $$
 declare
   tbl text;
   cname text;
 begin
-  foreach tbl in array array['shofah_sessions', 'job_sessions', 'qaseeda_sessions']
+  foreach tbl in array array['shofah_sessions', 'job_sessions', 'qaseeda_sessions', 'qissa_sessions']
   loop
     select conname into cname
     from pg_constraint
@@ -101,6 +103,16 @@ begin
   where status = 'waiting' and created_at < now() - interval '3 hours';
 
   update qaseeda_sessions
+  set status = 'cancelled', ended_at = now()
+  where status = 'in_progress'
+    and coalesce(phase_started_at, started_at, created_at) < now() - interval '2 hours';
+
+  -- كمل القصة
+  update qissa_sessions
+  set status = 'cancelled', ended_at = now()
+  where status = 'waiting' and created_at < now() - interval '3 hours';
+
+  update qissa_sessions
   set status = 'cancelled', ended_at = now()
   where status = 'in_progress'
     and coalesce(phase_started_at, started_at, created_at) < now() - interval '2 hours';
