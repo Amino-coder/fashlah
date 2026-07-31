@@ -99,26 +99,9 @@ export function QaseedaArt({ size = 120 }: P) {
   return <ImageTile src="/game-icons/qaseeda.jpg" alt="" />;
 }
 
-/* ─── كمل القصة — open book with a circulating relay arrow ─── */
+/* ─── كمل القصة — open book with a relay arrow ─── */
 export function QissaArt({ size = 120 }: P) {
-  const STORY_ORANGE = "#FF8A3D";
-  return (
-    <Tile bg={STORY_ORANGE}>
-      <Confetti a={PURPLE} b={CREAM} />
-      <g transform="rotate(-3 100 108)">
-        <path d="M 100 60 L 100 158 Q 60 148 40 158 L 40 76 Q 60 64 100 60 Z" fill={CREAM} stroke={INK} strokeWidth="3.4" />
-        <path d="M 100 60 L 100 158 Q 140 148 160 158 L 160 76 Q 140 64 100 60 Z" fill={CREAM} stroke={INK} strokeWidth="3.4" />
-        <path d="M 52 88 h 34 M 52 100 h 28 M 52 112 h 32" stroke={INK} strokeWidth="3" strokeLinecap="round" opacity=".3" />
-        <path d="M 114 88 h 34 M 120 100 h 28 M 116 112 h 32" stroke={INK} strokeWidth="3" strokeLinecap="round" opacity=".3" />
-      </g>
-      {/* the "passes to the next player" relay arrow, badge-mounted above the spine */}
-      <g transform="translate(100 46)">
-        <circle r="20" fill={PURPLE} stroke={INK} strokeWidth="3.4" />
-        <path d="M -8 -3 A 9 9 0 1 1 -8 6" fill="none" stroke={CREAM} strokeWidth="2.8" strokeLinecap="round" />
-        <path d="M -11.5 2 L -8 6 L -4 2" fill="none" stroke={CREAM} strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
-      </g>
-    </Tile>
-  );
+  return <ImageTile src="/game-icons/qissa.jpg" alt="" />;
 }
 
 /* ─── عبارات — the fanned cards (unchanged) ─── */
