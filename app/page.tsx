@@ -93,7 +93,7 @@ export default function Home() {
               display: "inline-block", background: "var(--purple)", color: "#fff",
               fontSize: 12, fontWeight: 800, padding: "6px 16px", borderRadius: 999,
               transform: "rotate(-4deg)",
-              boxShadow: "3px 3px 0 var(--ink)",
+              boxShadow: "3px 3px 0 var(--icon-outline)",
             }}
           >
             {ar ? "\u{1F389} يلا نلعب!" : "\u{1F389} Let's play!"}
@@ -139,7 +139,7 @@ export default function Home() {
                       background: badgeColor, color: "#fff",
                       fontSize: 8.5, fontWeight: 800, lineHeight: 1.3,
                       padding: "5px 8px", borderRadius: 10,
-                      border: "2px solid var(--ink)", boxShadow: "2px 2px 0 var(--ink)",
+                      border: "2px solid var(--icon-outline)", boxShadow: "2px 2px 0 var(--icon-outline)",
                       transform: "rotate(-8deg)",
                     }}
                   >

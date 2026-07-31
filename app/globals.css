@@ -21,11 +21,11 @@
   --ink: #17122B;
   --ink-soft: #6b6280;
   --ring: rgba(23, 18, 43, 0.08);
-  /* Used only for the frame around game icons (homepage tiles, each
-     game's landing-page hero icon) — kept separate from --ink so dark
-     mode can give icon frames a different treatment without touching
-     actual text or any other border/shadow in the app. Same as --ink
-     here, so light mode is unaffected. */
+  /* Used for game icon frames and the homepage's promo badges ("Let's
+     play!", the "Free"/"Free for a limited time" corner stickers) — kept
+     separate from --ink so dark mode can give these a quieter treatment
+     without touching actual text or the social/contact icons, which stay
+     on --ink. Same as --ink here, so light mode is unaffected. */
   --icon-outline: var(--ink);
   --pink: #FF2E93;
   --yellow: #FFD400;
@@ -44,10 +44,10 @@
   --ink-soft: #B4AAD9;
   --ring: rgba(255, 255, 255, 0.08);
   /* A dark, desaturated blue — reads as "black, the way black looks in
-     the dark" rather than a bright accent, so icon frames stay quiet and
-     let the icon artwork itself be the focus. Everything else (buttons,
-     badges, cards) intentionally keeps using --ink (white) directly. */
-  --icon-outline: #2E3A56;
+     the dark" rather than a bright accent, so icons and their badges stay
+     quiet and let the artwork itself be the focus. Social/contact icons
+     intentionally keep using --ink (white) directly instead. */
+  --icon-outline: #3B4868;
 }
 
 /* The theme lives on <html> (set pre-paint by the inline script in
