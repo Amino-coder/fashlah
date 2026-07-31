@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { SHOFAH_STR, ShofahLang } from "@/lib/shofah-i18n";
+import { ShofahLang } from "@/lib/shofah-i18n";
 import { playCelebration } from "@/lib/sound-engine";
 import { useSoundPref } from "@/lib/useSoundPref";
 import NiqabGirl from "./NiqabGirl";
@@ -16,14 +15,14 @@ const WINE = "#C2185B";
 const GOLD = "#FFD400";
 
 export default function FinalReveal({
-  session, players, isHost, lang,
+  session, players, myPlayerId, isHost, lang,
 }: {
   session: ShofahSessionRow;
   players: ShofahPlayerRow[];
+  myPlayerId: string | null;
   isHost: boolean;
   lang: ShofahLang;
 }) {
-  const t = SHOFAH_STR[lang];
   const [stage, setStage] = useState(0);
   const [winner, setWinner] = useState<ShofahPlayerRow | null>(null);
   const completedRef = useRef(false);
@@ -154,19 +153,17 @@ export default function FinalReveal({
             ))}
           </div>
 
-          <Link
-            href="/shofah"
-            className="font-display"
-            style={{
-              display: "inline-block", marginTop: 24, padding: "12px 28px", fontSize: 14, borderRadius: 999,
-              color: "#fff", textDecoration: "none", background: `linear-gradient(135deg, ${ROSE}, ${WINE})`,
-            }}
-          >
-            {t.backHome}
-          </Link>
-
-          <div style={{ marginTop: 20 }}>
-            <EndGameShare game="shofah" lang={lang} accent={`linear-gradient(135deg, ${ROSE}, ${WINE})`} />
+          <div style={{ marginTop: 24 }}>
+            <EndGameShare
+              game="shofah"
+              lang={lang}
+              nextGame="fashlah"
+              resultLine={
+                myPlayerId && winner?.id === myPlayerId
+                  ? (lang === "ar" ? "\u{1F389} أنا اللي بيتزوج أول!" : "\u{1F389} I'm getting married first!")
+                  : (lang === "ar" ? "\u{1F602} لسه بدون خاتم... بس قريب!" : "\u{1F602} Still without a ring... for now!")
+              }
+            />
           </div>
         </div>
       )}

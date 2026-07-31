@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { JOB_STR, JobLang } from "@/lib/job-i18n";
+import { JobLang } from "@/lib/job-i18n";
 import SuitGuy from "./SuitGuy";
 import type { JobSessionRow, JobPlayerRow } from "@/lib/job-types";
 import EndGameShare from "@/components/EndGameShare";
@@ -13,14 +12,14 @@ const NAVY = "#1E40AF";
 const GOLD = "#FFD400";
 
 export default function FinalReveal({
-  session, players, isHost, lang,
+  session, players, myPlayerId, isHost, lang,
 }: {
   session: JobSessionRow;
   players: JobPlayerRow[];
+  myPlayerId: string | null;
   isHost: boolean;
   lang: JobLang;
 }) {
-  const t = JOB_STR[lang];
   const [stage, setStage] = useState(0);
   const [winner, setWinner] = useState<JobPlayerRow | null>(null);
   const completedRef = useRef(false);
@@ -139,19 +138,17 @@ export default function FinalReveal({
             ))}
           </div>
 
-          <Link
-            href="/job"
-            className="font-display"
-            style={{
-              display: "inline-block", marginTop: 24, padding: "12px 28px", fontSize: 14, borderRadius: 999,
-              color: "#fff", textDecoration: "none", background: `linear-gradient(135deg, ${BLUE}, ${NAVY})`,
-            }}
-          >
-            {t.backHome}
-          </Link>
-
-          <div style={{ marginTop: 20 }}>
-            <EndGameShare game="job" lang={lang} accent={`linear-gradient(135deg, ${BLUE}, ${NAVY})`} />
+          <div style={{ marginTop: 24 }}>
+            <EndGameShare
+              game="job"
+              lang={lang}
+              nextGame="shofah"
+              resultLine={
+                myPlayerId && winner?.id === myPlayerId
+                  ? (lang === "ar" ? "\u{1F389} توظفت أنا!" : "\u{1F389} I got hired!")
+                  : (lang === "ar" ? "\u{1F605} لسه عاطل... بس قريب!" : "\u{1F605} Still unemployed... for now!")
+              }
+            />
           </div>
         </div>
       )}

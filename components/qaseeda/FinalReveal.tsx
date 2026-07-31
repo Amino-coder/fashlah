@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { Feather } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { QASEEDA_STR, QaseedaLang } from "@/lib/qaseeda-i18n";
@@ -13,6 +12,7 @@ import PoemShareCard from "./PoemShareCard";
 import { sharePoemCard } from "./exportPoemCard";
 import { CARD_W, CARD_H } from "@/lib/qaseeda-card";
 import EndGameShare from "@/components/EndGameShare";
+import HomeButton from "@/components/HomeButton";
 import type { QaseedaSessionRow, QaseedaPlayerRow } from "@/lib/qaseeda-types";
 
 const GOLD = "#D9A441";
@@ -141,6 +141,8 @@ export default function FinalReveal({
         color: "#FBF6E9",
       }}
     >
+      {stage >= 4 && <HomeButton label={t.backHome} />}
+
       {stage < 2 && (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18 }}>
           {stage >= 1 ? (
@@ -239,20 +241,8 @@ export default function FinalReveal({
             {shareState === "failed" && t.shareFailed}
           </p>
 
-          <Link
-            href="/qaseeda"
-            className="font-display"
-            style={{
-              display: "block", width: "100%", textAlign: "center", padding: 14, fontSize: 14, fontWeight: 700,
-              borderRadius: 999, color: "#FBF6E9", textDecoration: "none",
-              background: "rgba(255,255,255,0.08)",
-            }}
-          >
-            {t.backHome}
-          </Link>
-
           <div style={{ marginTop: 6, opacity: 0.9 }}>
-            <EndGameShare game="qaseeda" lang={lang} accent={`linear-gradient(135deg, ${GOLD}, ${NAVY})`} />
+            <EndGameShare game="qaseeda" lang={lang} nextGame="shofah" />
           </div>
         </div>
       )}

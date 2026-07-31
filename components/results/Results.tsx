@@ -1,12 +1,23 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer } from "recharts";
 import { supabase } from "@/lib/supabase";
 import type { Lang } from "@/lib/i18n";
+import { STR } from "@/lib/i18n";
 import type { PlayerRow, SessionRow } from "@/lib/types";
 import EndGameShare from "@/components/EndGameShare";
+import HomeButton from "@/components/HomeButton";
+
+// A funny, non-judgmental fallback for the (rare) player who didn't land
+// any of the real awards — framed as "too unique to pin down" rather than
+// "didn't win anything".
+const FALLBACK_AWARD = {
+  emoji: "\u{1F0CF}", // 🃏
+  name_ar: "صعب التصنيف",
+  name_en: "Impossible to Categorize",
+};
 
 const TRAIT_LABELS: Record<string, { ar: string; en: string }> = {
   leadership: { ar: "القيادة", en: "Leadership" },
@@ -59,17 +70,11 @@ function Confetti() {
   );
 }
 
-function ShareSlide({ lang }: { lang: Lang }) {
-  // position:relative + a higher z-index than the tap-to-navigate overlay
-  // (zIndex 1) and the arrow buttons (zIndex 2), so these buttons — which
-  // live inside the slide content, a normal non-positioned element — don't
-  // get click-intercepted by the full-screen tap layer sitting above it.
-  const btnStyle: CSSProperties = {
-    position: "relative", zIndex: 3,
-    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-    padding: "14px 26px", borderRadius: 999, fontWeight: 800, fontSize: 15,
-    border: "none", width: "100%",
-  };
+function ShareSlide({ lang, award }: { lang: Lang; award: { emoji: string; name_ar: string; name_en: string } }) {
+  const resultLine =
+    lang === "ar"
+      ? `${award.emoji} حصلت على لقب: ${award.name_ar}`
+      : `${award.emoji} I got crowned: ${award.name_en}`;
 
   return (
     <>
@@ -78,21 +83,13 @@ function ShareSlide({ lang }: { lang: Lang }) {
         {lang === "ar" ? "خلصنا! شكرًا للعب 🎉" : "That's a wrap! Thanks for playing 🎉"}
       </h2>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%", maxWidth: 280 }}>
-        {/* position:relative + z-index 3 (matching btnStyle above) so
-            EndGameShare's buttons sit above the tap-to-navigate overlay. */}
-        <div style={{ position: "relative", zIndex: 3, width: "100%" }} onClick={(e) => e.stopPropagation()}>
-          <EndGameShare game="fashlah" lang={lang} accent="linear-gradient(135deg, #FF2E93, #7C3AED)" />
-        </div>
-
-        <a
-          href="/"
-          onClick={(e) => e.stopPropagation()}
-          className="font-display"
-          style={{ ...btnStyle, background: "white", color: "var(--purple)", textDecoration: "none" }}
-        >
-          {lang === "ar" ? "رجوع للرئيسية" : "Back Home"}
-        </a>
+      {/* position:relative + z-index above the tap-to-navigate overlay
+          (zIndex 1) and the arrow buttons (zIndex 2), so these buttons —
+          which live inside the slide content, a normal non-positioned
+          element — don't get click-intercepted by the full-screen tap
+          layer sitting above it. */}
+      <div style={{ position: "relative", zIndex: 3, width: "100%" }} onClick={(e) => e.stopPropagation()}>
+        <EndGameShare game="fashlah" lang={lang} nextGame="shofah" resultLine={resultLine} />
       </div>
     </>
   );
@@ -449,7 +446,7 @@ export default function Results({
     key: "share",
     render: () => {
       return (
-        <ShareSlide lang={lang} />
+        <ShareSlide lang={lang} award={me.awards[0] || FALLBACK_AWARD} />
       );
     },
   });
@@ -465,6 +462,10 @@ export default function Results({
         maxWidth: 480, margin: "0 auto", overflow: "hidden",
       }}
     >
+      <div onClick={(e) => e.stopPropagation()}>
+        <HomeButton label={STR[lang].backHome} />
+      </div>
+
       <div style={{ display: "flex", gap: 6, padding: "16px 16px 0" }}>
         {Array.from({ length: total }).map((_, i) => (
           <div key={i} className="story-seg">

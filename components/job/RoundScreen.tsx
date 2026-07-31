@@ -389,7 +389,7 @@ export default function RoundScreen({
   }
 
   if (session.current_round > TOTAL_ROUNDS + 1) {
-    return <FinalReveal session={session} players={players} isHost={isHost} lang={lang} />;
+    return <FinalReveal session={session} players={players} myPlayerId={myPlayerId} isHost={isHost} lang={lang} />;
   }
 
   if (session.round_phase === "countdown") {

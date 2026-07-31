@@ -169,6 +169,7 @@ export default function ShofahWaitingRoom() {
     <div dir={t.dir} className={dark ? "dark" : ""} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
       <Blobs />
       {(error || !session || session.status === "waiting") && <HomeButton label={t.backHome} href="/shofah" />}
+      {session && session.status === "completed" && <HomeButton label={t.backHome} />}
       {/* Rules stay reachable from the lobby — that's the moment the group
           is actually gathered around asking how this works. Hidden once
           play starts so it can't distract mid-round. */}

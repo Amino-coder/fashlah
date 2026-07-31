@@ -124,6 +124,10 @@ export default function QaseedaWaitingRoom() {
     <div dir={t.dir} className={dark ? "dark" : ""} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
       <Blobs />
       {(error || !session || session.status === "waiting") && <HomeButton label={t.backHome} href="/qaseeda" />}
+      {/* status:'completed' doesn't need a HomeButton here — FinalReveal's
+          own fixed full-screen overlay is always covering the page by the
+          time that status is set, and it renders its own HomeButton once
+          its cinematic reveal reaches the share-card stage. */}
       {session && session.status === "waiting" && (
         <div style={{ position: "absolute", top: 24, insetInlineEnd: 24, zIndex: 2 }}>
           <HelpButton game="qaseeda" lang={lang} autoOpenFirstVisit={false} />
