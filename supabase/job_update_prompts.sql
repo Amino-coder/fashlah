@@ -33,24 +33,23 @@ delete from job_prewarm_prompts;
 insert into job_prompts (category, text_ar, text_en) values
   ('opening', 'سوّق لنفسك كأنك سيارة مستعملة. 🛻', 'Sell yourself like you''re a used car. 🛻'),
   ('experience', 'ليش انطردت من شغلك اللي راح؟ 🚨', 'Why did you get fired from your last job? 🚨'),
-  ('experience', 'وش المهارة بسيرتك الذاتية اللي اكيييد مو كذبه 😉', 'Which skill on your CV is definitely not a lie? 😉'),
   ('weakness', 'وش أكبر نقطة ضعف فيك؟ (قولها بطريقة تخليها شي إيجابي 🏃🏻‍♂️)', 'What''s your biggest weakness? (Spin it into a strength 🏃🏻‍♂️)'),
   ('weakness', 'وش العادة الخايسة اللي بتخليك تنطرد من اول اسبوع؟', 'What''s the bad habit that''ll get you fired in your first week?'),
   ('weakness', 'وش بيقول عنك مديرك السابق لو اتصلنا فيه؟ 💀', 'What would your last boss say if we called them? 💀'),
-  ('salary', 'كم الراتب اللي تتوقعه؟ واذا نقدر نعطيك شي ثاني بدل الراتب وش بتاخذ؟', 'What salary do you expect? And if we paid you in something other than money, what would you take?'),
+  ('salary', 'اذا نقدر نعطيك شي ثاني بدل الراتب وش بتاخذ؟', 'If we could pay you in something other than money, what would you take?'),
   ('salary', 'اقنعني تستاهل زيادة براتبك وانت باقي ما بديت.', 'Convince me you deserve a raise before you''ve even started.'),
   ('salary', 'وش أغبى شي بتشتريه من أول راتب؟', 'What''s the dumbest thing you''ll buy with your first paycheck?'),
-  ('awkward', 'لو شفت مديرك يبوووق الشركة وش بتسوي؟ وكم بتسرق معاه 😂', 'You catch your boss stealing from the company. What do you do — and what''s your cut? 😂'),
+  ('awkward', 'لو شفت مديرك يبوووق الشركة وش بتسوي؟', 'You catch your boss stealing from the company. What do you do?'),
   ('awkward', 'المدير طلب منك تشتغل الويكند، وش بتقول؟', 'Your boss asks you to work the weekend. What do you say?'),
-  ('awkward', 'وصلت متأخر ساعتين… عطنا عذر يستحق جائزة أوسكار', 'You''re two hours late. Give us an Oscar-worthy excuse.'),
+  ('awkward', 'وصلت متأخر ساعتين… عطنا عذر يستحق جائزة أوسكار', 'You''re two hours late... give us an Oscar-worthy excuse.'),
+  ('awkward', 'وش الشي اللي يقوله لك مديرك وينفع تقوله لزوجك/زوجتك بنفس الوقت؟', 'What''s something your boss says that would also work said to your spouse?'),
+  ('awkward', 'لو مديرك ناداك لحالك بمكتبه وش بيكون السبب؟', 'If your boss called you into his office alone, what would the reason be?'),
   ('teamwork', 'واحد اخذ الكريدت على شغلك، كيف بتنتقم؟ 🪓', 'Someone took credit for your work. How do you get revenge? 🪓'),
   ('teamwork', 'وش بتسوي عشان تسرق وظيفة مديرك؟', 'What would you do to steal your boss''s job?'),
+  ('teamwork', 'وش تتوقع يقولون عنك زملائك من ورا ضهرك؟', 'What do you think your coworkers say about you behind your back?'),
   ('wildcard', 'وين تشوف نفسك بعد ٥ سنين؟ (أجوبة خاطئة فقط)', 'Where do you see yourself in 5 years? (wrong answers only)'),
-  ('wildcard', 'اقنعني أوظفك بدون لا تستخدم حرف الألف "ا".', 'Convince me to hire you without using the letter "A".'),
-  ('wildcard', 'قول شي يخليني أرفضك على طول.', 'Say something that''ll make me reject you instantly.'),
-  ('wildcard', 'اسألني انت سؤال. مو لازم عن الوظيفة 😅', 'Now you ask me a question. Doesn''t have to be about the job 😅'),
-  ('wildcard', 'اقنعني أخليك تشتغل من البيت للأبد.', 'Convince me to let you work from home forever.'),
-  ('wildcard', 'الشركة صارت لك ليوم واحد — وش أول قرار؟', 'The company is yours for one day. What''s your first decision?');
+  ('wildcard', 'عندك اي سؤال لي؟ (اي سؤال حتى لو شاطح 😅)', 'Do you have a question for me? (Any question, even a wild one 😅)'),
+  ('wildcard', 'الشركة صارت لك ليوم واحد — وش أول قرار؟', 'The company is yours for one day — what''s your first decision?');
 
 -- 4. Reseed — warm-up round
 insert into job_prewarm_prompts (text_ar, text_en) values

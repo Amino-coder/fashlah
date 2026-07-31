@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Instagram, Moon, Sun } from "lucide-react";
+import { Instagram, Mail, Moon, Sun } from "lucide-react";
 import { STR } from "@/lib/i18n";
 import { SHOFAH_STR } from "@/lib/shofah-i18n";
 import { JOB_STR } from "@/lib/job-i18n";
@@ -181,6 +181,21 @@ export default function Home() {
             }}
           >
             <TikTokIcon size={18} />
+          </a>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 14 }}>
+          <a
+            href="mailto:bagdoonis.app@gmail.com"
+            aria-label="Contact us: bagdoonis.app@gmail.com"
+            title="bagdoonis.app@gmail.com"
+            style={{
+              width: 40, height: 40, borderRadius: 999, background: "var(--card)",
+              border: "2.5px solid var(--ink)", boxShadow: "3px 3px 0 var(--ink)",
+              display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink)",
+            }}
+          >
+            <Mail size={18} />
           </a>
         </div>
         <p className="font-body" style={{ textAlign: "center", fontSize: 10.5, letterSpacing: ".18em", color: "var(--ink-soft)", fontWeight: 700, marginTop: 16 }}>
