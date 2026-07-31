@@ -19,6 +19,17 @@ export function storyIndexForTurnOrder(turnOrder: number, round: number, n: numb
   return ((turnOrder - (round - 1)) % n + n) % n;
 }
 
+/**
+ * The story circulates around the table TWICE — every player contributes
+ * to every story exactly twice, once per lap — so the round count scales
+ * with the player count rather than being a fixed number. The passing
+ * math above needs no changes for this: it's plain modular arithmetic,
+ * so it already works correctly for any round number, not just 1..n.
+ */
+export function totalRoundsFor(playerCount: number): number {
+  return playerCount * 2;
+}
+
 export type QissaStory = {
   storyIndex: number;
   sentences: string[]; // exactly 3, in round order
@@ -64,7 +75,7 @@ export async function fetchAllStoriesWithRetry(
 ): Promise<QissaStory[]> {
   const maxAttempts = opts.maxAttempts ?? 6;
   const delayMs = opts.delayMs ?? 700;
-  const expectedTotal = playerCount * 3;
+  const expectedTotal = playerCount * totalRoundsFor(playerCount);
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const stories = await fetchAllStories(session, playerCount);

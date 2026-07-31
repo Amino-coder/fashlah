@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { QISSA_STR, QissaLang, randomPlaceholder } from "@/lib/qissa-i18n";
 import { playCountdownTick, playCountdownGo, playUrgentTick, unlockAudio } from "@/lib/sound-engine";
 import { useSoundPref } from "@/lib/useSoundPref";
-import { storyIndexForTurnOrder, fetchPreviousSentence } from "@/lib/qissa-story";
+import { storyIndexForTurnOrder, fetchPreviousSentence, totalRoundsFor } from "@/lib/qissa-story";
 import FinalReveal from "./FinalReveal";
 import type { QissaSessionRow, QissaPlayerRow, QissaAnswerRow } from "@/lib/qissa-types";
 
@@ -19,7 +19,6 @@ const WRITE_SECONDS = 30;
 // pause, not a stall.
 const PASSING_SECONDS = 3;
 const MAX_CHARS = 120;
-const TOTAL_ROUNDS = 3;
 
 export default function RoundScreen({
   session, players, myPlayerId, isHost, lang,
@@ -43,6 +42,10 @@ export default function RoundScreen({
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const n = players.length;
+  // Two full laps around the circle: every player writes on every story
+  // twice. Stable for the whole game since turn_order (and therefore
+  // player count) is fixed at game start.
+  const totalRounds = totalRoundsFor(n);
   const myPlayer = players.find((p) => p.id === myPlayerId);
   const myTurnOrder = myPlayer?.turn_order ?? null;
 
@@ -183,7 +186,7 @@ export default function RoundScreen({
     }
   }
   useEffect(() => {
-    if (!isHost || session.current_round > TOTAL_ROUNDS || session.round_phase !== "writing" || advancingRef.current) return;
+    if (!isHost || session.current_round > totalRounds || session.round_phase !== "writing" || advancingRef.current) return;
     const everyoneWrote = n > 0 && currentAnswers.length >= n;
     if (remaining <= 0 || everyoneWrote) closeWritingRound();
   }, [isHost, session.round_phase, remaining, currentAnswers.length, n, session.id]);
@@ -195,15 +198,15 @@ export default function RoundScreen({
   async function advancePastPassing() {
     if (advancedPastPassingRef.current) return;
     advancedPastPassingRef.current = true;
-    const { error } = session.current_round >= TOTAL_ROUNDS
-      ? await supabase.from("qissa_sessions").update({ current_round: TOTAL_ROUNDS + 1 }).eq("id", session.id)
+    const { error } = session.current_round >= totalRounds
+      ? await supabase.from("qissa_sessions").update({ current_round: totalRounds + 1 }).eq("id", session.id)
       : await supabase.from("qissa_sessions")
           .update({ current_round: session.current_round + 1, round_phase: "writing", phase_started_at: new Date().toISOString() })
           .eq("id", session.id);
     if (error) { advancedPastPassingRef.current = false; setAdvanceError(error.message); }
   }
   useEffect(() => {
-    if (!isHost || session.current_round > TOTAL_ROUNDS || session.round_phase !== "passing" || advancedPastPassingRef.current) return;
+    if (!isHost || session.current_round > totalRounds || session.round_phase !== "passing" || advancedPastPassingRef.current) return;
     if (remaining <= 0) advancePastPassing();
   }, [isHost, session.round_phase, remaining, session.id, session.current_round]);
 
@@ -240,7 +243,7 @@ export default function RoundScreen({
     }
   }, [now, myAnswer]);
 
-  if (session.current_round === TOTAL_ROUNDS + 1) {
+  if (session.current_round === totalRounds + 1) {
     return <FinalReveal session={session} players={players} isHost={isHost} lang={lang} />;
   }
 
@@ -303,7 +306,7 @@ export default function RoundScreen({
       {muteButton}
       <div style={{ textAlign: "center" }}>
         <span className="font-body" style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)" }}>
-          {session.current_round} / {TOTAL_ROUNDS}
+          {session.current_round} / {totalRounds}
         </span>
       </div>
 

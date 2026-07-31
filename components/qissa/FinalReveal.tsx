@@ -67,7 +67,7 @@ export default function FinalReveal({
   // blow past a story before anyone's finished laughing at it.
   useEffect(() => {
     if (stage !== 2 || !currentStory) return;
-    if (revealedCount < 3) {
+    if (revealedCount < currentStory.sentences.length) {
       const id = setTimeout(() => setRevealedCount((v) => v + 1), 1600);
       return () => clearTimeout(id);
     }
@@ -79,7 +79,7 @@ export default function FinalReveal({
 
   function advance() {
     if (stage !== 2 || !currentStory) return;
-    if (revealedCount < 3) { setRevealedCount((v) => v + 1); return; }
+    if (revealedCount < currentStory.sentences.length) { setRevealedCount((v) => v + 1); return; }
     if (!authorsShown) { setAuthorsShown(true); return; }
     goNextStory();
   }
@@ -190,7 +190,7 @@ export default function FinalReveal({
                   </button>
                 )}
 
-                {!(revealedCount >= 3 && authorsShown) && (
+                {!(revealedCount >= (currentStory?.sentences.length ?? 0) && authorsShown) && (
                   <p className="font-body" style={{ fontSize: 11, opacity: 0.55, marginTop: 4 }}>{t.tapToContinue}</p>
                 )}
               </div>
