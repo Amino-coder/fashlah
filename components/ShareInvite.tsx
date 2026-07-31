@@ -37,9 +37,9 @@ export default function ShareInvite({
   accent: string;
   /** Localised "Room Code" heading. */
   label: string;
-  /** Game-specific emoji for the invite text (e.g. parsley for Fashlah,
-   *  a ring for Shofah, a briefcase for Job Interview) — defaults to a
-   *  generic wave if the caller doesn't pass one. */
+  /** Game-specific emoji (or short emoji combo) for the invite text — e.g.
+   *  😈😬😅 for Fashlah, 💍😂 for Shofah, 💼😂 for Job Interview, 🪶 for
+   *  Qaseeda — defaults to a generic wave if the caller doesn't pass one. */
   emoji?: string;
 }) {
   const inviteEmoji = emoji ?? "\u{1F44B}"; // 👋

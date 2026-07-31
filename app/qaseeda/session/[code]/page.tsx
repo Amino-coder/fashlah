@@ -177,7 +177,7 @@ export default function QaseedaWaitingRoom() {
               lang={lang}
               accent={`linear-gradient(135deg, ${GOLD}, ${NAVY})`}
               label={t.roomCode}
-              emoji="\u{1FAB6}" // 🪶
+              emoji={"\u{1FAB6}"} // 🪶
             />
 
             <div className="card" style={{ padding: 18, marginBottom: 20 }}>

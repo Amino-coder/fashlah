@@ -209,7 +209,7 @@ export default function JobWaitingRoom() {
               lang={lang}
               accent={`linear-gradient(135deg, ${BLUE}, ${NAVY})`}
               label={t.roomCode}
-              emoji="\u{1F4BC}" // 💼
+              emoji={"\u{1F4BC}\u{1F602}"} // 💼😂
             />
 
             <div className="card" style={{ padding: 18, marginBottom: 20 }}>

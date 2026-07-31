@@ -186,7 +186,7 @@ export default function WaitingRoom() {
               lang={lang}
               accent="linear-gradient(135deg, #FF2E93, #7C3AED)"
               label={t.roomCode}
-              emoji="\u{1F33F}" // 🌿
+              emoji={"\u{1F608}\u{1F62C}\u{1F605}"} // 😈😬😅
             />
 
             <div className="card" style={{ padding: 18, marginBottom: 20 }}>
