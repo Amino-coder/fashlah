@@ -11,7 +11,7 @@ import { QISSA_STR, qissaSubtitles, QissaLang } from "@/lib/qissa-i18n";
 import { usePrefs } from "@/lib/usePrefs";
 
 const ORANGE = "#FF8A3D";
-const DEEP = "#6B2A1E";
+const DEEP = "#E0409A";
 
 export default function QissaLanding() {
   const { lang, setLang, dark, setDark, ready } = usePrefs();

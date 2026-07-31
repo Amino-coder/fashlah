@@ -34,12 +34,12 @@ export const QISSA_STR: Record<QissaLang, Record<string, string>> = {
     joiningSession: "بتنضم لجلسة",
     // Writing
     startNewStory: "ابدأ قصة جديدة",
-    yourSentencePh: "اكتب جملتك...",
+    continueStoryHeading: "كمّل القصة بجملة وحدة",
     submitSentence: "إرسال",
     sentenceSubmitted: "تم الإرسال! بانتظار الباقين...",
     wroteCount: "كتبوا",
     // Passing beat
-    passingTitle: "القصص تتنقل...",
+    passingTitle: "قاعدين نخلط القصص",
     // Final reveal
     finalCheer: "خلصنا! شوفوا وش صار",
     storyLabel: "القصة",
@@ -81,12 +81,12 @@ export const QISSA_STR: Record<QissaLang, Record<string, string>> = {
     joiningSession: "Joining session",
     // Writing
     startNewStory: "Start a new story",
-    yourSentencePh: "Write your sentence...",
+    continueStoryHeading: "Add one sentence to keep the story going",
     submitSentence: "Submit",
     sentenceSubmitted: "Submitted! Waiting for the others...",
     wroteCount: "wrote",
     // Passing beat
-    passingTitle: "Stories are on the move...",
+    passingTitle: "Mixing up the stories...",
     // Final reveal
     finalCheer: "That's a wrap — let's see what happened",
     storyLabel: "Story",
@@ -107,14 +107,14 @@ export const QISSA_AVATARS = ["📖", "🎭", "🗯️", "😄", "🤔", "📚",
 // player reaches a writing turn, and disappears the moment they start
 // typing (standard placeholder behavior).
 export const QISSA_PLACEHOLDERS_AR = [
-  "أكمل القصة…",
-  "ماذا حصل بعد ذلك؟",
-  "أضف مفاجأة.",
-  "غيّر مجرى الأحداث.",
-  "أدخل شخصية جديدة.",
-  "ماذا حدث فجأة؟",
-  "صف ردة الفعل.",
-  "اكتب جملة واحدة فقط.",
+  "كمّل القصة…",
+  "وش صار بعدين؟",
+  "حط مفاجأة.",
+  "غيّر مسار القصة.",
+  "زيد شخصية جديدة.",
+  "وش صار فجأة؟",
+  "وش كانت ردة فعلهم؟",
+  "اكتب جملة وحدة بس.",
 ];
 
 export const QISSA_PLACEHOLDERS_EN = [

@@ -166,7 +166,7 @@ const ACCENTS: Record<GameKey, { from: string; to: string }> = {
   shofah: { from: "#E63946", to: "#C2185B" },
   job: { from: "#3B82F6", to: "#1E40AF" },
   qaseeda: { from: "#D9A441", to: "#1B3A55" },
-  qissa: { from: "#FF8A3D", to: "#6B2A1E" },
+  qissa: { from: "#FF8A3D", to: "#E0409A" },
 };
 
 function storageKey(game: GameKey) {

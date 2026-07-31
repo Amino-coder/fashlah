@@ -10,7 +10,7 @@ import { QISSA_STR, QISSA_AVATARS, QissaLang } from "@/lib/qissa-i18n";
 import { usePrefs } from "@/lib/usePrefs";
 
 const ORANGE = "#FF8A3D";
-const DEEP = "#6B2A1E";
+const DEEP = "#E0409A";
 
 export default function QissaCreatePage() {
   const { lang, dark, ready } = usePrefs();

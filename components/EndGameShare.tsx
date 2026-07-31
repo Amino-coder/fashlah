@@ -37,7 +37,7 @@ const GAME_META: Record<
   shofah: { emoji: RING, nameAr: "ابي اتزوج", nameEn: "Marry Me!", href: "/shofah", Art: ShofahArt, accent: "linear-gradient(135deg, #E63946, #C2185B)" },
   job: { emoji: BRIEFCASE, nameAr: "مين بيتوظف", nameEn: "Job Interview!", href: "/job", Art: JobArt, accent: "linear-gradient(135deg, #3B82F6, #1E40AF)" },
   qaseeda: { emoji: QUILL, nameAr: "كمل القصيدة", nameEn: "Complete the Poem", href: "/qaseeda", Art: QaseedaArt, accent: "linear-gradient(135deg, #D9A441, #1B3A55)" },
-  qissa: { emoji: BOOK, nameAr: "كمل القصة", nameEn: "Complete the Story", href: "/qissa", Art: QissaArt, accent: "linear-gradient(135deg, #FF8A3D, #6B2A1E)" },
+  qissa: { emoji: BOOK, nameAr: "كمل القصة", nameEn: "Complete the Story", href: "/qissa", Art: QissaArt, accent: "linear-gradient(135deg, #FF8A3D, #E0409A)" },
 };
 
 function buildShareText(lang: Lang, game: EndGameKey, resultLine: string): string {

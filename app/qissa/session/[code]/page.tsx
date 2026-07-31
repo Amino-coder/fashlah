@@ -15,7 +15,7 @@ import ShareInvite from "@/components/ShareInvite";
 import type { QissaSessionRow, QissaPlayerRow } from "@/lib/qissa-types";
 
 const ORANGE = "#FF8A3D";
-const DEEP = "#6B2A1E";
+const DEEP = "#E0409A";
 const MIN_PLAYERS = 2;
 
 export default function QissaWaitingRoom() {

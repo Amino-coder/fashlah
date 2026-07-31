@@ -11,7 +11,7 @@ import FinalReveal from "./FinalReveal";
 import type { QissaSessionRow, QissaPlayerRow, QissaAnswerRow } from "@/lib/qissa-types";
 
 const ORANGE = "#FF8A3D";
-const DEEP = "#6B2A1E";
+const DEEP = "#E0409A";
 const COUNTDOWN_SECONDS = 5;
 const WRITE_SECONDS = 30;
 // Purely a transition beat — nothing is revealed here, so it only needs
@@ -329,18 +329,27 @@ export default function RoundScreen({
             <p className="font-display" style={{ textAlign: "center", fontSize: 18, fontWeight: 800, margin: 0 }}>
               {t.startNewStory} ✨
             </p>
-          ) : !previousLoaded ? (
-            <div style={{ textAlign: "center", color: "var(--ink-soft)" }}>
-              <span className="pulse-dot" /><span className="pulse-dot" /><span className="pulse-dot" />
-            </div>
           ) : (
-            // Shown with no label at all, by design — just the sentence
-            // itself in a styled card, exactly as received.
-            <div className="card pop" dir="rtl" style={{ padding: "18px 20px", textAlign: "center", border: `1.5px solid ${ORANGE}44` }}>
-              <p className="font-quote" style={{ fontSize: 18, fontWeight: 600, lineHeight: 1.7, margin: 0, color: "var(--ink)" }}>
-                {previousSentence || (lang === "ar" ? "…" : "…")}
+            <>
+              <p className="font-display" style={{ textAlign: "center", fontSize: 18, fontWeight: 800, margin: 0 }}>
+                {t.continueStoryHeading} ✍️
               </p>
-            </div>
+              {!previousLoaded ? (
+                <div style={{ textAlign: "center", color: "var(--ink-soft)" }}>
+                  <span className="pulse-dot" /><span className="pulse-dot" /><span className="pulse-dot" />
+                </div>
+              ) : (
+                // The card itself is shown with no label at all, by
+                // design — just the sentence as received. The heading
+                // above is a general instruction, not a caption on this
+                // specific card.
+                <div className="card pop" dir="rtl" style={{ padding: "18px 20px", textAlign: "center", border: `1.5px solid ${ORANGE}44` }}>
+                  <p className="font-quote" style={{ fontSize: 18, fontWeight: 600, lineHeight: 1.7, margin: 0, color: "var(--ink)" }}>
+                    {previousSentence || (lang === "ar" ? "…" : "…")}
+                  </p>
+                </div>
+              )}
+            </>
           )}
 
           <div className="card" style={{ padding: 16 }}>

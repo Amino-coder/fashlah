@@ -12,7 +12,7 @@ import HomeButton from "@/components/HomeButton";
 import type { QissaSessionRow, QissaPlayerRow } from "@/lib/qissa-types";
 
 const ORANGE = "#FF8A3D";
-const DEEP = "#6B2A1E";
+const DEEP = "#E0409A";
 
 export default function FinalReveal({
   session, players, isHost, lang,
@@ -105,7 +105,7 @@ export default function FinalReveal({
       className="screen-enter"
       style={{
         position: "fixed", inset: 0, zIndex: 40, overflowY: "auto",
-        background: `linear-gradient(160deg, ${DEEP} 0%, #3A160D 55%, #200B06 100%)`,
+        background: `linear-gradient(160deg, ${DEEP} 0%, #7C2D6B 55%, #2B0F26 100%)`,
         display: "flex", flexDirection: "column", alignItems: "center",
         padding: "64px 20px 40px", cursor: stage === 2 ? "pointer" : "default",
         color: "#FFF6EE",
@@ -170,7 +170,7 @@ export default function FinalReveal({
                       {t.writtenByLabel}
                     </p>
                     <p className="font-body" style={{ fontSize: 14, fontWeight: 600, margin: 0, opacity: 0.9 }}>
-                      {currentStory.authorNames.filter(Boolean).join("  •  ")}
+                      {Array.from(new Set(currentStory.authorNames.filter(Boolean))).join("  •  ")}
                     </p>
                   </div>
                 )}
