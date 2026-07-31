@@ -93,7 +93,7 @@ export default function Home() {
               display: "inline-block", background: "var(--purple)", color: "#fff",
               fontSize: 12, fontWeight: 800, padding: "6px 16px", borderRadius: 999,
               transform: "rotate(-4deg)",
-              boxShadow: "3px 3px 0 var(--ink)",
+              boxShadow: "3px 3px 0 var(--outline)",
             }}
           >
             {ar ? "\u{1F389} يلا نلعب!" : "\u{1F389} Let's play!"}
@@ -125,7 +125,7 @@ export default function Home() {
                   className="tile-tap"
                   style={{
                     width: "100%", aspectRatio: "1 / 1", borderRadius: 30, overflow: "hidden",
-                    border: "3px solid var(--ink)", boxShadow: "5px 5px 0 var(--ink)",
+                    border: "3px solid var(--outline)", boxShadow: "5px 5px 0 var(--outline)",
                   }}
                 >
                   <Art size={400} />
@@ -139,7 +139,7 @@ export default function Home() {
                       background: badgeColor, color: "#fff",
                       fontSize: 8.5, fontWeight: 800, lineHeight: 1.3,
                       padding: "5px 8px", borderRadius: 10,
-                      border: "2px solid var(--ink)", boxShadow: "2px 2px 0 var(--ink)",
+                      border: "2px solid var(--outline)", boxShadow: "2px 2px 0 var(--outline)",
                       transform: "rotate(-8deg)",
                     }}
                   >
@@ -163,7 +163,7 @@ export default function Home() {
             aria-label="Instagram: @bagdoonis.app"
             style={{
               width: 40, height: 40, borderRadius: 999, background: "var(--card)",
-              border: "2.5px solid var(--ink)", boxShadow: "3px 3px 0 var(--ink)",
+              border: "2.5px solid var(--outline)", boxShadow: "3px 3px 0 var(--outline)",
               display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink)",
             }}
           >
@@ -176,7 +176,7 @@ export default function Home() {
             aria-label="TikTok: @bagdoonis.app"
             style={{
               width: 40, height: 40, borderRadius: 999, background: "var(--card)",
-              border: "2.5px solid var(--ink)", boxShadow: "3px 3px 0 var(--ink)",
+              border: "2.5px solid var(--outline)", boxShadow: "3px 3px 0 var(--outline)",
               display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink)",
             }}
           >
@@ -191,7 +191,7 @@ export default function Home() {
             title="bagdoonis.app@gmail.com"
             style={{
               width: 40, height: 40, borderRadius: 999, background: "var(--card)",
-              border: "2.5px solid var(--ink)", boxShadow: "3px 3px 0 var(--ink)",
+              border: "2.5px solid var(--outline)", boxShadow: "3px 3px 0 var(--outline)",
               display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink)",
             }}
           >
