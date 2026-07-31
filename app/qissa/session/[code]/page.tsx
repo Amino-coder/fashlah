@@ -94,23 +94,17 @@ export default function QissaWaitingRoom() {
     setStarting(true);
     setStartError(null);
     try {
-      // turn_order is assigned once, here, by join order — this is what
-      // the whole circular passing mechanic (lib/qissa-story.ts) is built
-      // on, so it has to be settled before the first round opens.
-      const ordered = [...players].sort(
-        (a, b) => new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime()
-      );
-      await Promise.all(
-        ordered.map((p, i) => supabase.from("qissa_players").update({ turn_order: i }).eq("id", p.id))
-      );
+      // Assigning turn_order to every player (not just the host's own
+      // row) needs the service role — see app/api/qissa-start-game for
+      // why this can't be done as a set of direct client-side updates.
+      const res = await fetch("/api/qissa-start-game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: session.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Something went wrong starting the game.");
 
-      const { error: updateErr } = await supabase
-        .from("qissa_sessions")
-        .update({ status: "in_progress", current_round: 0, round_phase: "countdown", phase_started_at: new Date().toISOString(), started_at: new Date().toISOString() })
-        .eq("id", session.id)
-        .select()
-        .single();
-      if (updateErr) throw updateErr;
       setSession({ ...session, status: "in_progress", current_round: 0, round_phase: "countdown" });
     } catch (e: any) {
       setStartError(e.message || "Something went wrong starting the game.");
