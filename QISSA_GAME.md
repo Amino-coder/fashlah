@@ -22,13 +22,16 @@ entirely absent, because this game doesn't need it:
   sentence, no prompt, no context — `n` players means `n` stories start
   simultaneously.
 - **Stories rotate after every round**, in a fixed circular order
-  (`turn_order`, assigned once at game start by join order). The circle
-  goes around **twice** — total rounds is `2 * playerCount`
-  (`lib/qissa-story.ts:totalRoundsFor`), not a fixed number — so every
-  finished story has `2 * playerCount` sentences, two from every player.
-  The passing math needed zero changes to support this: it's plain
-  modular arithmetic over the round number, so a second lap (rounds
-  `n+1..2n`) falls out of the same formula for free.
+  (`turn_order`, assigned once at game start by join order). Total rounds
+  is a fixed **6** regardless of player count
+  (`lib/qissa-story.ts:totalRoundsFor`) — every finished story always has
+  exactly 6 sentences, whether it's a 2-player or 15-player game. With
+  fewer than 6 players the circle simply laps more than once; with more
+  than 6, not every player touches every individual story, but everyone
+  still contributes to several. The passing math needed zero changes to
+  support any of this — it's plain modular arithmetic over the round
+  number, so it doesn't care whether the round count is more, fewer, or
+  exactly equal to the player count.
 - **The one-sentence rule is enforced by what the client fetches, not by
   hiding UI.** A writer's client only ever queries for *one* row — the
   immediately previous round's sentence for whichever story their

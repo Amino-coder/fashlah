@@ -20,14 +20,15 @@ export function storyIndexForTurnOrder(turnOrder: number, round: number, n: numb
 }
 
 /**
- * The story circulates around the table TWICE — every player contributes
- * to every story exactly twice, once per lap — so the round count scales
- * with the player count rather than being a fixed number. The passing
- * math above needs no changes for this: it's plain modular arithmetic,
- * so it already works correctly for any round number, not just 1..n.
+ * Always exactly 6 rounds, regardless of player count — every story ends
+ * up with exactly 6 lines whether it's a 2-player game or a 15-player
+ * one. The passing math needs no changes for this either: it's still
+ * plain modular arithmetic over the round number, so it doesn't matter
+ * whether 6 rounds means one lap (n=6), several laps (n<6), or a partial
+ * lap that never reaches everyone (n>6).
  */
 export function totalRoundsFor(playerCount: number): number {
-  return playerCount * 2;
+  return 6;
 }
 
 export type QissaStory = {

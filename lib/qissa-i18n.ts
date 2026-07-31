@@ -35,6 +35,7 @@ export const QISSA_STR: Record<QissaLang, Record<string, string>> = {
     // Writing
     startNewStory: "ابدأ قصة جديدة",
     continueStoryHeading: "كمّل القصة بجملة وحدة",
+    finalRoundWarning: "🚨 هذي آخر جولة! خلّها نهاية مضحكة 😂",
     submitSentence: "إرسال",
     sentenceSubmitted: "تم الإرسال! بانتظار الباقين...",
     wroteCount: "كتبوا",
@@ -82,6 +83,7 @@ export const QISSA_STR: Record<QissaLang, Record<string, string>> = {
     // Writing
     startNewStory: "Start a new story",
     continueStoryHeading: "Add one sentence to keep the story going",
+    finalRoundWarning: "🚨 Last round! End it on a funny note 😂",
     submitSentence: "Submit",
     sentenceSubmitted: "Submitted! Waiting for the others...",
     wroteCount: "wrote",
@@ -106,29 +108,49 @@ export const QISSA_AVATARS = ["📖", "🎭", "🗯️", "😄", "🤔", "📚",
 // Placeholder only — never submitted. A random one shows each time a
 // player reaches a writing turn, and disappears the moment they start
 // typing (standard placeholder behavior).
-export const QISSA_PLACEHOLDERS_AR = [
-  "كمّل القصة…",
+//
+// Split into two pools because continuation-style prompts ("what happened
+// next?") don't make sense on round 1, where there's no story yet to
+// continue — showing one there confused players into thinking they had
+// to continue something that didn't exist. Round 1 gets its own
+// starting-fresh pool instead.
+export const QISSA_PLACEHOLDERS_START_AR = [
+  "ابدأ قصتك من أي مكان…",
+  "اكتب أول جملة تجيك في بالك.",
+  "زيد شخصية وابدأ فيها.",
+  "خلّها تبدأ بطريقتك.",
+  "اكتب جملة وحدة بس.",
+];
+
+export const QISSA_PLACEHOLDERS_CONTINUE_AR = [
   "وش صار بعدين؟",
   "حط مفاجأة.",
   "غيّر مسار القصة.",
-  "زيد شخصية جديدة.",
   "وش صار فجأة؟",
   "وش كانت ردة فعلهم؟",
   "اكتب جملة وحدة بس.",
 ];
 
-export const QISSA_PLACEHOLDERS_EN = [
-  "Continue the story…",
-  "What happened next?",
-  "Add a surprise.",
-  "Change the direction of events.",
-  "Introduce a new character.",
-  "What suddenly happened?",
-  "Describe the reaction.",
+export const QISSA_PLACEHOLDERS_START_EN = [
+  "Start anywhere you like…",
+  "Write the first sentence that comes to mind.",
+  "Introduce a character and go from there.",
+  "Kick it off however you want.",
   "Write just one sentence.",
 ];
 
-export function randomPlaceholder(lang: QissaLang): string {
-  const list = lang === "ar" ? QISSA_PLACEHOLDERS_AR : QISSA_PLACEHOLDERS_EN;
+export const QISSA_PLACEHOLDERS_CONTINUE_EN = [
+  "What happened next?",
+  "Add a surprise.",
+  "Change the direction of the story.",
+  "What suddenly happened?",
+  "What was their reaction?",
+  "Write just one sentence.",
+];
+
+export function randomPlaceholder(lang: QissaLang, isFirstRound: boolean): string {
+  const list = isFirstRound
+    ? (lang === "ar" ? QISSA_PLACEHOLDERS_START_AR : QISSA_PLACEHOLDERS_START_EN)
+    : (lang === "ar" ? QISSA_PLACEHOLDERS_CONTINUE_AR : QISSA_PLACEHOLDERS_CONTINUE_EN);
   return list[Math.floor(Math.random() * list.length)];
 }

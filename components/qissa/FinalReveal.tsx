@@ -151,29 +151,28 @@ export default function FinalReveal({
                   </p>
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 18, width: "100%" }}>
                   {currentStory?.sentences.slice(0, revealedCount).map((sentence, i) => (
-                    <p
-                      key={i}
-                      className="font-quote pop"
-                      dir="rtl"
-                      style={{ fontSize: 19, fontWeight: 600, lineHeight: 1.75, margin: 0, textAlign: "center" }}
-                    >
-                      {sentence || (lang === "ar" ? "( … )" : "( … )")}
-                    </p>
+                    <div key={i} className="pop">
+                      <p
+                        className="font-quote"
+                        dir="rtl"
+                        style={{ fontSize: 19, fontWeight: 600, lineHeight: 1.75, margin: 0, textAlign: "center" }}
+                      >
+                        {sentence || (lang === "ar" ? "( … )" : "( … )")}
+                      </p>
+                      {authorsShown && currentStory.authorNames[i] && (
+                        <p
+                          className="font-body pop"
+                          style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, margin: "4px 0 0", textAlign: "center" }}
+                        >
+                          {t.writtenByLabel}: {currentStory.authorNames[i]}
+                        </p>
+                      )}
+                    </div>
                   ))}
                 </div>
 
-                {authorsShown && currentStory && (
-                  <div className="pop" style={{ textAlign: "center", marginTop: 6 }}>
-                    <p className="font-body" style={{ fontSize: 12, fontWeight: 700, color: ORANGE, margin: "0 0 6px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                      {t.writtenByLabel}
-                    </p>
-                    <p className="font-body" style={{ fontSize: 14, fontWeight: 600, margin: 0, opacity: 0.9 }}>
-                      {Array.from(new Set(currentStory.authorNames.filter(Boolean))).join("  •  ")}
-                    </p>
-                  </div>
-                )}
 
                 {authorsShown && (
                   <button

@@ -42,9 +42,10 @@ export default function RoundScreen({
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const n = players.length;
-  // Two full laps around the circle: every player writes on every story
-  // twice. Stable for the whole game since turn_order (and therefore
-  // player count) is fixed at game start.
+  // Always 6, regardless of player count — see totalRoundsFor's own doc
+  // comment for why. Computed here rather than imported as a constant
+  // just to keep the "this is where round count comes from" story in one
+  // place if it ever needs to depend on n again.
   const totalRounds = totalRoundsFor(n);
   const myPlayer = players.find((p) => p.id === myPlayerId);
   const myTurnOrder = myPlayer?.turn_order ?? null;
@@ -58,7 +59,10 @@ export default function RoundScreen({
   // A fresh random placeholder each time a new writing turn begins —
   // stable within the turn (so it doesn't jump around while typing),
   // different next time.
-  const placeholder = useMemo(() => randomPlaceholder(lang), [session.current_round, lang]);
+  const placeholder = useMemo(
+    () => randomPlaceholder(lang, session.current_round === 1),
+    [session.current_round, lang]
+  );
 
   // Reset per-round local state whenever the round changes.
   useEffect(() => {
@@ -331,8 +335,14 @@ export default function RoundScreen({
             </p>
           ) : (
             <>
-              <p className="font-display" style={{ textAlign: "center", fontSize: 18, fontWeight: 800, margin: 0 }}>
-                {t.continueStoryHeading} ✍️
+              <p
+                className="font-display"
+                style={{
+                  textAlign: "center", fontSize: 18, fontWeight: 800, margin: 0,
+                  color: session.current_round === totalRounds ? "#E63946" : "inherit",
+                }}
+              >
+                {session.current_round === totalRounds ? t.finalRoundWarning : `${t.continueStoryHeading} ✍️`}
               </p>
               {!previousLoaded ? (
                 <div style={{ textAlign: "center", color: "var(--ink-soft)" }}>
