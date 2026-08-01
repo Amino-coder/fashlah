@@ -88,11 +88,22 @@ export default function QissaLanding() {
         </Link>
 
         <Link
+          href="/qissa/demo"
+          className="font-body"
+          style={{
+            display: "block", textAlign: "center", padding: 10, fontSize: 13, fontWeight: 700,
+            color: "var(--ink-soft)", textDecoration: "none", marginTop: 10, opacity: 0.75,
+          }}
+        >
+          بس تتفرج؟ ▶ جرّب وضع التجربة
+        </Link>
+
+        <Link
           href="/qissa/join"
           className="font-body"
           style={{
             display: "block", textAlign: "center", padding: 14, fontSize: 14, fontWeight: 700,
-            color: "var(--ink-soft)", textDecoration: "underline", marginTop: 12,
+            color: "var(--ink-soft)", textDecoration: "underline", marginTop: 2,
           }}
         >
           {t.joinSession}

@@ -26,10 +26,10 @@ app/qaseeda/demo/page.tsx
 app/qissa/demo/page.tsx
 ```
 
-The **only** existing files touched are the four join pages, and only to
-append a small secondary link below the real join button — no existing
-logic in those files was changed. Nothing in `components/demo/` imports
-from `components/shofah/`, `components/job/`, `components/qaseeda/`
+The **only** existing files touched are the four landing pages, and only to
+insert a small secondary link directly beneath the "Start Game" button —
+no existing logic in those files was changed. Nothing in `components/demo/`
+imports from `components/shofah/`, `components/job/`, `components/qaseeda/`
 (except the pure, stateless `ShatrLine` presentational component), or
 `components/qissa/` (except the pure passing-math functions in
 `lib/qissa-story.ts`, which contain zero Supabase calls — importing them
@@ -55,3 +55,26 @@ sampled so the two bots never repeat each other within a round, rather
 than generated at runtime — this app has no LLM API wired in anywhere, and
 adding one just for a local demo would be a much larger and riskier change
 than the feature calls for.
+
+## Bugs found and fixed after the first pass
+
+**Timer race skipping straight to voting.** The engine originally reset
+`remaining` via a separate effect keyed on `phase`. On the exact render
+where phase flipped from countdown to writing, the phase-transition
+effects ran in the same commit and read the *old* `remaining` (still 0,
+left over from the countdown's last tick) before the reset effect had
+applied — so "everyone's answered or time's up" read true instantly, with
+zero answers submitted. Fixed by deriving `remaining` from a
+phase-start timestamp instead (`goToPhase()` stamps `Date.now()` in the
+same call that changes phase), the same approach the real multiplayer
+games already use with `phase_started_at`. There's nothing left to
+"reset", so there's nothing to race.
+
+**Draft text leaking into the next round.** The textarea state in all
+three demo round-screen components was local `useState("")` with no reset
+effect, so whatever was typed (or left unsubmitted) in one round was still
+sitting in the box when the next round's writing phase began. Fixed by
+resetting on `round` change in all three components. قصة's round screen
+had the same gap for its placeholder text too — it was picked once via a
+bare `useState` initializer for the entire demo instead of fresh each
+round.

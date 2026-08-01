@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { useDemoRoundGame } from "@/lib/demo/useDemoRoundGame";
 
 type Engine = ReturnType<typeof useDemoRoundGame<string>>;
@@ -22,6 +22,7 @@ export default function DemoRoundScreen({
 }) {
   const { players, round, totalRounds, phase, remaining, shuffledAnswers, myAnswer, myVote, submitHumanAnswer, submitHumanVote } = engine;
   const [draft, setDraft] = useState("");
+  useEffect(() => { setDraft(""); }, [round]);
   const answeredCount = engine.answers.length;
   const votedCount = engine.votes.length;
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ShatrLine from "@/components/qaseeda/ShatrLine";
 import type { useDemoRoundGame } from "@/lib/demo/useDemoRoundGame";
 
@@ -15,6 +15,7 @@ export default function DemoQaseedaRoundScreen({ engine, poemLines }: { engine: 
   const { players, round, totalRounds, phase, remaining, shuffledAnswers, myAnswer, myVote, submitHumanAnswer, submitHumanVote } = engine;
   const [draft1, setDraft1] = useState("");
   const [draft2, setDraft2] = useState("");
+  useEffect(() => { setDraft1(""); setDraft2(""); }, [round]);
   const answeredCount = engine.answers.length;
   const votedCount = engine.votes.length;
 

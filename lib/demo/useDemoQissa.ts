@@ -14,6 +14,13 @@ type DemoQissaPlayer = { id: string; nickname: string; avatar_emoji: string; isB
 type DemoQissaAnswer = { round: number; storyIndex: number; playerId: string; sentence: string };
 export type DemoQissaPhase = "countdown" | "writing" | "passing" | "done";
 
+function durationFor(phase: DemoQissaPhase): number {
+  return phase === "countdown" ? COUNTDOWN_SECONDS : phase === "writing" ? WRITE_SECONDS : PASSING_SECONDS;
+}
+
+// See useDemoRoundGame.ts's doc comment for why `remaining` is derived
+// from a phase-start timestamp rather than tracked as its own resettable
+// counter — same race, same fix, applied here too.
 export function useDemoQissa(humanNickname: string, humanAvatar: string) {
   const [players] = useState<DemoQissaPlayer[]>(() => {
     const [botA, botB] = pickTwoDistinct(DEMO_BOT_NAMES);
@@ -26,9 +33,12 @@ export function useDemoQissa(humanNickname: string, humanAvatar: string) {
 
   const [round, setRound] = useState(1);
   const [phase, setPhase] = useState<DemoQissaPhase>("countdown");
-  const [remaining, setRemaining] = useState(COUNTDOWN_SECONDS);
+  const [phaseStartedAt, setPhaseStartedAt] = useState(() => Date.now());
+  const [now, setNow] = useState(() => Date.now());
   const [answers, setAnswers] = useState<DemoQissaAnswer[]>([]);
   const usedResponsesRef = useRef<Set<number>>(new Set());
+
+  const remaining = phase === "done" ? 0 : Math.max(0, durationFor(phase) - Math.floor((now - phaseStartedAt) / 1000));
 
   const humanStoryIndex = storyIndexForTurnOrder(0, round, N);
   const myAnswer = answers.find((a) => a.round === round && a.playerId === "human");
@@ -46,20 +56,23 @@ export function useDemoQissa(humanNickname: string, humanAvatar: string) {
     return QISSA_DEMO_RESPONSES[idx];
   }
 
-  // Clock.
+  const goToPhase = useCallback((next: DemoQissaPhase) => {
+    setPhase(next);
+    setPhaseStartedAt(Date.now());
+  }, []);
+
+  // Clock — purely for re-render ticks, never resets anything itself.
   useEffect(() => {
     if (phase === "done") return;
-    const duration = phase === "countdown" ? COUNTDOWN_SECONDS : phase === "writing" ? WRITE_SECONDS : PASSING_SECONDS;
-    setRemaining(duration);
-    const id = setInterval(() => setRemaining((r) => Math.max(0, r - 1)), 1000);
+    const id = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(id);
-  }, [phase, round]);
+  }, [phase]);
 
   // countdown -> writing
   useEffect(() => {
     if (phase !== "countdown" || remaining > 0) return;
-    setPhase("writing");
-  }, [phase, remaining]);
+    goToPhase("writing");
+  }, [phase, remaining, goToPhase]);
 
   // Bots write for their own assigned story, on a short random delay.
   useEffect(() => {
@@ -88,16 +101,16 @@ export function useDemoQissa(humanNickname: string, humanAvatar: string) {
       if (remaining <= 0 && !answers.some((a) => a.round === round && a.playerId === "human")) {
         setAnswers((prev) => [...prev, { round, storyIndex: humanStoryIndex, playerId: "human", sentence: "" }]);
       }
-      setPhase("passing");
+      goToPhase("passing");
     }
-  }, [phase, remaining, answers, round, humanStoryIndex]);
+  }, [phase, remaining, answers, round, humanStoryIndex, goToPhase]);
 
   // passing -> next round, or done.
   useEffect(() => {
     if (phase !== "passing" || remaining > 0) return;
     if (round >= TOTAL_ROUNDS) setPhase("done");
-    else { setRound((r) => r + 1); setPhase("countdown"); }
-  }, [phase, remaining, round]);
+    else { setRound((r) => r + 1); goToPhase("countdown"); }
+  }, [phase, remaining, round, goToPhase]);
 
   const submitHumanSentence = useCallback((sentence: string) => {
     setAnswers((prev) =>

@@ -209,19 +209,6 @@ function JobJoin() {
         >
           {loading ? t.loading : t.joinBtn}
         </button>
-
-        <div style={{ textAlign: "center", marginTop: 20 }}>
-          <p className="font-body" style={{ fontSize: 12.5, color: "var(--ink-soft)", fontWeight: 600, margin: "0 0 4px" }}>
-            بس تتفرج؟
-          </p>
-          <Link
-            href="/job/demo"
-            className="font-body"
-            style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-soft)", textDecoration: "underline" }}
-          >
-            ▶ جرّب وضع التجربة
-          </Link>
-        </div>
       </div>
     </div>
   );

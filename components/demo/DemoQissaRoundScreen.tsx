@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { useDemoQissa } from "@/lib/demo/useDemoQissa";
 
 type Engine = ReturnType<typeof useDemoQissa>;
@@ -14,10 +14,14 @@ const PLACEHOLDERS_CONTINUE = ["وش صار بعدين؟", "حط مفاجأة.",
 export default function DemoQissaRoundScreen({ engine }: { engine: Engine }) {
   const { round, totalRounds, phase, remaining, previousSentence, myAnswer, wroteCount, playerCount, submitHumanSentence } = engine;
   const [draft, setDraft] = useState("");
+  useEffect(() => { setDraft(""); }, [round]);
   const isFirstRound = round === 1;
-  const [placeholder] = useState(() =>
-    isFirstRound ? PLACEHOLDERS_START[Math.floor(Math.random() * PLACEHOLDERS_START.length)]
-      : PLACEHOLDERS_CONTINUE[Math.floor(Math.random() * PLACEHOLDERS_CONTINUE.length)]
+  // Re-picked each round (previously a bare useState initializer, which
+  // only ever ran once for the whole demo) — same reasoning as the real
+  // game's randomPlaceholder, called fresh per writing turn.
+  const placeholder = useMemo(
+    () => (isFirstRound ? PLACEHOLDERS_START : PLACEHOLDERS_CONTINUE)[Math.floor(Math.random() * (isFirstRound ? PLACEHOLDERS_START : PLACEHOLDERS_CONTINUE).length)],
+    [round, isFirstRound]
   );
   const isLastRound = round === totalRounds;
 

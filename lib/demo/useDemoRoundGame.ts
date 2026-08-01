@@ -18,14 +18,30 @@ const ANSWER_SECONDS = 30;
 const VOTE_SECONDS = 15;
 const REVEAL_SECONDS = 3;
 
+function durationFor(phase: DemoPhase): number {
+  return phase === "countdown" ? COUNTDOWN_SECONDS
+    : phase === "writing" ? ANSWER_SECONDS
+    : phase === "voting" ? VOTE_SECONDS
+    : REVEAL_SECONDS;
+}
+
 /**
  * Drives the "everyone writes something → vote on the best one → reveal →
  * next round" loop entirely client-side. The two bots answer and vote on
  * their own timers (short random delays, so it doesn't feel instant/fake),
- * the human drives their own turn through the returned actions, and a
- * plain setInterval-based clock stands in for the real games' shared
- * phase_started_at-driven timer — there's no second client to stay in
- * sync with, so it doesn't need to be anything fancier than local state.
+ * the human drives their own turn through the returned actions.
+ *
+ * `remaining` is DERIVED from a phase-start timestamp + a ticking clock,
+ * deliberately not tracked as its own resettable counter — an earlier
+ * version reset it via a separate effect keyed on `phase`, which raced
+ * against the phase-transition effects that also read `remaining`: on the
+ * same render where phase flips from countdown to writing, the reset
+ * hadn't been applied yet, so "remaining <= 0" was still true from the
+ * countdown's final tick and writing got skipped immediately with zero
+ * answers submitted. Deriving it from a timestamp instead (the same
+ * approach the real multiplayer games use with phase_started_at) makes
+ * that class of race impossible — there's nothing to "reset", so nothing
+ * to read before the reset lands.
  */
 export function useDemoRoundGame<T>(opts: {
   totalRounds: number;
@@ -51,7 +67,8 @@ export function useDemoRoundGame<T>(opts: {
 
   const [round, setRound] = useState(1);
   const [phase, setPhase] = useState<DemoPhase>("countdown");
-  const [remaining, setRemaining] = useState(COUNTDOWN_SECONDS);
+  const [phaseStartedAt, setPhaseStartedAt] = useState(() => Date.now());
+  const [now, setNow] = useState(() => Date.now());
   const [answers, setAnswers] = useState<DemoAnswer<T>[]>([]);
   const [votes, setVotes] = useState<DemoVote[]>([]);
   const [shuffledOrder, setShuffledOrder] = useState<string[]>([]);
@@ -61,6 +78,8 @@ export function useDemoRoundGame<T>(opts: {
 
   const myAnswer = answers.find((a) => a.playerId === "human");
   const myVote = votes.find((v) => v.voterId === "human");
+
+  const remaining = phase === "done" ? 0 : Math.max(0, durationFor(phase) - Math.floor((now - phaseStartedAt) / 1000));
 
   function pickUnusedResponse(): T {
     const available = responseBank
@@ -73,6 +92,13 @@ export function useDemoRoundGame<T>(opts: {
     return responseBank[idx];
   }
 
+  /** The one place phase ever changes — always stamps the new start time
+   *  in the same call, so remaining is correct from the very next tick. */
+  const goToPhase = useCallback((next: DemoPhase) => {
+    setPhase(next);
+    setPhaseStartedAt(Date.now());
+  }, []);
+
   // Reset per-round state.
   useEffect(() => {
     setAnswers([]);
@@ -81,25 +107,19 @@ export function useDemoRoundGame<T>(opts: {
     setLastResult(null);
   }, [round]);
 
-  // The clock. A plain ticking interval — nothing to keep in sync with
-  // another client, so no wall-clock-deadline machinery needed here.
+  // The clock — purely for triggering re-renders every second so
+  // `remaining` (derived above) gets recomputed. Never resets anything.
   useEffect(() => {
     if (phase === "done") return;
-    const duration =
-      phase === "countdown" ? COUNTDOWN_SECONDS
-      : phase === "writing" ? ANSWER_SECONDS
-      : phase === "voting" ? VOTE_SECONDS
-      : REVEAL_SECONDS;
-    setRemaining(duration);
-    const id = setInterval(() => setRemaining((r) => Math.max(0, r - 1)), 1000);
+    const id = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(id);
-  }, [phase, round]);
+  }, [phase]);
 
   // countdown -> writing
   useEffect(() => {
     if (phase !== "countdown" || remaining > 0) return;
-    setPhase("writing");
-  }, [phase, remaining]);
+    goToPhase("writing");
+  }, [phase, remaining, goToPhase]);
 
   // Bots answer on their own short random delay after writing begins.
   useEffect(() => {
@@ -118,9 +138,9 @@ export function useDemoRoundGame<T>(opts: {
     if (phase !== "writing") return;
     if (remaining <= 0 || answers.length >= players.length) {
       setShuffledOrder([...players.map((p) => p.id)].sort(() => Math.random() - 0.5));
-      setPhase("voting");
+      goToPhase("voting");
     }
-  }, [phase, remaining, answers.length, players.length, players]);
+  }, [phase, remaining, answers.length, players.length, players, goToPhase]);
 
   // Bots vote on their own short random delay — randomly, never for
   // themselves, matching "no complicated AI voting logic" from the spec.
@@ -167,16 +187,16 @@ export function useDemoRoundGame<T>(opts: {
       setLastResult(result);
       onRoundWon?.(round, result);
     }
-    setPhase("reveal");
+    goToPhase("reveal");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, remaining, votes.length, players.length]);
+  }, [phase, remaining, votes.length, players.length, goToPhase]);
 
   // reveal -> next round, or done.
   useEffect(() => {
     if (phase !== "reveal" || remaining > 0) return;
     if (round >= totalRounds) setPhase("done");
-    else { setRound((r) => r + 1); setPhase("countdown"); }
-  }, [phase, remaining, round, totalRounds]);
+    else { setRound((r) => r + 1); goToPhase("countdown"); }
+  }, [phase, remaining, round, totalRounds, goToPhase]);
 
   const submitHumanAnswer = useCallback((value: T) => {
     setAnswers((prev) => (prev.some((a) => a.playerId === "human") ? prev : [...prev, { playerId: "human", value }]));
