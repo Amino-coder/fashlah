@@ -17,6 +17,7 @@ const COUNTDOWN_SECONDS = 3;
 const ANSWER_SECONDS = 30;
 const VOTE_SECONDS = 15;
 const REVEAL_SECONDS = 3;
+const POINTS_BY_RANK = [5, 3, 2, 1]; // same as the real games' scoring
 
 function durationFor(phase: DemoPhase): number {
   return phase === "countdown" ? COUNTDOWN_SECONDS
@@ -27,30 +28,31 @@ function durationFor(phase: DemoPhase): number {
 
 /**
  * Drives the "everyone writes something → vote on the best one → reveal →
- * next round" loop entirely client-side. The two bots answer and vote on
- * their own timers (short random delays, so it doesn't feel instant/fake),
- * the human drives their own turn through the returned actions.
+ * next round" loop entirely client-side.
  *
- * `remaining` is DERIVED from a phase-start timestamp + a ticking clock,
- * deliberately not tracked as its own resettable counter — an earlier
- * version reset it via a separate effect keyed on `phase`, which raced
- * against the phase-transition effects that also read `remaining`: on the
- * same render where phase flips from countdown to writing, the reset
- * hadn't been applied yet, so "remaining <= 0" was still true from the
- * countdown's final tick and writing got skipped immediately with zero
- * answers submitted. Deriving it from a timestamp instead (the same
- * approach the real multiplayer games use with phase_started_at) makes
- * that class of race impossible — there's nothing to "reset", so nothing
- * to read before the reset lands.
+ * `remaining` is derived from a phase-start timestamp + a ticking clock
+ * rather than tracked as its own resettable counter — see the git history
+ * / DEMO_MODE.md for why (a stale-read race that skipped the writing
+ * phase entirely).
+ *
+ * Bot answers come from `getBotAnswers(round)`, supplied by the caller —
+ * who knows which specific prompt is showing that round — rather than a
+ * flat randomly-sampled bank, so bot answers actually respond to the
+ * question asked instead of being generically funny but unrelated.
+ *
+ * Tracks total score (5/3/2/1 by rank, same as the real games) across all
+ * rounds, exposed as `scores` and `overallWinnerId` once the game ends,
+ * so callers can show a results/reveal screen instead of jumping straight
+ * to the "come play for real" screen.
  */
 export function useDemoRoundGame<T>(opts: {
   totalRounds: number;
-  responseBank: T[];
+  getBotAnswers: (round: number) => [T, T];
   humanNickname: string;
   humanAvatar: string;
   onRoundWon?: (round: number, result: DemoRoundResult<T>) => void;
 }) {
-  const { totalRounds, responseBank, humanNickname, humanAvatar, onRoundWon } = opts;
+  const { totalRounds, getBotAnswers, humanNickname, humanAvatar, onRoundWon } = opts;
 
   const players = useMemo<DemoPlayer[]>(() => {
     const [botA, botB] = pickTwoDistinct(DEMO_BOT_NAMES);
@@ -73,27 +75,13 @@ export function useDemoRoundGame<T>(opts: {
   const [votes, setVotes] = useState<DemoVote[]>([]);
   const [shuffledOrder, setShuffledOrder] = useState<string[]>([]);
   const [lastResult, setLastResult] = useState<DemoRoundResult<T> | null>(null);
-
-  const usedResponsesRef = useRef<Set<number>>(new Set());
+  const [scores, setScores] = useState<Record<string, number>>({});
 
   const myAnswer = answers.find((a) => a.playerId === "human");
   const myVote = votes.find((v) => v.voterId === "human");
 
   const remaining = phase === "done" ? 0 : Math.max(0, durationFor(phase) - Math.floor((now - phaseStartedAt) / 1000));
 
-  function pickUnusedResponse(): T {
-    const available = responseBank
-      .map((_, i) => i)
-      .filter((i) => !usedResponsesRef.current.has(i));
-    const pool = available.length > 0 ? available : responseBank.map((_, i) => i);
-    const idx = pickOne(pool);
-    usedResponsesRef.current.add(idx);
-    if (usedResponsesRef.current.size >= responseBank.length) usedResponsesRef.current.clear();
-    return responseBank[idx];
-  }
-
-  /** The one place phase ever changes — always stamps the new start time
-   *  in the same call, so remaining is correct from the very next tick. */
   const goToPhase = useCallback((next: DemoPhase) => {
     setPhase(next);
     setPhaseStartedAt(Date.now());
@@ -107,8 +95,8 @@ export function useDemoRoundGame<T>(opts: {
     setLastResult(null);
   }, [round]);
 
-  // The clock — purely for triggering re-renders every second so
-  // `remaining` (derived above) gets recomputed. Never resets anything.
+  // The clock — purely for triggering re-renders every tick. Never resets
+  // anything itself.
   useEffect(() => {
     if (phase === "done") return;
     const id = setInterval(() => setNow(Date.now()), 250);
@@ -121,12 +109,17 @@ export function useDemoRoundGame<T>(opts: {
     goToPhase("writing");
   }, [phase, remaining, goToPhase]);
 
-  // Bots answer on their own short random delay after writing begins.
+  // Bots answer with the round-specific answer supplied by the caller, on
+  // their own short random delay.
   useEffect(() => {
     if (phase !== "writing") return;
-    const timers = bots.map((bot) =>
+    const [answerA, answerB] = getBotAnswers(round);
+    const timers = [
+      { bot: bots[0], value: answerA },
+      { bot: bots[1], value: answerB },
+    ].map(({ bot, value }) =>
       setTimeout(() => {
-        setAnswers((prev) => (prev.some((a) => a.playerId === bot.id) ? prev : [...prev, { playerId: bot.id, value: pickUnusedResponse() }]));
+        setAnswers((prev) => (prev.some((a) => a.playerId === bot.id) ? prev : [...prev, { playerId: bot.id, value }]));
       }, 2500 + Math.random() * 6000)
     );
     return () => timers.forEach(clearTimeout);
@@ -160,9 +153,8 @@ export function useDemoRoundGame<T>(opts: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, round, answers]);
 
-  // voting -> reveal, once everyone's voted or time's up. Computes the
-  // winner (most votes; ties broken randomly, same spirit as the real
-  // games' submission-order tiebreak).
+  // voting -> reveal, once everyone's voted or time's up. Ranks by vote
+  // count, awards 5/3/2/1 points, accumulates into `scores`.
   useEffect(() => {
     if (phase !== "voting") return;
     if (remaining > 0 && votes.length < players.length) return;
@@ -170,6 +162,17 @@ export function useDemoRoundGame<T>(opts: {
     const tally = new Map<string, number>();
     for (const a of answers) tally.set(a.playerId, 0);
     for (const v of votes) tally.set(v.answerPlayerId, (tally.get(v.answerPlayerId) ?? 0) + 1);
+
+    const ranked = [...tally.entries()].sort((a, b) => b[1] - a[1]);
+    setScores((prev) => {
+      const next = { ...prev };
+      ranked.forEach(([playerId], i) => {
+        const points = POINTS_BY_RANK[Math.min(i, POINTS_BY_RANK.length - 1)];
+        next[playerId] = (next[playerId] ?? 0) + points;
+      });
+      return next;
+    });
+
     let top = -1;
     let winners: string[] = [];
     for (const [playerId, count] of tally) {
@@ -211,9 +214,21 @@ export function useDemoRoundGame<T>(opts: {
     .map((id) => answers.find((a) => a.playerId === id))
     .filter((a): a is DemoAnswer<T> => !!a);
 
+  const overallWinnerId = useMemo(() => {
+    if (phase !== "done") return null;
+    let top: string | null = null;
+    let topScore = -1;
+    for (const p of players) {
+      const s = scores[p.id] ?? 0;
+      if (s > topScore) { topScore = s; top = p.id; }
+    }
+    return top;
+  }, [phase, scores, players]);
+
   return {
     players, round, totalRounds, phase, remaining,
     answers, votes, shuffledAnswers, myAnswer, myVote, lastResult,
+    scores, overallWinnerId,
     submitHumanAnswer, submitHumanVote,
   };
 }

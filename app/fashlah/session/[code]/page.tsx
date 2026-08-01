@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { STR } from "@/lib/i18n";
@@ -207,9 +208,23 @@ export default function WaitingRoom() {
             </div>
 
             {isHost ? (
-              <button disabled={players.length < 2} onClick={startGame} className="btn-primary font-display" style={{ padding: 18, fontSize: 17, width: "100%" }}>
-                {t.startGame}
-              </button>
+              <>
+                <button disabled={players.length < 2} onClick={startGame} className="btn-primary font-display" style={{ padding: 18, fontSize: 17, width: "100%" }}>
+                  {t.startGame}
+                </button>
+                <div style={{ textAlign: "center", marginTop: 16 }}>
+                  <p className="font-body" style={{ fontSize: 12.5, color: "var(--ink-soft)", fontWeight: 600, margin: "0 0 4px" }}>
+                    محد ينضم؟
+                  </p>
+                  <Link
+                    href="/fashlah/demo"
+                    className="font-body"
+                    style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-soft)", textDecoration: "underline" }}
+                  >
+                    ▶ جرّب وضع التجربة
+                  </Link>
+                </div>
+              </>
             ) : (
               <div className="btn-ghost font-display" style={{ padding: 18, fontSize: 15, textAlign: "center", opacity: 0.7 }}>
                 {t.waitingHost}
