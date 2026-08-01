@@ -178,7 +178,7 @@ function JobJoin() {
             <p style={{ color: BLUE, fontWeight: 700, marginBottom: sessionDead ? 10 : 0 }}>{error}</p>
             {sessionDead && (
               <Link
-                href="/job/select"
+                href="/job/create"
                 className="font-display"
                 style={{
                   padding: 16, fontSize: 15, textAlign: "center", display: "block", borderRadius: 999,
