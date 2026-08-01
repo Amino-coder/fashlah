@@ -26,15 +26,28 @@ app/qaseeda/demo/page.tsx
 app/qissa/demo/page.tsx
 ```
 
-The **only** existing files touched are the four landing pages, and only to
-insert a small secondary link directly beneath the "Start Game" button —
-no existing logic in those files was changed. Nothing in `components/demo/`
-imports from `components/shofah/`, `components/job/`, `components/qaseeda/`
-(except the pure, stateless `ShatrLine` presentational component), or
-`components/qissa/` (except the pure passing-math functions in
-`lib/qissa-story.ts`, which contain zero Supabase calls — importing them
-doesn't run any of that file's actual data-fetching functions). Someone
-playing a real multiplayer game never touches any of this code.
+The **only** existing files touched are the four session/lobby pages, and
+only to insert a small secondary link directly beneath the host's real
+"Start Game" button — visible exactly when a host looks down and realizes
+they don't have enough players yet — no existing logic in those files was
+changed. Nothing in `components/demo/` imports from `components/shofah/`,
+`components/job/`, `components/qaseeda/` (except the pure, stateless
+`ShatrLine` presentational component), or `components/qissa/` (except the
+pure passing-math functions in `lib/qissa-story.ts`, which contain zero
+Supabase calls — importing them doesn't run any of that file's actual
+data-fetching functions). Someone playing a real multiplayer game never
+touches any of this code.
+
+One deliberate exception to "no Supabase contact": شوفة and مين بيتوظف's
+demo pages fetch 5 real prompts from `shofah_prompts`/`job_prompts` on
+mount (public SELECT, the same table and shape the real game draws from)
+so the demo plays the actual game's questions instead of a hand-picked
+local sample, and stays in sync automatically if those banks are updated
+later. This is read-only — nothing is ever written back — and falls back
+to a small local prompt list if the fetch fails for any reason. All four
+games use the real 5-round count (6 for كمل القصة, matching its fixed
+round count regardless of player number) rather than an abbreviated demo
+length, so it plays out like the actual game, just against bots.
 
 ## Why فشلة isn't included
 

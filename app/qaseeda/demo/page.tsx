@@ -20,7 +20,7 @@ export default function QaseedaDemoPage() {
   ]);
 
   const engine = useDemoRoundGame<Verse>({
-    totalRounds: 3,
+    totalRounds: 5,
     responseBank: QASEEDA_DEMO_RESPONSES,
     humanNickname: "أنت",
     humanAvatar: "😎",

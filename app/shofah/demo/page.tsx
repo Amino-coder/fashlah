@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Heart } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import DemoRoundScreen from "@/components/demo/DemoRoundScreen";
@@ -10,6 +12,7 @@ import { SHOFAH_DEMO_PROMPTS, SHOFAH_DEMO_RESPONSES } from "@/lib/demo/demoConte
 
 const ROSE = "#E63946";
 const WINE = "#C2185B";
+const TOTAL_ROUNDS = 5; // same as the real game
 
 /**
  * A fake session that only ever exists in this browser tab. No session
@@ -18,16 +21,51 @@ const WINE = "#C2185B";
  * the moment this page unmounts. Doesn't import anything from
  * components/shofah/ or app/shofah/session/, so there is zero risk of
  * this feature touching the real multiplayer flow.
+ *
+ * The one read-only exception: on mount, this fetches 5 real prompts from
+ * shofah_prompts (public SELECT, same table the real game draws from) so
+ * the demo genuinely plays out the same questions as an actual game,
+ * instead of a hand-picked local sample. Nothing is written back —
+ * falls back to a small local prompt list if the fetch fails for any
+ * reason (offline, RLS misconfigured, etc.) so the demo still works.
  */
 export default function ShofahDemoPage() {
+  const [prompts, setPrompts] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("shofah_prompts")
+          .select("text_ar")
+          .eq("active", true)
+          .is("audience", null);
+        if (error || !data || data.length < TOTAL_ROUNDS) throw error || new Error("not enough prompts");
+        const shuffled = [...data].sort(() => Math.random() - 0.5).slice(0, TOTAL_ROUNDS).map((p) => p.text_ar);
+        if (!cancelled) setPrompts(shuffled);
+      } catch {
+        if (!cancelled) {
+          const shuffled = [...SHOFAH_DEMO_PROMPTS].sort(() => Math.random() - 0.5);
+          setPrompts(Array.from({ length: TOTAL_ROUNDS }, (_, i) => shuffled[i % shuffled.length]));
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  return prompts ? <ShofahDemoGame prompts={prompts} /> : null;
+}
+
+function ShofahDemoGame({ prompts }: { prompts: string[] }) {
   const engine = useDemoRoundGame<string>({
-    totalRounds: 3,
+    totalRounds: TOTAL_ROUNDS,
     responseBank: SHOFAH_DEMO_RESPONSES,
     humanNickname: "أنت",
     humanAvatar: "😎",
   });
 
-  const prompt = SHOFAH_DEMO_PROMPTS[(engine.round - 1) % SHOFAH_DEMO_PROMPTS.length];
+  const prompt = prompts[(engine.round - 1) % prompts.length];
 
   return (
     <div dir="rtl" style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>

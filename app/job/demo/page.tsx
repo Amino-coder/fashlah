@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Briefcase } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import DemoRoundScreen from "@/components/demo/DemoRoundScreen";
@@ -10,16 +12,51 @@ import { JOB_DEMO_PROMPTS, JOB_DEMO_RESPONSES } from "@/lib/demo/demoContent";
 
 const BLUE = "#3B82F6";
 const NAVY = "#1E40AF";
+const TOTAL_ROUNDS = 5; // same as the real game
 
+/**
+ * Same isolation story as شوفة's demo — see that file's comment. The one
+ * read-only exception here: fetches 5 real prompts from job_prompts
+ * (public SELECT, same table the real game draws from) so the demo plays
+ * the same questions as an actual game. Falls back to a small local list
+ * if the fetch fails for any reason.
+ */
 export default function JobDemoPage() {
+  const [prompts, setPrompts] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("job_prompts")
+          .select("text_ar")
+          .eq("active", true);
+        if (error || !data || data.length < TOTAL_ROUNDS) throw error || new Error("not enough prompts");
+        const shuffled = [...data].sort(() => Math.random() - 0.5).slice(0, TOTAL_ROUNDS).map((p) => p.text_ar);
+        if (!cancelled) setPrompts(shuffled);
+      } catch {
+        if (!cancelled) {
+          const shuffled = [...JOB_DEMO_PROMPTS].sort(() => Math.random() - 0.5);
+          setPrompts(Array.from({ length: TOTAL_ROUNDS }, (_, i) => shuffled[i % shuffled.length]));
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  return prompts ? <JobDemoGame prompts={prompts} /> : null;
+}
+
+function JobDemoGame({ prompts }: { prompts: string[] }) {
   const engine = useDemoRoundGame<string>({
-    totalRounds: 3,
+    totalRounds: TOTAL_ROUNDS,
     responseBank: JOB_DEMO_RESPONSES,
     humanNickname: "أنت",
     humanAvatar: "😎",
   });
 
-  const prompt = JOB_DEMO_PROMPTS[(engine.round - 1) % JOB_DEMO_PROMPTS.length];
+  const prompt = prompts[(engine.round - 1) % prompts.length];
 
   return (
     <div dir="rtl" style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
