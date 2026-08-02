@@ -61,26 +61,28 @@ export default function Home() {
       style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}
     >
       <Blobs />
-      <div style={{ position: "fixed", top: 70, right: 16, zIndex: 5 }}>
-        <InstallBagdoonisButton lang={lang} />
-      </div>
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "22px 20px 48px", position: "relative", zIndex: 1 }}>
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-          <button
-            onClick={() => setLang(ar ? "en" : "ar")}
-            aria-label={ar ? "Switch to English" : "التبديل إلى العربية"}
-            className="font-body"
-            style={{ padding: "7px 15px", borderRadius: 999, fontSize: 12, fontWeight: 800, background: "var(--card)", color: "var(--ink)", border: "1.5px solid rgba(217,164,65,.5)" }}
-          >
-            {ar ? "EN" : "AR"}
-          </button>
-          <button
-            onClick={() => setDark(!dark)}
-            aria-label={dark ? (ar ? "الوضع الفاتح" : "Light mode") : (ar ? "الوضع الداكن" : "Dark mode")}
-            style={{ width: 36, height: 36, borderRadius: 999, background: "var(--card)", color: "var(--ink)", display: "flex", alignItems: "center", justifyContent: "center", border: "1.5px solid rgba(217,164,65,.5)" }}
-          >
-            {dark ? <Sun size={15} /> : <Moon size={15} />}
-          </button>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+          <div>
+            <InstallBagdoonisButton lang={lang} />
+          </div>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+            <button
+              onClick={() => setLang(ar ? "en" : "ar")}
+              aria-label={ar ? "Switch to English" : "التبديل إلى العربية"}
+              className="font-body"
+              style={{ padding: "7px 15px", borderRadius: 999, fontSize: 12, fontWeight: 800, background: "var(--card)", color: "var(--ink)", border: "1.5px solid rgba(217,164,65,.5)" }}
+            >
+              {ar ? "EN" : "AR"}
+            </button>
+            <button
+              onClick={() => setDark(!dark)}
+              aria-label={dark ? (ar ? "الوضع الفاتح" : "Light mode") : (ar ? "الوضع الداكن" : "Dark mode")}
+              style={{ width: 36, height: 36, borderRadius: 999, background: "var(--card)", color: "var(--ink)", display: "flex", alignItems: "center", justifyContent: "center", border: "1.5px solid rgba(217,164,65,.5)" }}
+            >
+              {dark ? <Sun size={15} /> : <Moon size={15} />}
+            </button>
+          </div>
         </div>
 
         <div style={{ textAlign: "center", marginTop: 64 }}>
