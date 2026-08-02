@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import DemoRoundScreen from "@/components/demo/DemoRoundScreen";
-import DemoEndScreen from "@/components/demo/DemoEndScreen";
+import DemoDrumrollResults from "@/components/demo/DemoDrumrollResults";
 import { useDemoRoundGame } from "@/lib/demo/useDemoRoundGame";
 import { SHOFAH_ANSWER_MAP, SHOFAH_CATEGORY_FALLBACK, pickTwoDistinct } from "@/lib/demo/demoContent";
 
@@ -75,39 +75,28 @@ function ShofahDemoGame({ prompts }: { prompts: PromptRow[] }) {
     humanAvatar: "😎",
   });
 
-  const [showResults, setShowResults] = useState(false);
   const prompt = prompts[(engine.round - 1) % prompts.length].text_ar;
 
-  if (engine.phase === "done" && !showResults) {
-    const ranked = [...engine.players].sort((a, b) => (engine.scores[b.id] ?? 0) - (engine.scores[a.id] ?? 0));
-    const winner = engine.players.find((p) => p.id === engine.overallWinnerId);
+  if (engine.phase === "done") {
     return (
       <div dir="rtl" style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
         <Blobs />
         <HomeButton label="الصفحة الرئيسية" />
         <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
-          <div style={{ textAlign: "center", marginTop: 60, marginBottom: 24 }}>
-            <span style={{ fontSize: 56 }} className="pop">💍</span>
-            <p className="font-display" style={{ fontSize: 22, fontWeight: 800, margin: "10px 0 4px" }}>
-              {winner?.nickname === "أنت" ? "أنت اللي بتتزوج أول! 🎉" : `${winner?.nickname} اللي بيتزوج أول! 🎉`}
-            </p>
-          </div>
-          <div className="card pop" style={{ padding: 18 }}>
-            {ranked.map((p, i) => (
-              <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: i < ranked.length - 1 ? "1px solid var(--ring)" : "none" }}>
-                <span style={{ fontSize: 22 }}>{p.avatar_emoji}</span>
-                <span className="font-body" style={{ flex: 1, fontWeight: 700 }}>{p.nickname}</span>
-                <span className="font-display" style={{ fontWeight: 800, color: ROSE }}>{engine.scores[p.id] ?? 0}</span>
-              </div>
-            ))}
-          </div>
-          <button
-            onClick={() => setShowResults(true)}
-            className="font-display"
-            style={{ display: "block", width: "100%", marginTop: 24, padding: 16, fontSize: 15, borderRadius: 999, border: "none", color: "#fff", background: `linear-gradient(135deg, ${ROSE}, ${WINE})` }}
-          >
-            التالي
-          </button>
+          <DemoDrumrollResults
+            players={engine.players}
+            scores={engine.scores}
+            accentFrom={ROSE}
+            accentTo={WINE}
+            gold="#FFD400"
+            stage0Emoji="💖"
+            thinkingText="بعد التفكير..."
+            winnerIsText="الشخص اللي بيتزوج هو..."
+            connectorEmoji="❤️"
+            congratsText="💍 مبروك!"
+            othersText="أما الباقين... لسه سنقل 😂"
+            createHref="/shofah/create"
+          />
         </div>
       </div>
     );
@@ -116,25 +105,19 @@ function ShofahDemoGame({ prompts }: { prompts: PromptRow[] }) {
   return (
     <div dir="rtl" style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
       <Blobs />
-      {engine.phase === "done" ? (
-        <DemoEndScreen createHref="/shofah/create" accentFrom={ROSE} accentTo={WINE} />
-      ) : (
-        <>
-          <HomeButton label="الصفحة الرئيسية" />
-          <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
-            <p className="font-body" style={{ textAlign: "center", fontSize: 11, fontWeight: 800, color: ROSE, letterSpacing: "0.08em", marginTop: 40, textTransform: "uppercase" }}>
-              وضع التجربة
-            </p>
-            <DemoRoundScreen
-              engine={engine}
-              prompt={prompt}
-              accentFrom={ROSE}
-              accentTo={WINE}
-              icon={<Heart size={38} color="#fff" />}
-            />
-          </div>
-        </>
-      )}
+      <HomeButton label="الصفحة الرئيسية" />
+      <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
+        <p className="font-body" style={{ textAlign: "center", fontSize: 11, fontWeight: 800, color: ROSE, letterSpacing: "0.08em", marginTop: 40, textTransform: "uppercase" }}>
+          وضع التجربة
+        </p>
+        <DemoRoundScreen
+          engine={engine}
+          prompt={prompt}
+          accentFrom={ROSE}
+          accentTo={WINE}
+          icon={<Heart size={38} color="#fff" />}
+        />
+      </div>
     </div>
   );
 }

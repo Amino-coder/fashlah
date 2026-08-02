@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import DemoRoundScreen from "@/components/demo/DemoRoundScreen";
-import DemoEndScreen from "@/components/demo/DemoEndScreen";
+import DemoDrumrollResults from "@/components/demo/DemoDrumrollResults";
 import { useDemoRoundGame } from "@/lib/demo/useDemoRoundGame";
 import { JOB_ANSWER_MAP, JOB_CATEGORY_FALLBACK, pickTwoDistinct } from "@/lib/demo/demoContent";
 
@@ -22,7 +22,9 @@ type PromptRow = { text_ar: string; category: string };
  * (public SELECT, same table the real game draws from). Bot answers are
  * looked up by exact prompt text (JOB_ANSWER_MAP, copied verbatim from
  * job_update_prompts.sql — the actual seeded bank), falling back to a
- * category-matched answer for anything not in that map.
+ * category-matched answer for anything not in that map. Results screen
+ * mirrors the real FinalReveal's drumroll stage-for-stage via the shared
+ * DemoDrumrollResults component.
  */
 export default function JobDemoPage() {
   const [prompts, setPrompts] = useState<PromptRow[] | null>(null);
@@ -65,39 +67,28 @@ function JobDemoGame({ prompts }: { prompts: PromptRow[] }) {
     humanAvatar: "😎",
   });
 
-  const [showResults, setShowResults] = useState(false);
   const prompt = prompts[(engine.round - 1) % prompts.length].text_ar;
 
-  if (engine.phase === "done" && !showResults) {
-    const ranked = [...engine.players].sort((a, b) => (engine.scores[b.id] ?? 0) - (engine.scores[a.id] ?? 0));
-    const winner = engine.players.find((p) => p.id === engine.overallWinnerId);
+  if (engine.phase === "done") {
     return (
       <div dir="rtl" style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
         <Blobs />
         <HomeButton label="الصفحة الرئيسية" />
         <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
-          <div style={{ textAlign: "center", marginTop: 60, marginBottom: 24 }}>
-            <span style={{ fontSize: 56 }} className="pop">💼</span>
-            <p className="font-display" style={{ fontSize: 22, fontWeight: 800, margin: "10px 0 4px" }}>
-              {winner?.nickname === "أنت" ? "توظفت أنا! 🎉" : `${winner?.nickname} توظف! 🎉`}
-            </p>
-          </div>
-          <div className="card pop" style={{ padding: 18 }}>
-            {ranked.map((p, i) => (
-              <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: i < ranked.length - 1 ? "1px solid var(--ring)" : "none" }}>
-                <span style={{ fontSize: 22 }}>{p.avatar_emoji}</span>
-                <span className="font-body" style={{ flex: 1, fontWeight: 700 }}>{p.nickname}</span>
-                <span className="font-display" style={{ fontWeight: 800, color: BLUE }}>{engine.scores[p.id] ?? 0}</span>
-              </div>
-            ))}
-          </div>
-          <button
-            onClick={() => setShowResults(true)}
-            className="font-display"
-            style={{ display: "block", width: "100%", marginTop: 24, padding: 16, fontSize: 15, borderRadius: 999, border: "none", color: "#fff", background: `linear-gradient(135deg, ${BLUE}, ${NAVY})` }}
-          >
-            التالي
-          </button>
+          <DemoDrumrollResults
+            players={engine.players}
+            scores={engine.scores}
+            accentFrom={BLUE}
+            accentTo={NAVY}
+            gold="#FFD400"
+            stage0Emoji="📄"
+            thinkingText="بعد مراجعة السير الذاتية..."
+            winnerIsText="الشخص اللي بيتوظف هو..."
+            connectorEmoji="🤝"
+            congratsText="🎉 مبروك، توظفت!"
+            othersText="أما الباقين... لسه عاطلين 😂"
+            createHref="/job/create"
+          />
         </div>
       </div>
     );
@@ -106,25 +97,19 @@ function JobDemoGame({ prompts }: { prompts: PromptRow[] }) {
   return (
     <div dir="rtl" style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
       <Blobs />
-      {engine.phase === "done" ? (
-        <DemoEndScreen createHref="/job/create" accentFrom={BLUE} accentTo={NAVY} />
-      ) : (
-        <>
-          <HomeButton label="الصفحة الرئيسية" />
-          <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
-            <p className="font-body" style={{ textAlign: "center", fontSize: 11, fontWeight: 800, color: BLUE, letterSpacing: "0.08em", marginTop: 40, textTransform: "uppercase" }}>
-              وضع التجربة
-            </p>
-            <DemoRoundScreen
-              engine={engine}
-              prompt={prompt}
-              accentFrom={BLUE}
-              accentTo={NAVY}
-              icon={<Briefcase size={38} color="#fff" />}
-            />
-          </div>
-        </>
-      )}
+      <HomeButton label="الصفحة الرئيسية" />
+      <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
+        <p className="font-body" style={{ textAlign: "center", fontSize: 11, fontWeight: 800, color: BLUE, letterSpacing: "0.08em", marginTop: 40, textTransform: "uppercase" }}>
+          وضع التجربة
+        </p>
+        <DemoRoundScreen
+          engine={engine}
+          prompt={prompt}
+          accentFrom={BLUE}
+          accentTo={NAVY}
+          icon={<Briefcase size={38} color="#fff" />}
+        />
+      </div>
     </div>
   );
 }

@@ -79,6 +79,42 @@ scoring the real games use, exposed as `scores` and `overallWinnerId`.
 فشلة shows a full 4-round summary — both unchanged in spirit here, just
 confirming the pattern is now consistent across every game with a demo.
 
+## Results screens now match each real game's exactly
+
+Rebuilt from scratch against each game's actual `FinalReveal.tsx`/
+`Results.tsx`, not a generic summary:
+
+- **شوفة / مين بيتوظف**: the exact same four-stage drumroll (1400 /
+  3000 / 4600 / 6600ms timers, same "بعد التفكير...→الشخص اللي
+  بيتزوج/بيتوظف هو...→🎆 reveal→others grid" beats), via a shared
+  `DemoDrumrollResults` component since both real games share this
+  structure identically. Only real difference: the real reveal shows a
+  character mascot (NiqabGirl / ShemaghGuy / SuitGuy) picked from the
+  session's character selection — demo mode has no such step, so the
+  winner's own avatar_emoji stands in, enlarged.
+- **كمل القصيدة**: the real fixed full-screen overlay, same gradient
+  background, same timer marks (500 / 2300 / 3500ms), same "صح لسانكم"
+  cheer, same tap-to-reveal-next-line pacing. Simplified only where the
+  real game's final stage generates an exportable PNG share card — that's
+  a feature of the real sharing flow specifically, not something a local
+  demo needs, so `DemoEndScreen` takes its place once the poem's fully
+  revealed.
+- **كمل القصة**: the real story-carousel — swipeable `.story-seg`
+  progress bar, per-sentence auto-pace-with-tap-to-skip, "written by"
+  captions, "Next Story" button gated behind authors showing. This
+  replaced an earlier simpler stacked-card version that showed everything
+  at once instead of the real game's paced reveal.
+- **فشلة**: a genuine swipeable slide deck — tap-navigate zones (left
+  third back, rest forward), arrow buttons, `.story-seg` progress,
+  cycling background colors (purple/pink/yellow/mint), confetti on
+  standout results — matching `Results.tsx`'s actual carousel mechanics.
+  Slide content necessarily differs from the real game's (no radar chart
+  or awards system here, since that comes from a scoring engine this demo
+  doesn't replicate) but pulls from the same visual vocabulary: a big
+  confetti'd reveal for the personality trait, one slide per "who's most
+  likely" question styled like the real vote-reveal slides, hot takes and
+  fill-in-the-blank answers in the same translucent-card treatment.
+
 ## فشلة demo
 
 Scoped down from "replicate all four round types with full multiplayer
