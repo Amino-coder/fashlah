@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { JobLang } from "@/lib/job-i18n";
+import HomeButton from "@/components/HomeButton";
 import SuitGuy from "./SuitGuy";
 import type { JobSessionRow, JobPlayerRow } from "@/lib/job-types";
 import EndGameShare from "@/components/EndGameShare";
@@ -86,6 +87,7 @@ export default function FinalReveal({
       display: "flex", flexDirection: "column", alignItems: "center", gap: 16,
       marginTop: 30, textAlign: "center", minHeight: 400,
     }}>
+      <HomeButton label={lang === "ar" ? "الصفحة الرئيسية" : "Home"} />
       {stage < 3 && (
         <>
           <div className="pop" style={{ fontSize: 70 }}>📄</div>

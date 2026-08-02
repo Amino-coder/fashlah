@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { SHOFAH_STR, ShofahLang } from "@/lib/shofah-i18n";
+import HomeButton from "@/components/HomeButton";
 import NiqabGirl from "./NiqabGirl";
 import ShemaghGuy from "./ShemaghGuy";
 import type { ShofahSessionRow } from "@/lib/shofah-types";
@@ -149,6 +150,7 @@ export default function FinalConversation({
     // Nobody answered ANY round — nothing to build a conversation from.
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, marginTop: 60, textAlign: "center" }}>
+        <HomeButton label={t.backHome} />
         <Character size={110} />
         <p className="font-body" style={{ color: "var(--ink-soft)", fontWeight: 700 }}>
           {lang === "ar" ? "محد جاوب طول اللعبة 😅" : "Nobody answered the whole game 😅"}
@@ -168,6 +170,9 @@ export default function FinalConversation({
 
   return (
     <div onClick={revealNext} style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 20, cursor: "pointer", minHeight: 300 }}>
+      <div onClick={(e) => e.stopPropagation()}>
+        <HomeButton label={t.backHome} />
+      </div>
       <div style={{ textAlign: "center" }}>
         <Character size={70} />
       </div>

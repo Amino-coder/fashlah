@@ -198,16 +198,41 @@ export default function RoundScreen({
   async function advancePastAnswering() {
     if (transitionedRef.current) return;
     transitionedRef.current = true;
+
+    // Re-check with Supabase directly rather than trusting the client's
+    // locally polled/realtime-synced `currentAnswers` — that state can
+    // legitimately lag the database by up to ~1.2s (the poll interval),
+    // and this decision only gets made once per round, so it's worth the
+    // one extra round trip to make sure it's not accidentally skipping
+    // voting for a genuinely multiplayer round just because the last
+    // answer hadn't synced to this client's local state yet. Falls back
+    // to the local count if the query fails, rather than blocking the
+    // round entirely.
+    let answerCount = currentAnswers.length;
+    try {
+      const { data, error } = await supabase
+        .from("qaseeda_answers")
+        .select("id")
+        .eq("session_id", session.id)
+        .eq("round_number", session.current_round);
+      if (!error && data) answerCount = data.length;
+    } catch {
+      // Network hiccup — proceed with the local count rather than stall.
+    }
+
     // With 0 or 1 lines there's nothing meaningful to vote between — skip
     // straight to the reveal beat instead of a pointless timer. This is
     // also what makes solo play work: a lone player's line just becomes
     // the round's line uncontested, no vote needed.
-    const skipVoting = currentAnswers.length <= 1;
+    const skipVoting = answerCount <= 1;
     const nextPhase = skipVoting ? "reveal" : "voting";
-    if (currentAnswers.length === 1) {
+    if (answerCount === 1) {
       // Normally scoring fires when voting closes; with voting skipped,
       // fire it here instead so the sole line still gets recorded as the
-      // round's winner (and the writer still gets their points).
+      // round's winner (and the writer still gets their points). Uses
+      // whatever the local state has for this — if it's briefly behind
+      // the authoritative count above, the scoring API itself reads
+      // straight from the database, so it isn't affected by this lag.
       scoringRef.current = true;
       computeRoundResult();
     }

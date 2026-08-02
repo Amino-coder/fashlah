@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { ShofahLang } from "@/lib/shofah-i18n";
 import { playCelebration } from "@/lib/sound-engine";
 import { useSoundPref } from "@/lib/useSoundPref";
+import HomeButton from "@/components/HomeButton";
 import NiqabGirl from "./NiqabGirl";
 import ShemaghGuy from "./ShemaghGuy";
 import type { ShofahSessionRow, ShofahPlayerRow } from "@/lib/shofah-types";
@@ -101,6 +102,7 @@ export default function FinalReveal({
       display: "flex", flexDirection: "column", alignItems: "center", gap: 16,
       marginTop: 30, textAlign: "center", minHeight: 400,
     }}>
+      <HomeButton label={lang === "ar" ? "الصفحة الرئيسية" : "Home"} />
       {stage < 3 && (
         <>
           <div className="pop" style={{ fontSize: 70 }}>💖</div>

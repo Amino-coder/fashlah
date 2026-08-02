@@ -33,7 +33,7 @@ const GAME_META: Record<
   EndGameKey,
   { emoji: string; nameAr: string; nameEn: string; href: string; Art: (p: { size?: number }) => JSX.Element; accent: string }
 > = {
-  fashlah: { emoji: PARSLEY, nameAr: "بقدونس", nameEn: "Fashlah", href: "/fashlah", Art: FashlahArt, accent: "linear-gradient(135deg, #FF2E93, #7C3AED)" },
+  fashlah: { emoji: PARSLEY, nameAr: "فشلة", nameEn: "Fashlah", href: "/fashlah", Art: FashlahArt, accent: "linear-gradient(135deg, #FF2E93, #7C3AED)" },
   shofah: { emoji: RING, nameAr: "ابي اتزوج", nameEn: "Marry Me!", href: "/shofah", Art: ShofahArt, accent: "linear-gradient(135deg, #E63946, #C2185B)" },
   job: { emoji: BRIEFCASE, nameAr: "مين بيتوظف", nameEn: "Job Interview!", href: "/job", Art: JobArt, accent: "linear-gradient(135deg, #3B82F6, #1E40AF)" },
   qaseeda: { emoji: QUILL, nameAr: "كمل القصيدة", nameEn: "Complete the Poem", href: "/qaseeda", Art: QaseedaArt, accent: "linear-gradient(135deg, #D9A441, #1B3A55)" },

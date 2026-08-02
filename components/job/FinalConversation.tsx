@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { JOB_STR, JobLang } from "@/lib/job-i18n";
+import HomeButton from "@/components/HomeButton";
 import SuitGuy from "./SuitGuy";
 import type { JobSessionRow } from "@/lib/job-types";
 
@@ -141,6 +142,7 @@ export default function FinalConversation({
     // Nobody answered ANY round — nothing to build a conversation from.
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, marginTop: 60, textAlign: "center" }}>
+        <HomeButton label={t.backHome} />
         <SuitGuy size={110} />
         <p className="font-body" style={{ color: "var(--ink-soft)", fontWeight: 700 }}>
           {lang === "ar" ? "محد جاوب طول المقابلة 😅" : "Nobody answered the whole interview 😅"}
@@ -160,6 +162,9 @@ export default function FinalConversation({
 
   return (
     <div onClick={revealNext} style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 20, cursor: "pointer", minHeight: 300 }}>
+      <div onClick={(e) => e.stopPropagation()}>
+        <HomeButton label={t.backHome} />
+      </div>
       <div style={{ textAlign: "center" }}>
         <SuitGuy size={70} />
       </div>
