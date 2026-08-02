@@ -114,17 +114,27 @@ export default function FinalConversation({
     setVisibleCount((v) => Math.min(v + 1, totalMessages));
   }
 
-  // Host-only: once every message has been shown, move on after a short
-  // pause (or the host can tap Continue immediately).
+  // Host-only: once every message has been shown, start a visible 4-second
+  // countdown before auto-continuing. See شوفة's FinalConversation.tsx for
+  // the full story on why this is a ticking state rather than a single
+  // setTimeout keyed on onDone's identity.
+  const [countdown, setCountdown] = useState<number | null>(null);
+
   useEffect(() => {
     if (!isHost || !beats || visibleCount < totalMessages || advancedRef.current) return;
-    const id = setTimeout(() => {
-      if (advancedRef.current) return;
-      advancedRef.current = true;
-      onDone();
-    }, 2500);
+    setCountdown(4);
+  }, [isHost, beats, visibleCount, totalMessages]);
+
+  useEffect(() => {
+    if (countdown === null) return;
+    if (countdown <= 0) {
+      if (!advancedRef.current) { advancedRef.current = true; onDone(); }
+      return;
+    }
+    const id = setTimeout(() => setCountdown((c) => (c === null ? null : c - 1)), 1000);
     return () => clearTimeout(id);
-  }, [isHost, beats, visibleCount, totalMessages, onDone]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countdown]);
 
 
   if (beats && beats.length === 0) {
@@ -198,16 +208,23 @@ export default function FinalConversation({
       )}
 
       {beats && visibleCount >= totalMessages && isHost && (
-        <button
-          onClick={(e) => { e.stopPropagation(); if (!advancedRef.current) { advancedRef.current = true; onDone(); } }}
-          className="font-display"
-          style={{
-            padding: 14, fontSize: 15, borderRadius: 999, border: "none", color: "#fff",
-            background: `linear-gradient(135deg, ${BLUE}, ${NAVY})`,
-          }}
-        >
-          {t.continueBtn}
-        </button>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); if (!advancedRef.current) { advancedRef.current = true; onDone(); } }}
+            className="font-display pop"
+            style={{
+              padding: "16px 32px", fontSize: 16, borderRadius: 999, border: "none", color: "#fff",
+              background: `linear-gradient(135deg, ${BLUE}, ${NAVY})`, boxShadow: `0 8px 22px ${BLUE}55`,
+            }}
+          >
+            {t.continueBtn}
+          </button>
+          {countdown !== null && countdown > 0 && (
+            <p className="font-body" style={{ textAlign: "center", fontSize: 12, color: "var(--ink-soft)", opacity: 0.75, margin: 0 }}>
+              {lang === "ar" ? `بننتقل تلقائيًا خلال ${countdown}...` : `Moving on automatically in ${countdown}...`}
+            </p>
+          )}
+        </div>
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { JOB_STR, JobLang } from "@/lib/job-i18n";
 import SuitGuy from "./SuitGuy";
@@ -372,6 +372,15 @@ export default function RoundScreen({
 
   const promptText = prompt ? (lang === "ar" ? prompt.text_ar : prompt.text_en) : "";
 
+  // Stable across re-renders — see شوفة's RoundScreen.tsx for the full
+  // story on why this matters (an unstable callback here silently broke
+  // FinalConversation's auto-advance timer).
+  const handleFinalConversationDone = useCallback(async () => {
+    await supabase.from("job_sessions")
+      .update({ current_round: TOTAL_ROUNDS + 2 })
+      .eq("id", session.id);
+  }, [session.id]);
+
   // Past round 5: round 6 = final conversation, round 7+ = final reveal.
   if (session.current_round === TOTAL_ROUNDS + 1) {
     return (
@@ -379,11 +388,7 @@ export default function RoundScreen({
         session={session}
         isHost={isHost}
         lang={lang}
-        onDone={async () => {
-          await supabase.from("job_sessions")
-            .update({ current_round: TOTAL_ROUNDS + 2 })
-            .eq("id", session.id);
-        }}
+        onDone={handleFinalConversationDone}
       />
     );
   }

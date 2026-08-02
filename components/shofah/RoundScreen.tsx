@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { SHOFAH_STR, ShofahLang } from "@/lib/shofah-i18n";
@@ -419,6 +419,18 @@ export default function RoundScreen({
   const Character = session.character === "girl" ? NiqabGirl : ShemaghGuy;
   const promptText = prompt ? (lang === "ar" ? prompt.text_ar : prompt.text_en) : "";
 
+  // Stable across re-renders (only changes if session.id ever does, which
+  // it doesn't for a session's lifetime) — this used to be a fresh arrow
+  // function every render, which meant FinalConversation's auto-advance
+  // timer (keyed on this callback's identity) got cancelled and restarted
+  // on every ~1.2s poll tick and could never survive long enough to fire.
+  // See FinalConversation.tsx's comment for the full story.
+  const handleFinalConversationDone = useCallback(async () => {
+    await supabase.from("shofah_sessions")
+      .update({ current_round: TOTAL_ROUNDS + 2 })
+      .eq("id", session.id);
+  }, [session.id]);
+
   // Past round 5: round 6 = final conversation, round 7+ = final reveal.
   if (session.current_round === TOTAL_ROUNDS + 1) {
     return (
@@ -426,11 +438,7 @@ export default function RoundScreen({
         session={session}
         isHost={isHost}
         lang={lang}
-        onDone={async () => {
-          await supabase.from("shofah_sessions")
-            .update({ current_round: TOTAL_ROUNDS + 2 })
-            .eq("id", session.id);
-        }}
+        onDone={handleFinalConversationDone}
       />
     );
   }
