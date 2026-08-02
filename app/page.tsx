@@ -11,6 +11,7 @@ import { usePrefs } from "@/lib/usePrefs";
 import Blobs from "@/components/Blobs";
 import Mascot from "@/components/Mascot";
 import { FashlahArt, ShofahArt, JobArt, IbaratArt, QaseedaArt, QissaArt } from "@/components/art/GameArt";
+import InstallBagdoonisButton from "@/components/pwa/InstallBagdoonisButton";
 
 /**
  * lucide-react (used for every other icon on this page) deliberately
@@ -60,6 +61,9 @@ export default function Home() {
       style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}
     >
       <Blobs />
+      <div style={{ position: "fixed", top: 70, right: 16, zIndex: 5 }}>
+        <InstallBagdoonisButton lang={lang} />
+      </div>
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "22px 20px 48px", position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
           <button
