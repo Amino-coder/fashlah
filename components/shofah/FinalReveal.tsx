@@ -99,9 +99,14 @@ export default function FinalReveal({
   useEffect(() => {
     if (stage < 3 || completedRef.current) return;
     completedRef.current = true;
-    supabase.from("shofah_sessions")
-      .update({ status: "completed", ended_at: new Date().toISOString() })
-      .eq("id", session.id);
+    fetch("/api/mark-session-completed", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ table: "shofah_sessions", sessionId: session.id }),
+    }).catch(() => {
+      // Non-critical — worst case the cleanup job's own (much later,
+      // much more conservative) sweep eventually reconciles this.
+    });
   }, [stage, session.id]);
 
   const Character = session.character === "girl" ? NiqabGirl : ShemaghGuy;

@@ -470,9 +470,11 @@ export default function Results({
   useEffect(() => {
     if (slide !== total - 1 || completedRef.current) return;
     completedRef.current = true;
-    supabase.from("sessions")
-      .update({ status: "completed", ended_at: new Date().toISOString() })
-      .eq("id", session.id);
+    fetch("/api/mark-session-completed", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ table: "sessions", sessionId: session.id }),
+    }).catch(() => {});
   }, [slide, total, session.id]);
 
   return (

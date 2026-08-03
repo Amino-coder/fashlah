@@ -80,9 +80,11 @@ export default function FinalReveal({
   useEffect(() => {
     if (stage < 3 || completedRef.current) return;
     completedRef.current = true;
-    supabase.from("job_sessions")
-      .update({ status: "completed", ended_at: new Date().toISOString() })
-      .eq("id", session.id);
+    fetch("/api/mark-session-completed", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ table: "job_sessions", sessionId: session.id }),
+    }).catch(() => {});
   }, [stage, session.id]);
 
   const others = players.filter((p) => p.id !== winner?.id);

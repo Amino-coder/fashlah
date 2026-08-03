@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Feather } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 import { QASEEDA_STR, QaseedaLang } from "@/lib/qaseeda-i18n";
 import { playCelebration } from "@/lib/sound-engine";
 import { useSoundPref } from "@/lib/useSoundPref";
@@ -98,9 +97,11 @@ export default function FinalReveal({
   useEffect(() => {
     if (stage < 4 || completedRef.current) return;
     completedRef.current = true;
-    supabase.from("qaseeda_sessions")
-      .update({ status: "completed", ended_at: new Date().toISOString() })
-      .eq("id", session.id);
+    fetch("/api/mark-session-completed", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ table: "qaseeda_sessions", sessionId: session.id }),
+    }).catch(() => {});
   }, [stage, session.id]);
 
   // Same literal-1080x1920-scaled-to-fit technique as عبارات's card.

@@ -19,7 +19,7 @@ alter table shofah_prompts
 delete from shofah_round_prompts;
 delete from shofah_prompts;
 
--- Universal (19) — audience left null, drawn regardless of character
+-- Universal (18) — audience left null, drawn regardless of character
 insert into shofah_prompts (category, text_ar, text_en, audience) values
 ('opening', 'عرّف عن نفسك بثلاث كلمات بس.', 'Introduce yourself in exactly three words.', null),
 ('opening', 'اوصف نفسك كأنك تسوي دعاية لسيارة تبي تبيعها.', 'Describe yourself like you''re selling a used car.', null),
@@ -27,7 +27,6 @@ insert into shofah_prompts (category, text_ar, text_en, audience) values
 ('getting_to_know_you', 'وش أكبر ريد فلاق فيك؟', 'What''s your biggest red flag?', null),
 ('career_money', 'وش الوصف اللي ينفع أنا ومديرك نقوله عنك؟ 😉', 'What''s a description both me and your boss would agree on? 😉', null),
 ('career_money', 'لو بحثت عن اسمك في قوقل، وش بلقى؟', 'If I Googled your name, what would I find?', null),
-('wildcard', 'وش بنسوي لو كنا لحالنا؟ (بأدب 🏃🏻‍♂️)', 'What would we do if we were alone? (keep it PG 🏃🏻‍♂️)', null),
 ('lifestyle', 'لو غرفتك تتكلم، وش بتقول عنك؟', 'If your room could talk, what would it say about you?', null),
 ('awkward', 'ليش فشلت علاقتك اللي راحت؟ (قول شي حتى لو ما عندك جواب.)', 'Why did your last relationship end? (Make something up if you have to.)', null),
 ('marriage', 'اقنع أهلي بجملة وحدة.', 'Convince my family in one sentence.', null),
@@ -46,11 +45,12 @@ insert into shofah_prompts (category, text_ar, text_en, audience) values
 ('wildcard', 'عنده بقدونس بين أسنانه، وش بتسوي؟', 'He''s got parsley stuck in his teeth — what do you do?', 'guy'),
 ('wildcard', 'قال لك إنه بردان، وش بتسوي؟', 'He tells you he''s freezing — what do you do?', 'guy');
 
--- مزنة (girl) only — 6 scenarios
+-- مزنة (girl) only — 7 scenarios
 insert into shofah_prompts (category, text_ar, text_en, audience) values
 ('wildcard', 'عندها بقدونس بين أسنانها، وش بتسوي؟', 'She''s got parsley stuck in her teeth — what do you do?', 'girl'),
 ('wildcard', 'قالت لك إنها بردانة، وش بتسوي؟', 'She tells you she''s freezing — what do you do?', 'girl'),
 ('wildcard', 'باروكتها مالت، وش بتقول بدون ما تزعل؟', 'Her wig slipped sideways — what do you say without hurting her feelings?', 'girl'),
 ('wildcard', 'رجلها تعورها، وش بتسوي؟', 'Her leg''s been hurting her — what do you do?', 'girl'),
 ('wildcard', 'أوبس! كبيت عليك العصير، وش بتقول؟', 'Oops — I just spilled juice on you. What do you say?', 'girl'),
-('wildcard', 'رمشها طاح على الطاولة، وش بتسوي؟', 'Her eyelash fell out onto the table — what do you do?', 'girl');
+('wildcard', 'رمشها طاح على الطاولة، وش بتسوي؟', 'Her eyelash fell out onto the table — what do you do?', 'girl'),
+('wildcard', 'اخوها الصغير دخل وكب عليك القهوة- وش بتسوي! 👼', 'Her younger brother spilled the coffee all over you - what will you do', 'girl');
