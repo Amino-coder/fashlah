@@ -23,6 +23,16 @@ import { LogOut } from "lucide-react";
  * session page for exactly where), never in the lobby or on finished-game
  * screens — those already have a plain HomeButton with no confirmation,
  * since there's no in-progress round to lose there.
+ *
+ * Deliberately rendered in normal document flow (a real flex row that
+ * takes up real height), not as a `position: absolute` overlay. An
+ * earlier version floated it absolutely, which reserves no space — so
+ * whatever a given screen happened to render first (a round title, a
+ * prompt card, anything) would start right where the button was and get
+ * covered by it, differently on every screen depending on that screen's
+ * own top padding. Taking up real space instead means every screen's
+ * content is naturally pushed down to clear it, with no per-screen
+ * padding tuning needed anywhere this is dropped in.
  */
 export default function LeaveGameButton({ lang }: { lang: "ar" | "en" }) {
   const router = useRouter();
@@ -31,21 +41,22 @@ export default function LeaveGameButton({ lang }: { lang: "ar" | "en" }) {
 
   return (
     <>
-      <button
-        onClick={(e) => { e.stopPropagation(); setConfirming(true); }}
-        aria-label={ar ? "الخروج من اللعبة" : "Leave game"}
-        className="font-body"
-        style={{
-          position: "absolute", top: 14, insetInlineStart: 14, zIndex: 6,
-          display: "flex", alignItems: "center", gap: 5,
-          padding: "7px 13px", borderRadius: 999, fontSize: 12, fontWeight: 700,
-          background: "var(--card)", color: "var(--ink-soft)", border: "1.5px solid var(--ring)",
-          boxShadow: "0 2px 8px var(--ring)", cursor: "pointer",
-        }}
-      >
-        <LogOut size={13} />
-        <span>{ar ? "خروج" : "Leave"}</span>
-      </button>
+      <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 10 }}>
+        <button
+          onClick={(e) => { e.stopPropagation(); setConfirming(true); }}
+          aria-label={ar ? "الخروج من اللعبة" : "Leave game"}
+          className="font-body"
+          style={{
+            display: "flex", alignItems: "center", gap: 5,
+            padding: "7px 13px", borderRadius: 999, fontSize: 12, fontWeight: 700,
+            background: "var(--card)", color: "var(--ink-soft)", border: "1.5px solid var(--ring)",
+            boxShadow: "0 2px 8px var(--ring)", cursor: "pointer",
+          }}
+        >
+          <LogOut size={13} />
+          <span>{ar ? "خروج" : "Leave"}</span>
+        </button>
+      </div>
 
       {confirming && (
         <div
