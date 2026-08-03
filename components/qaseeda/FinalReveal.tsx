@@ -93,13 +93,15 @@ export default function FinalReveal({
   }, [stage, poem, revealedCount, totalLines]);
 
   // Host-only: mark the session completed once the share card is showing.
+  // Any client reaching this stage marks the session completed — not
+  // host-only. See شوفة's FinalReveal.tsx for the full reasoning.
   useEffect(() => {
-    if (!isHost || stage < 4 || completedRef.current) return;
+    if (stage < 4 || completedRef.current) return;
     completedRef.current = true;
     supabase.from("qaseeda_sessions")
       .update({ status: "completed", ended_at: new Date().toISOString() })
       .eq("id", session.id);
-  }, [isHost, stage, session.id]);
+  }, [stage, session.id]);
 
   // Same literal-1080x1920-scaled-to-fit technique as عبارات's card.
   useEffect(() => {

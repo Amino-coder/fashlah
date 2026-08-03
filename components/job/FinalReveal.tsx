@@ -72,13 +72,18 @@ export default function FinalReveal({
   }, [winner?.id]);
 
   // Host-only: mark the session as completed once the reveal is showing.
+  // Any client reaching this stage marks the session completed — not
+  // host-only. See شوفة's FinalReveal.tsx for the full reasoning: relying
+  // solely on the host's browser being present meant a genuinely finished
+  // game could sit at status='in_progress' until the cleanup job swept it
+  // up as 'cancelled', misreporting it as abandoned.
   useEffect(() => {
-    if (!isHost || stage < 3 || completedRef.current) return;
+    if (stage < 3 || completedRef.current) return;
     completedRef.current = true;
     supabase.from("job_sessions")
       .update({ status: "completed", ended_at: new Date().toISOString() })
       .eq("id", session.id);
-  }, [isHost, stage, session.id]);
+  }, [stage, session.id]);
 
   const others = players.filter((p) => p.id !== winner?.id);
 

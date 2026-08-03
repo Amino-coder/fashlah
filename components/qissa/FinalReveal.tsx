@@ -91,13 +91,15 @@ export default function FinalReveal({
     setAuthorsShown(false);
   }
 
+  // Any client reaching this stage marks the session completed — not
+  // host-only. See شوفة's FinalReveal.tsx for the full reasoning.
   useEffect(() => {
-    if (!isHost || stage < 3 || completedRef.current) return;
+    if (stage < 3 || completedRef.current) return;
     completedRef.current = true;
     supabase.from("qissa_sessions")
       .update({ status: "completed", ended_at: new Date().toISOString() })
       .eq("id", session.id);
-  }, [isHost, stage, session.id]);
+  }, [stage, session.id]);
 
   return (
     <div

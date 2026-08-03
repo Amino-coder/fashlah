@@ -123,7 +123,6 @@ export default function Results({
   >(null);
 
   const me = summary.players.find((p) => p.player_id === player.id) || summary.players[0];
-  const isHost = player.user_id === session.host_user_id;
   const completedRef = useRef(false);
 
   useEffect(() => {
@@ -462,13 +461,19 @@ export default function Results({
   // component mounts — there's no further staging. The share slide
   // (always the last one, pushed above) is the closest equivalent to
   // "reached the end", so that's the trigger point here.
+  //
+  // Any client reaching this slide marks the session completed — not
+  // host-only. See شوفة's FinalReveal.tsx for the full reasoning: relying
+  // solely on the host's browser being present meant a genuinely finished
+  // game could sit at status='in_progress' until the cleanup job swept it
+  // up as 'cancelled', misreporting it as abandoned.
   useEffect(() => {
-    if (!isHost || slide !== total - 1 || completedRef.current) return;
+    if (slide !== total - 1 || completedRef.current) return;
     completedRef.current = true;
     supabase.from("sessions")
       .update({ status: "completed", ended_at: new Date().toISOString() })
       .eq("id", session.id);
-  }, [isHost, slide, total, session.id]);
+  }, [slide, total, session.id]);
 
   return (
     <div

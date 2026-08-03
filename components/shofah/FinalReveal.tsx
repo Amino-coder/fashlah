@@ -85,14 +85,24 @@ export default function FinalReveal({
     playCelebration();
   }, [stage, soundOn]);
 
-  // Host-only: mark the session as completed once the reveal is showing.
+  // Any client reaching this stage marks the session completed — not
+  // host-only. This used to be `!isHost || stage < 3`, but that meant a
+  // genuinely finished game could sit at status='in_progress' forever if
+  // the host's specific browser closed, refreshed, or wasn't the active
+  // tab by the time the reveal wrapped up: nobody else even attempted the
+  // write, since every other client was excluded by that check. Eventually
+  // the stale-session cleanup job would sweep it up as 'cancelled' — a
+  // genuinely completed game misreported as abandoned. The update itself
+  // is a simple idempotent write by session id, so multiple clients
+  // racing to set the same values is harmless; worst case is a couple of
+  // redundant writes, not a correctness issue.
   useEffect(() => {
-    if (!isHost || stage < 3 || completedRef.current) return;
+    if (stage < 3 || completedRef.current) return;
     completedRef.current = true;
     supabase.from("shofah_sessions")
       .update({ status: "completed", ended_at: new Date().toISOString() })
       .eq("id", session.id);
-  }, [isHost, stage, session.id]);
+  }, [stage, session.id]);
 
   const Character = session.character === "girl" ? NiqabGirl : ShemaghGuy;
   const others = players.filter((p) => p.id !== winner?.id);
