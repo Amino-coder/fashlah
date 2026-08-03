@@ -5,6 +5,7 @@ import { Feather, Plus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { QASEEDA_STR, QaseedaLang } from "@/lib/qaseeda-i18n";
 import { MAX_SHATR_CHARS } from "@/lib/qaseeda-poem";
+import LeaveGameButton from "@/components/LeaveGameButton";
 import ShatrLine from "./ShatrLine";
 import type { QaseedaSessionRow, QaseedaOpeningRow } from "@/lib/qaseeda-types";
 
@@ -79,7 +80,8 @@ export default function OpeningSelect({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 20 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 20, position: "relative" }}>
+      <LeaveGameButton lang={lang} />
       <div className="screen-enter" style={{ textAlign: "center", marginBottom: 4 }}>
         <div
           aria-hidden="true"

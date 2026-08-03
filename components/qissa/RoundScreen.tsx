@@ -7,6 +7,7 @@ import { QISSA_STR, QissaLang, randomPlaceholder } from "@/lib/qissa-i18n";
 import { playCountdownTick, playCountdownGo, playUrgentTick, unlockAudio } from "@/lib/sound-engine";
 import { useSoundPref } from "@/lib/useSoundPref";
 import { storyIndexForTurnOrder, fetchPreviousSentence, totalRoundsFor } from "@/lib/qissa-story";
+import LeaveGameButton from "@/components/LeaveGameButton";
 import FinalReveal from "./FinalReveal";
 import type { QissaSessionRow, QissaPlayerRow, QissaAnswerRow } from "@/lib/qissa-types";
 
@@ -255,6 +256,7 @@ export default function RoundScreen({
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, marginTop: 60, position: "relative" }}>
         {muteButton}
+        <LeaveGameButton lang={lang} />
         <div
           aria-hidden="true"
           style={{
@@ -283,6 +285,7 @@ export default function RoundScreen({
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 18, marginTop: 80, position: "relative" }}>
         {muteButton}
+        <LeaveGameButton lang={lang} />
         <div
           aria-hidden="true"
           className="pop"
@@ -308,6 +311,7 @@ export default function RoundScreen({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 20, position: "relative" }}>
       {muteButton}
+      <LeaveGameButton lang={lang} />
       <div style={{ textAlign: "center" }}>
         <span className="font-body" style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)" }}>
           {session.current_round} / {totalRounds}

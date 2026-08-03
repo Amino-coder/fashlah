@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { QASEEDA_STR, QaseedaLang } from "@/lib/qaseeda-i18n";
 import { playCountdownTick, playCountdownGo, playUrgentTick, unlockAudio } from "@/lib/sound-engine";
 import { useSoundPref } from "@/lib/useSoundPref";
+import LeaveGameButton from "@/components/LeaveGameButton";
 import { fetchPoemSoFar, MAX_SHATR_CHARS, type PoemLine } from "@/lib/qaseeda-poem";
 import ShatrLine from "./ShatrLine";
 import FinalReveal from "./FinalReveal";
@@ -436,6 +437,7 @@ export default function RoundScreen({
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, marginTop: 40, position: "relative" }}>
         {muteButton}
+        <LeaveGameButton lang={lang} />
         {PoemSoFarCard}
         <div
           aria-hidden="true"
@@ -479,6 +481,7 @@ export default function RoundScreen({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 20, position: "relative" }}>
       {muteButton}
+      <LeaveGameButton lang={lang} />
       <div style={{ textAlign: "center" }}>
         <span className="font-body" style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)" }}>
           {session.current_round} / {TOTAL_ROUNDS}

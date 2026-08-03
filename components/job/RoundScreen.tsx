@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { JOB_STR, JobLang } from "@/lib/job-i18n";
+import LeaveGameButton from "@/components/LeaveGameButton";
 import SuitGuy from "./SuitGuy";
 import FinalConversation from "./FinalConversation";
 import FinalReveal from "./FinalReveal";
@@ -399,7 +400,8 @@ export default function RoundScreen({
 
   if (session.round_phase === "countdown") {
     return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, marginTop: 60 }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, marginTop: 60, position: "relative" }}>
+        <LeaveGameButton lang={lang} />
         <SuitGuy size={130} />
         <div
           key={remaining}
@@ -446,7 +448,8 @@ export default function RoundScreen({
   // to the voting screen below, which handles the reveal beat itself.
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 18, marginTop: 20 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 18, marginTop: 20, position: "relative" }}>
+      <LeaveGameButton lang={lang} />
       <div style={{ textAlign: "center" }}>
         <span className="font-body" style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)" }}>
           {session.current_round} / {TOTAL_ROUNDS}

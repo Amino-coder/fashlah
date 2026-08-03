@@ -10,6 +10,7 @@ import { usePrefs } from "@/lib/usePrefs";
 import Mascot from "@/components/Mascot";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
+import LeaveGameButton from "@/components/LeaveGameButton";
 import { HelpButton } from "@/components/HowToPlay";
 import ShareInvite from "@/components/ShareInvite";
 import Round1 from "@/components/rounds/Round1";
@@ -117,6 +118,9 @@ export default function WaitingRoom() {
 
         {session && session.status !== "waiting" && myPlayer && (
           <>
+            {myPlayer.current_round >= 1 && myPlayer.current_round <= 4 && (
+              <LeaveGameButton lang={lang} />
+            )}
             {myPlayer.current_round === 1 && (
               <Round1
                 session={session}

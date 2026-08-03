@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { SHOFAH_STR, ShofahLang } from "@/lib/shofah-i18n";
 import { playCountdownTick, playCountdownGo, playUrgentTick, unlockAudio } from "@/lib/sound-engine";
 import { useSoundPref } from "@/lib/useSoundPref";
+import LeaveGameButton from "@/components/LeaveGameButton";
 import NiqabGirl from "./NiqabGirl";
 import ShemaghGuy from "./ShemaghGuy";
 import FinalConversation from "./FinalConversation";
@@ -451,6 +452,7 @@ export default function RoundScreen({
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, marginTop: 60, position: "relative" }}>
         {muteButton}
+        <LeaveGameButton lang={lang} />
         <Character size={130} />
         <div
           key={remaining}
@@ -499,6 +501,7 @@ export default function RoundScreen({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18, marginTop: 20, position: "relative" }}>
       {muteButton}
+      <LeaveGameButton lang={lang} />
       <div style={{ textAlign: "center" }}>
         <span className="font-body" style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)" }}>
           {session.current_round} / {TOTAL_ROUNDS}

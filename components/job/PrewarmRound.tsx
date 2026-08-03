@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { JOB_STR, JobLang } from "@/lib/job-i18n";
+import LeaveGameButton from "@/components/LeaveGameButton";
 import type { JobSessionRow, JobPlayerRow, JobPrewarmVoteRow } from "@/lib/job-types";
 
 // A warm-up round that runs once, after the countdown and before question
@@ -186,7 +187,8 @@ export default function PrewarmRound({
   const progressPct = Math.round(((idx + (myVoteThisRound ? 1 : 0)) / TOTAL_PREWARM_ROUNDS) * 100);
 
   return (
-    <div className="screen-enter" style={{ padding: "12px 24px 32px", display: "flex", flexDirection: "column", gap: 18 }}>
+    <div className="screen-enter" style={{ padding: "12px 24px 32px", display: "flex", flexDirection: "column", gap: 18, position: "relative" }}>
+      <LeaveGameButton lang={lang} />
       <p className="font-body" style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-soft)", textAlign: "center" }}>
         {lang === "ar" ? "🔥 جولة تسخين" : "🔥 Warm-up round"}
       </p>
@@ -314,7 +316,8 @@ function PrewarmTeaser({
   }, [isHost, error]);
 
   return (
-    <div className="screen-enter pop" style={{ padding: "60px 24px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+    <div className="screen-enter pop" style={{ padding: "60px 24px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 16, position: "relative" }}>
+      <LeaveGameButton lang={lang} />
       <span style={{ fontSize: 56 }}>{topPlayer && !isTie ? "💀" : "🔥"}</span>
       {topPlayer && !isTie && topCount >= 2 ? (
         <>
