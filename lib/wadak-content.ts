@@ -60,7 +60,7 @@ export const ROUND1_POOL: Question[] = [
   {
     id: "r1_groupchats", prompt: "بقروبات الواتساب أنا…",
     options: [
-      { id: "a", emoji: "⚡", text: "أرد فوراً", weights: { control: 1, spontaneity: 1 } },
+      { id: "a", emoji: "⚡", text: "أرد فوراً", weights: { recklessness: 2 } },
       { id: "b", emoji: "👀", text: "أقرا واسكت", weights: { overthinking: 2 } },
       { id: "c", emoji: "🎙️", text: "أرسل ١٠ فويس", weights: { drama: 2 } },
       { id: "d", emoji: "🔕", text: "أكتم كل شي", weights: { comfort: 2 } },
@@ -70,7 +70,7 @@ export const ROUND1_POOL: Question[] = [
     id: "r1_exams", prompt: "الاختبارات أنا…",
     options: [
       { id: "a", emoji: "📚", text: "أذاكر من أسابيع", weights: { control: 2 } },
-      { id: "b", emoji: "🌙", text: "أذاكر آخر ليلة", weights: { recklessness: 1, spontaneity: 1 } },
+      { id: "b", emoji: "🌙", text: "أذاكر آخر ليلة", weights: { spontaneity: 2 } },
       { id: "c", emoji: "🎲", text: "أرتجل", weights: { recklessness: 2 } },
       { id: "d", emoji: "🔍", text: "أقلّب قوقل ذعران", weights: { overthinking: 2 } },
     ],
@@ -79,7 +79,7 @@ export const ROUND1_POOL: Question[] = [
     id: "r1_room", prompt: "غرفتي…",
     options: [
       { id: "a", emoji: "✨", text: "نظيفة ومرتبة", weights: { control: 2 } },
-      { id: "b", emoji: "📦", text: "فوضى منظمة", weights: { spontaneity: 1, comfort: 1 } },
+      { id: "b", emoji: "📦", text: "فوضى منظمة", weights: { comfort: 2 } },
       { id: "c", emoji: "🌪️", text: "منطقة كوارث", weights: { recklessness: 2 } },
       { id: "d", emoji: "🖼️", text: "شكلها حلو بس فيها خبايا", weights: { drama: 2 } },
     ],
@@ -87,10 +87,10 @@ export const ROUND1_POOL: Question[] = [
   {
     id: "r1_weekend", prompt: "خطط الويكند…",
     options: [
-      { id: "a", emoji: "🗓️", text: "جدول مليان", weights: { control: 2 } },
+      { id: "a", emoji: "🗓️", text: "جدول مليان", weights: { control: 1, overthinking: 1 } },
       { id: "b", emoji: "🎲", text: "قرار اللحظة الأخيرة", weights: { spontaneity: 2 } },
       { id: "c", emoji: "🛏️", text: "أضل بالسرير كله", weights: { comfort: 2 } },
-      { id: "d", emoji: "🤝", text: "أي شي يقرره القروب", weights: { comfort: 1, overthinking: 1 } },
+      { id: "d", emoji: "🤝", text: "أي شي يقرره القروب", weights: { drama: 1, comfort: 1 } },
     ],
   },
 ];
@@ -206,7 +206,7 @@ export const ROUND4_POOL: Question[] = [
     id: "r4_offline",
     prompt: "وش تختار؟",
     options: [
-      { id: "a", emoji: "📵", text: "بدون سوشال ميديا للأبد", weights: { control: 1, comfort: 1 } },
+      { id: "a", emoji: "📵", text: "بدون سوشال ميديا للأبد", weights: { comfort: 2 } },
       { id: "b", emoji: "🎬", text: "بدون أفلام ومسلسلات للأبد", weights: { drama: 1, spontaneity: 1 } },
     ],
   },
@@ -222,20 +222,19 @@ export const ROUND4_POOL: Question[] = [
     id: "r4_money_friends",
     prompt: "وش تختار؟",
     options: [
-      { id: "a", emoji: "💰", text: "فلوس بلا حدود بدون أصحاب", weights: { control: 2 } },
+      { id: "a", emoji: "💰", text: "فلوس بلا حدود بدون أصحاب", weights: { recklessness: 1, control: 1 } },
       { id: "b", emoji: "👯", text: "أصحاب بلا حدود بدون فلوس", weights: { comfort: 1, drama: 1 } },
     ],
   },
 ];
 
-/** Shown after specific questions only (not every one) — strategic, not
- *  constant, so it stays funny instead of becoming noise. Keyed by
- *  absolute question number across the whole 15-question flow. */
+/** Shown after each round completes, not mid-round — keyed by the
+ *  absolute question number that ends each round (4, 8, 11, 15 across
+ *  the 4+4+3+4 structure). */
 export const REACTION_AFTER_QUESTION: Record<number, string[]> = {
-  3: ["أوكي… سجلناها عليك.", "ملاحظة صغيرة، وبس."],
-  6: ["اختيار مثير للاهتمام 💀", "همم. تمام."],
-  9: ["واضح إن عندنا وضع هنا.", "أنت متأكد من إجابتك؟ 👀"],
-  12: ["طيب... أما كذا وضعك 😂", "خلصنا نجمع الأدلة."],
+  4: ["أوكي… سجلناها عليك.", "همم. تمام."],
+  8: ["اختيار مثير للاهتمام 💀", "ملاحظة صغيرة، وبس."],
+  11: ["واضح إن عندنا وضع هنا.", "أنت متأكد من إجاباتك؟ 👀"],
   15: ["تم. عندنا صورة واضحة الحين.", "أوكي، هذا يفسر أشياء كثيرة."],
 };
 

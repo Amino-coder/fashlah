@@ -392,7 +392,7 @@ function StoryResults({ result, nickname, onRestart }: { result: ScoreResult; ni
     {
       key: "share",
       render: () => (
-        <div style={{ width: "100%" }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ width: "100%", position: "relative", zIndex: 3 }} onClick={(e) => e.stopPropagation()}>
           <span style={{ fontSize: 50, display: "block", marginBottom: 12 }}>🌿</span>
           <h2 className="font-display" style={{ fontSize: 22, fontWeight: 800, marginBottom: 20 }}>خلصنا! شارك وضعك</h2>
           <button
