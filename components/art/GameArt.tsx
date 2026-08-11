@@ -123,35 +123,15 @@ export function IbaratArt({ size = 120 }: P) {
   );
 }
 
-/* ─── وش شخصيتك — a bold cartoon brain ─── */
+/* ─── وش شخصيتك — uploaded brain+gears icon ─── */
 export function WadakArt({ size = 120 }: P) {
-  const TEAL = "#14B8A6";
-  const INDIGO = "#4C1D95";
   return (
-    <Tile bg={TEAL}>
-      <Confetti a={INDIGO} b={CREAM} />
-      <g transform="rotate(-4 100 100)">
-        <path
-          d="M 100 44
-             C 78 44 66 56 64 70
-             C 48 72 38 84 40 98
-             C 30 102 26 116 34 126
-             C 32 140 44 152 60 150
-             C 64 158 76 162 86 156
-             C 90 160 110 160 114 156
-             C 124 162 136 158 140 150
-             C 156 152 168 140 166 126
-             C 174 116 170 102 160 98
-             C 162 84 152 72 136 70
-             C 134 56 122 44 100 44 Z"
-          fill={CREAM} stroke={INK} strokeWidth="6" strokeLinejoin="round"
-        />
-        <path
-          d="M 100 50 V 152 M 64 70 Q 78 80 76 96 Q 90 104 84 118 Q 96 122 92 138
-             M 136 70 Q 122 80 124 96 Q 110 104 116 118 Q 104 122 108 138"
-          fill="none" stroke={INDIGO} strokeWidth="5" strokeLinecap="round" opacity=".55"
-        />
-      </g>
-    </Tile>
+    <div style={{ width: "100%", height: "100%", position: "relative", lineHeight: 0 }}>
+      <img
+        src="/game-icons/wadak.jpg"
+        alt=""
+        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+      />
+    </div>
   );
 }
