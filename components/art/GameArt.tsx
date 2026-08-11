@@ -163,3 +163,36 @@ export function BidalArt({ size = 120 }: P) {
     </Tile>
   );
 }
+
+/* ─── إنسان حيوان جماد — a letter card with the 3 core category marks ─── */
+export function IhjArt({ size = 120 }: P) {
+  const PURPLE = "#7C3AED";
+  const PINK = "#FF2E93";
+  return (
+    <Tile bg={PURPLE}>
+      <Confetti a={PINK} b={CREAM} />
+      <g transform="translate(0 -4)">
+        <rect x="62" y="46" width="76" height="92" rx="16" fill={CREAM} stroke={INK} strokeWidth="6" transform="rotate(-4 100 92)" />
+        <text x="100" y="106" textAnchor="middle" fontSize="46" fontWeight="800" fill={INK} fontFamily="sans-serif" transform="rotate(-4 100 92)">؟</text>
+      </g>
+      {/* person */}
+      <g transform="translate(46 150)">
+        <circle r="14" fill={PINK} stroke={INK} strokeWidth="4" />
+        <circle cy="-3" r="4.5" fill={CREAM} />
+        <path d="M-6 5 Q0 10 6 5" stroke={CREAM} strokeWidth="2.4" fill="none" strokeLinecap="round" />
+      </g>
+      {/* paw */}
+      <g transform="translate(100 158)">
+        <circle r="13" fill="#2EE6A6" stroke={INK} strokeWidth="4" />
+        <circle cx="-5" cy="-4" r="2.6" fill={INK} opacity=".8" />
+        <circle cx="5" cy="-4" r="2.6" fill={INK} opacity=".8" />
+        <circle cy="4" r="3.4" fill={INK} opacity=".8" />
+      </g>
+      {/* leaf */}
+      <g transform="translate(154 150)">
+        <circle r="14" fill="#FFD400" stroke={INK} strokeWidth="4" />
+        <path d="M-5 6 Q-5 -6 6 -6 Q6 6 -5 6 Z" fill={INK} opacity=".75" />
+      </g>
+    </Tile>
+  );
+}
