@@ -8,10 +8,13 @@ import { supabase } from "@/lib/supabase";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import LeaveGameButton from "@/components/LeaveGameButton";
+import ShareInvite from "@/components/ShareInvite";
 import HexTile from "@/components/bidal/HexTile";
 import { BIDAL_STR, BidalLang } from "@/lib/bidal-i18n";
 import { usePrefs } from "@/lib/usePrefs";
 import type { BidalSessionRow, BidalPlayerRow } from "@/lib/bidal-types";
+import { computeBidalResult, formatDuration, ordinalAr, type BidalMoveRow } from "@/lib/bidal-results";
+import { shareBidalResultCard } from "@/components/bidal/exportResultCard";
 
 const TEAL = "#14B8A6";
 const CORAL = "#FF5A5F";
@@ -30,6 +33,8 @@ export default function BidalSessionPage() {
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [moves, setMoves] = useState<BidalMoveRow[]>([]);
+  const [shareState, setShareState] = useState<"idle" | "working" | "shared" | "downloaded" | "failed">("idle");
 
   // Selection (tap-to-select) and drag state for the honeycomb.
   const [selected, setSelected] = useState<{ letter: string; index: number } | null>(null);
@@ -187,9 +192,9 @@ export default function BidalSessionPage() {
   }, [session?.status, isSolo]);
 
   const soloRemaining = useMemo(() => {
-    if (!session?.started_at) return session?.time_limit_seconds ?? 90;
+    if (!session?.started_at) return session?.time_limit_seconds ?? 50;
     const elapsed = (now - new Date(session.started_at).getTime()) / 1000;
-    return Math.max(0, Math.ceil((session.time_limit_seconds || 90) - elapsed));
+    return Math.max(0, Math.ceil((session.time_limit_seconds || 50) - elapsed));
   }, [session, now]);
 
   // Solo timeout — client-detected and written directly (RLS already
@@ -198,6 +203,21 @@ export default function BidalSessionPage() {
     if (!isSolo || session?.status !== "in_progress" || soloRemaining > 0) return;
     supabase.from("bidal_sessions").update({ status: "completed", ended_at: new Date().toISOString() }).eq("id", session!.id).then(() => loadAll());
   }, [isSolo, session, soloRemaining, loadAll]);
+
+  useEffect(() => {
+    if (session?.status !== "completed" || !session.id) return;
+    supabase
+      .from("bidal_moves")
+      .select("move_index, player_id, prev_word, new_word, move_type, undone")
+      .eq("session_id", session.id)
+      .then(({ data }) => setMoves((data as BidalMoveRow[]) || []));
+  }, [session?.status, session?.id]);
+
+  async function handleShare(result: ReturnType<typeof computeBidalResult>) {
+    setShareState("working");
+    const res = await shareBidalResultCard(result, myPlayer?.nickname);
+    setShareState(res === "failed" ? "failed" : res === "cancelled" ? "idle" : res);
+  }
 
   function copyCode() {
     navigator.clipboard?.writeText(code);
@@ -213,8 +233,6 @@ export default function BidalSessionPage() {
       </div>
     );
   }
-
-  const winner = session.winner_player_id ? players.find((p) => p.id === session.winner_player_id) : null;
 
   return (
     <div dir={t.dir} className="" style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
@@ -239,6 +257,17 @@ export default function BidalSessionPage() {
             >
               {code} {copied ? <Check size={22} /> : <Copy size={20} />}
             </button>
+
+            <div style={{ marginBottom: 20 }}>
+              <ShareInvite
+                code={code}
+                joinPath="/bidal/join"
+                lang={lang}
+                accent={`linear-gradient(135deg, ${TEAL}, ${CORAL})`}
+                label={t.roomCode}
+                emoji={"\u{1F524}\u{1F608}"}
+              />
+            </div>
 
             <p className="font-body" style={{ fontSize: 12, fontWeight: 800, color: "var(--ink-soft)", marginBottom: 10 }}>
               {t.players} ({players.length})
@@ -358,31 +387,109 @@ export default function BidalSessionPage() {
         )}
 
         {/* ---------------- RESULTS ---------------- */}
-        {session.status === "completed" && (
-          <div className="screen-enter" style={{ marginTop: 90, textAlign: "center" }}>
-            {isSolo ? (
-              <SoloResult session={session} player={myPlayer} lang={lang} />
-            ) : (
-              <>
-                <span className="pop" style={{ fontSize: 64, display: "block", marginBottom: 10 }}>🎉</span>
-                <h1 className="font-display" style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>
-                  {winner ? `${winner.nickname} ${t.winnerAnnounce}` : t.winnerAnnounce}
-                </h1>
-              </>
-            )}
-            <Link
-              href="/bidal"
-              className="font-display"
-              style={{
-                display: "inline-block", marginTop: 26, padding: "15px 36px", fontSize: 15, borderRadius: 999, border: "none",
-                color: "#fff", background: `linear-gradient(135deg, ${TEAL}, ${CORAL})`,
-              }}
-            >
-              {t.playAgain}
-            </Link>
-          </div>
+        {session.status === "completed" && myPlayer && (
+          <ResultsView
+            session={session}
+            myPlayer={myPlayer}
+            players={players}
+            moves={moves}
+            shareState={shareState}
+            onShare={handleShare}
+            ar={ar}
+          />
         )}
       </div>
+    </div>
+  );
+}
+
+function ResultsView({
+  session, myPlayer, players, moves, shareState, onShare, ar,
+}: {
+  session: BidalSessionRow;
+  myPlayer: BidalPlayerRow;
+  players: BidalPlayerRow[];
+  moves: BidalMoveRow[];
+  shareState: "idle" | "working" | "shared" | "downloaded" | "failed";
+  onShare: (result: ReturnType<typeof computeBidalResult>) => void;
+  ar: boolean;
+}) {
+  const result = computeBidalResult(session, myPlayer, players, moves);
+
+  return (
+    <div className="screen-enter" style={{ marginTop: 40, textAlign: "center" }}>
+      <p className="font-body" style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-soft)" }}>بدل الكلمة</p>
+
+      <div
+        className="card pop"
+        style={{
+          marginTop: 14, padding: "32px 22px", borderRadius: 32, color: "#fff",
+          background: `linear-gradient(135deg, ${TEAL}, ${CORAL})`,
+        }}
+      >
+        <h1 className="font-display" style={{ fontSize: 26, fontWeight: 800, margin: "0 0 20px" }}>
+          {result.isSolo
+            ? (result.finished ? "🏆 خلصتها!" : `${result.lettersUsed}/${result.totalLetters} حروف`)
+            : (result.position === 1 ? `🥇 المركز الأول` : result.position ? `المركز ${ordinalAr(result.position)}` : "")}
+        </h1>
+
+        {/* Word flow — the signature visual, right-to-left, wraps naturally */}
+        <div dir="rtl" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 10px", marginBottom: 22 }}>
+          {result.wordFlow.map((word, i) => (
+            <span key={i} className="font-display" style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 22, fontWeight: 800 }}>
+              {word}
+              {i < result.wordFlow.length - 1 && <span style={{ fontSize: 16, opacity: 0.7 }}>←</span>}
+            </span>
+          ))}
+        </div>
+
+        <div style={{ height: 1, background: "rgba(255,255,255,0.25)", margin: "0 20px 18px" }} />
+
+        {result.finished && result.completionSeconds !== null ? (
+          <p className="font-body" style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>
+            {result.isSolo ? `انتهيت في ${formatDuration(result.completionSeconds)}` : `خلصتها في ${formatDuration(result.completionSeconds)}`}
+          </p>
+        ) : !result.isSolo && result.position === 1 && result.completionSeconds !== null ? (
+          <p className="font-body" style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>
+            {`خلصتها في ${formatDuration(result.completionSeconds)}`}
+          </p>
+        ) : (
+          <>
+            <p className="font-body" style={{ fontSize: 15, fontWeight: 700, margin: "0 0 8px" }}>
+              {`استخدمت ${result.lettersUsed}/${result.totalLetters} حرف`}
+            </p>
+            {result.remainingLetters.length > 0 && (
+              <p className="font-display" style={{ fontSize: 17, fontWeight: 800, margin: 0 }}>
+                {`باقي لي: ${result.remainingLetters.join(" ")}`}
+              </p>
+            )}
+          </>
+        )}
+      </div>
+
+      <button
+        onClick={() => onShare(result)}
+        disabled={shareState === "working"}
+        className="font-display"
+        style={{
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", marginTop: 18,
+          padding: 16, fontSize: 15, borderRadius: 999, border: "none", color: "#fff",
+          background: `linear-gradient(135deg, ${TEAL}, ${CORAL})`,
+        }}
+      >
+        {shareState === "working" ? "..." : shareState === "shared" ? "تم!" : shareState === "downloaded" ? "انحفظت الصورة!" : "شارك نتيجتك"}
+      </button>
+
+      <Link
+        href="/bidal"
+        className="font-display"
+        style={{
+          display: "inline-block", marginTop: 12, padding: "13px 36px", fontSize: 14, borderRadius: 999,
+          border: "2px solid var(--ring)", color: "var(--ink)", background: "transparent",
+        }}
+      >
+        {ar ? "العب مرة ثانية" : "Play Again"}
+      </Link>
     </div>
   );
 }
@@ -426,33 +533,5 @@ function Honeycomb({
         </div>
       ))}
     </div>
-  );
-}
-
-function SoloResult({ session, player, lang }: { session: BidalSessionRow; player: BidalPlayerRow | null; lang: string }) {
-  const ar = lang === "ar";
-  const won = !!player && player.letters.length === 0;
-  const used = player ? 15 - player.letters.length : 0;
-  const timeTaken = session.started_at && session.ended_at
-    ? Math.round((new Date(session.ended_at).getTime() - new Date(session.started_at).getTime()) / 1000)
-    : null;
-
-  return (
-    <>
-      <span className="pop" style={{ fontSize: 64, display: "block", marginBottom: 10 }}>{won ? "🏆" : "⏱️"}</span>
-      <h1 className="font-display" style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>
-        {won ? (ar ? "فزت! 🎉" : "You win! 🎉") : (ar ? "خلص الوقت!" : "Time's up!")}
-      </h1>
-      <div className="card pop" style={{ marginTop: 20, padding: 20, textAlign: "start" }}>
-        <p className="font-body" style={{ fontSize: 13.5, fontWeight: 700, margin: "0 0 8px" }}>
-          {ar ? `${used} حرف استخدمته من ١٥` : `${used} of 15 letters used`}
-        </p>
-        {won && timeTaken !== null && (
-          <p className="font-body" style={{ fontSize: 13.5, fontWeight: 700, margin: 0 }}>
-            {ar ? `الوقت: ${timeTaken} ثانية` : `Time: ${timeTaken}s`}
-          </p>
-        )}
-      </div>
-    </>
   );
 }

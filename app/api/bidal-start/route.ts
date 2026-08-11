@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
       .from("bidal_sessions")
       .update({
         current_word: startingWord,
+        starting_word: startingWord,
         status: "in_progress",
         started_at: new Date().toISOString(),
         move_index: 0,

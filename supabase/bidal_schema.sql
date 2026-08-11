@@ -22,7 +22,7 @@ create table if not exists bidal_sessions (
   current_word      text,
   move_index        int not null default 0,
   shuffle_used      boolean not null default false,
-  time_limit_seconds int not null default 90, -- solo mode config; see lib/bidal-config.ts for the single source of truth on the client side
+  time_limit_seconds int not null default 50, -- solo mode config; see lib/bidal-letters.ts (SOLO_TIME_LIMIT_SECONDS) for the single source of truth on the client side
   started_at        timestamptz,
   ended_at          timestamptz,
   winner_player_id  uuid,

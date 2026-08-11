@@ -8,7 +8,7 @@
 
 // Single source of truth for the solo timer — change this one value, not
 // a number scattered through the game.
-export const SOLO_TIME_LIMIT_SECONDS = 90;
+export const SOLO_TIME_LIMIT_SECONDS = 50;
 
 export const STARTING_WORDS = [
   "قلب", "قلم", "كلب", "باب", "بيت", "بحر", "نهر", "شمس", "قمر", "ليل",

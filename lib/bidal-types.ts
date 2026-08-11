@@ -8,6 +8,7 @@ export type BidalSessionRow = {
   mode: BidalMode;
   status: BidalStatus;
   current_word: string | null;
+  starting_word: string | null;
   move_index: number;
   shuffle_used: boolean;
   time_limit_seconds: number;

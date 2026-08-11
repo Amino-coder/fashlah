@@ -33,7 +33,7 @@ export default function BidalSoloPage() {
             .from("bidal_sessions")
             .insert({
               code, host_user_id: userId, mode: "solo", lang, status: "in_progress",
-              current_word: startingWord, started_at: new Date().toISOString(),
+              current_word: startingWord, starting_word: startingWord, started_at: new Date().toISOString(),
               time_limit_seconds: SOLO_TIME_LIMIT_SECONDS,
             })
             .select()

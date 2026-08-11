@@ -138,11 +138,11 @@ export function WadakArt({ size = 120 }: P) {
 
 /* ─── بدل الكلمة — two hex letter tiles swapping ─── */
 export function BidalArt({ size = 120 }: P) {
-  const TEAL = "#14B8A6";
+  const ORANGE = "#FF8A3D";
   const CORAL = "#FF5A5F";
   const hex = "M100 60 L130 78 L130 114 L100 132 L70 114 L70 78 Z";
   return (
-    <Tile bg={TEAL}>
+    <Tile bg={ORANGE}>
       <Confetti a={CORAL} b={CREAM} />
       <g transform="translate(-24 -6) rotate(-6 100 100)">
         <path d={hex} fill={CREAM} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
