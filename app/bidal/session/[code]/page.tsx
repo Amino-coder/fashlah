@@ -32,6 +32,7 @@ export default function BidalSessionPage() {
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [moves, setMoves] = useState<BidalMoveRow[]>([]);
   const [shareState, setShareState] = useState<"idle" | "working" | "shared" | "downloaded" | "failed">("idle");
@@ -80,11 +81,15 @@ export default function BidalSessionPage() {
   async function handleStart() {
     if (!session) return;
     setStarting(true);
+    setStartError(null);
     try {
-      await fetch("/api/bidal-start", {
+      const res = await fetch("/api/bidal-start", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId: session.id }),
-      });
+      }).then((r) => r.json());
+      if (!res.success) setStartError(res.reason || t.errorGeneric);
+    } catch {
+      setStartError(t.errorGeneric);
     } finally {
       setStarting(false);
     }
@@ -285,17 +290,24 @@ export default function BidalSessionPage() {
             </div>
 
             {isHost ? (
-              <button
-                onClick={handleStart}
-                disabled={players.length < 2 || starting}
-                className="font-display"
-                style={{
-                  display: "block", width: "100%", padding: 18, fontSize: 16, borderRadius: 999, border: "none", color: "#fff",
-                  background: `linear-gradient(135deg, ${TEAL}, ${CORAL})`, opacity: players.length < 2 || starting ? 0.5 : 1,
-                }}
-              >
-                {starting ? t.loading : t.startGame}
-              </button>
+              <>
+                <button
+                  onClick={handleStart}
+                  disabled={players.length < 2 || starting}
+                  className="font-display"
+                  style={{
+                    display: "block", width: "100%", padding: 18, fontSize: 16, borderRadius: 999, border: "none", color: "#fff",
+                    background: `linear-gradient(135deg, ${TEAL}, ${CORAL})`, opacity: players.length < 2 || starting ? 0.5 : 1,
+                  }}
+                >
+                  {starting ? t.loading : t.startGame}
+                </button>
+                {startError && (
+                  <p className="font-body" style={{ textAlign: "center", fontSize: 12, color: "#E63946", fontWeight: 700, marginTop: 10, direction: "ltr" }}>
+                    {startError}
+                  </p>
+                )}
+              </>
             ) : (
               <p className="font-body" style={{ textAlign: "center", fontSize: 13, color: "var(--ink-soft)", fontWeight: 700 }}>
                 {t.waitingHost}

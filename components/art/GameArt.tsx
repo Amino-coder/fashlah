@@ -140,17 +140,22 @@ export function WadakArt({ size = 120 }: P) {
 export function BidalArt({ size = 120 }: P) {
   const ORANGE = "#FF8A3D";
   const CORAL = "#FF5A5F";
+  const TEAL = "#14B8A6";
   const hex = "M100 60 L130 78 L130 114 L100 132 L70 114 L70 78 Z";
   return (
     <Tile bg={ORANGE}>
       <Confetti a={CORAL} b={CREAM} />
-      <g transform="translate(-24 -6) rotate(-6 100 100)">
-        <path d={hex} fill={CREAM} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
-        <text x="100" y="107" textAnchor="middle" fontSize="30" fontWeight="800" fill={INK} fontFamily="sans-serif">ق</text>
+      <g transform="translate(-46 6) rotate(-8 100 100) scale(0.72)">
+        <path d={hex} fill={CREAM} stroke={INK} strokeWidth="7" strokeLinejoin="round" />
+        <text x="100" y="110" textAnchor="middle" fontSize="38" fontWeight="800" fill={INK} fontFamily="sans-serif">ب</text>
       </g>
-      <g transform="translate(28 14) rotate(8 100 100)">
-        <path d={hex} fill={CORAL} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
-        <text x="100" y="107" textAnchor="middle" fontSize="30" fontWeight="800" fill={CREAM} fontFamily="sans-serif">م</text>
+      <g transform="translate(0 -14) scale(0.72)">
+        <path d={hex} fill={TEAL} stroke={INK} strokeWidth="7" strokeLinejoin="round" />
+        <text x="100" y="110" textAnchor="middle" fontSize="38" fontWeight="800" fill={CREAM} fontFamily="sans-serif">د</text>
+      </g>
+      <g transform="translate(46 6) rotate(8 100 100) scale(0.72)">
+        <path d={hex} fill={CORAL} stroke={INK} strokeWidth="7" strokeLinejoin="round" />
+        <text x="100" y="110" textAnchor="middle" fontSize="38" fontWeight="800" fill={CREAM} fontFamily="sans-serif">ل</text>
       </g>
     </Tile>
   );
