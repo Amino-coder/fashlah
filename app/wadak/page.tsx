@@ -135,7 +135,7 @@ function IntroScreen({ nickname, onNicknameChange, onStart }: { nickname: string
       >
         👀
       </div>
-      <h1 className="font-display" style={{ fontSize: 32, fontWeight: 800, margin: "0 0 10px" }}>وش وضعك؟</h1>
+      <h1 className="font-display" style={{ fontSize: 32, fontWeight: 800, margin: "0 0 10px" }}>وش شخصيتك</h1>
       <p className="font-body" style={{ fontSize: 15.5, fontWeight: 700, color: "var(--ink-soft)", lineHeight: 1.7, margin: "0 0 4px" }}>
         جاوب على كم سؤال ونقول لك وش شخصيتك الحقيقية 😂
       </p>
@@ -320,7 +320,7 @@ function StoryResults({ result, nickname, onRestart }: { result: ScoreResult; ni
       key: "intro",
       render: () => (
         <>
-          <p className="font-body" style={{ fontSize: 15, fontWeight: 700, opacity: 0.85 }}>وش وضعك؟</p>
+          <p className="font-body" style={{ fontSize: 15, fontWeight: 700, opacity: 0.85 }}>وش شخصيتك</p>
           <h2 className="font-display" style={{ fontSize: 28, fontWeight: 800, margin: "10px 0" }}>
             {nickname.trim() ? `طيب يا ${nickname.trim()}...` : "طيب..."} جاهزين نطلعلك وضعك؟ 👀
           </h2>

@@ -123,19 +123,34 @@ export function IbaratArt({ size = 120 }: P) {
   );
 }
 
-/* ─── وش وضعك؟ — a big curious eye, mid-wink ─── */
+/* ─── وش شخصيتك — a bold cartoon brain ─── */
 export function WadakArt({ size = 120 }: P) {
   const TEAL = "#14B8A6";
   const INDIGO = "#4C1D95";
   return (
     <Tile bg={TEAL}>
       <Confetti a={INDIGO} b={CREAM} />
-      <g transform="rotate(-4 100 104)">
-        <path d="M 34 104 Q 100 46 166 104 Q 100 162 34 104 Z" fill={CREAM} stroke={INK} strokeWidth="6" />
-        <circle cx="100" cy="104" r="30" fill={INDIGO} stroke={INK} strokeWidth="6" />
-        <circle cx="100" cy="104" r="12" fill={INK} />
-        <circle cx="92" cy="96" r="5" fill={CREAM} />
-        <path d="M 38 90 Q 100 58 162 90" fill="none" stroke={INK} strokeWidth="6" strokeLinecap="round" opacity=".5" />
+      <g transform="rotate(-4 100 100)">
+        <path
+          d="M 100 44
+             C 78 44 66 56 64 70
+             C 48 72 38 84 40 98
+             C 30 102 26 116 34 126
+             C 32 140 44 152 60 150
+             C 64 158 76 162 86 156
+             C 90 160 110 160 114 156
+             C 124 162 136 158 140 150
+             C 156 152 168 140 166 126
+             C 174 116 170 102 160 98
+             C 162 84 152 72 136 70
+             C 134 56 122 44 100 44 Z"
+          fill={CREAM} stroke={INK} strokeWidth="6" strokeLinejoin="round"
+        />
+        <path
+          d="M 100 50 V 152 M 64 70 Q 78 80 76 96 Q 90 104 84 118 Q 96 122 92 138
+             M 136 70 Q 122 80 124 96 Q 110 104 116 118 Q 104 122 108 138"
+          fill="none" stroke={INDIGO} strokeWidth="5" strokeLinecap="round" opacity=".55"
+        />
       </g>
     </Tile>
   );

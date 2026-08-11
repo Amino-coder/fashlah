@@ -123,7 +123,7 @@ export async function renderResultCardToCanvas(archetype: Archetype, result: Sco
 
   ctx.font = `800 32px "${FONT_UI}", sans-serif`;
   ctx.fillStyle = "rgba(255,255,255,0.85)";
-  ctx.fillText("وش وضعك؟ 👀", CARD_W / 2, 130);
+  ctx.fillText("وش شخصيتك 🧠", CARD_W / 2, 130);
 
   if (nickname?.trim()) {
     ctx.font = `700 30px "${FONT_UI}", sans-serif`;
@@ -142,7 +142,7 @@ export async function renderResultCardToCanvas(archetype: Archetype, result: Sco
   ctx.fillStyle = "rgba(255,255,255,0.92)";
   const lineWrapped = wrapText(ctx, archetype.cardLine, CARD_W - PAD_X * 2);
   let ly = 470;
-  for (const line of lineWrapped) { ctx.fillText(line, CARD_W / 2, ly); ly += 42; }
+  for (const line of lineWrapped) { ctx.fillText(line, CARD_W / 2, ly); ly += 48; }
 
   // Radar chart — the main visual centerpiece now, replacing flat bars.
   drawRadar(ctx, result, CARD_W / 2, ly + 300, 210);
@@ -158,11 +158,11 @@ export async function renderResultCardToCanvas(archetype: Archetype, result: Sco
   ctx.font = `700 26px "${FONT_UI}", sans-serif`;
   ctx.fillStyle = CREAM;
   const strengthLines = wrapText(ctx, `💪 ${archetype.strengths[0]}`, CARD_W - PAD_X * 2);
-  let sy = calloutY + 56;
-  for (const line of strengthLines) { ctx.fillText(line, CARD_W / 2, sy); sy += 36; }
+  let sy = calloutY + 70;
+  for (const line of strengthLines) { ctx.fillText(line, CARD_W / 2, sy); sy += 46; }
   const flawLines = wrapText(ctx, `💀 ${archetype.flaw}`, CARD_W - PAD_X * 2);
-  sy += 10;
-  for (const line of flawLines) { ctx.fillText(line, CARD_W / 2, sy); sy += 36; }
+  sy += 26;
+  for (const line of flawLines) { ctx.fillText(line, CARD_W / 2, sy); sy += 46; }
 
   // Footer branding
   ctx.font = `800 40px "${FONT_DISPLAY}", sans-serif`;
@@ -172,7 +172,7 @@ export async function renderResultCardToCanvas(archetype: Archetype, result: Sco
   ctx.font = `700 26px "${FONT_UI}", sans-serif`;
   ctx.fillStyle = "rgba(255,255,255,0.75)";
   ctx.direction = "rtl";
-  ctx.fillText("جرب وشوف وش وضعك انت", CARD_W / 2, CARD_H - 62);
+  ctx.fillText("جرب وشوف وش شخصيتك انت", CARD_W / 2, CARD_H - 62);
 
   return canvas;
 }

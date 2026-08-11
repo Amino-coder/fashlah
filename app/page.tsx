@@ -46,7 +46,7 @@ export default function Home() {
   const LIMITED_FREE = "#FF7A1A";
 
   const entries = [
-    { href: "/wadak", title: "وش وضعك؟", sub: ar ? "جاوب وشوف شخصيتك الحقيقية 👀" : "Answer and find your real personality 👀", Art: WadakArt, badge: ar ? "مجاناً" : "Free", badgeColor: ALWAYS_FREE },
+    { href: "/wadak", title: "وش شخصيتك", sub: ar ? "جاوب وشوف شخصيتك الحقيقية 🧠" : "Answer and find your real personality 🧠", Art: WadakArt, badge: ar ? "مجاناً" : "Free", badgeColor: ALWAYS_FREE, soloBadge: ar ? "لعبة فردية" : "Solo game" },
     { href: "/fashlah", title: t.gameName, sub: ar ? "اكتشفوا أسرار شلتكم 😂" : "Uncover your group's secrets 😂", Art: FashlahArt, badge: ar ? "مجاناً" : "Free", badgeColor: ALWAYS_FREE },
     { href: "/shofah", title: SHOFAH_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين بيتزوج أول" : "Who gets married first?", Art: ShofahArt, badge: ar ? "مجاناً" : "Free", badgeColor: ALWAYS_FREE },
     { href: "/qissa", title: QISSA_STR[lang].gameNameArabic, sub: ar ? "قصة توها تبدأ... وتضيع بين الكل 😂" : "A story that gets lost along the way 😂", Art: QissaArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
@@ -118,7 +118,7 @@ export default function Home() {
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 34 }}>
-          {entries.map(({ href, title, sub, Art, badge, badgeColor }) => (
+          {entries.map(({ href, title, sub, Art, badge, badgeColor, soloBadge }) => (
             <Link
               key={href}
               href={href}
@@ -151,6 +151,22 @@ export default function Home() {
                     }}
                   >
                     {badge}
+                  </span>
+                )}
+                {soloBadge && (
+                  <span
+                    className="font-body"
+                    style={{
+                      position: "absolute", top: -10, left: -8, zIndex: 2,
+                      maxWidth: 92, textAlign: "center",
+                      background: "var(--card)", color: "var(--ink)",
+                      fontSize: 8.5, fontWeight: 800, lineHeight: 1.3,
+                      padding: "5px 8px", borderRadius: 10,
+                      border: "2px solid var(--icon-outline)", boxShadow: "2px 2px 0 var(--icon-outline)",
+                      transform: "rotate(8deg)",
+                    }}
+                  >
+                    {soloBadge}
                   </span>
                 )}
               </div>
