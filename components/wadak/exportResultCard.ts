@@ -1,6 +1,7 @@
 import { CARD_W, CARD_H, PAD_X, RADIUS, FRAME_INSET, TEAL, INDIGO, CREAM, FONT_DISPLAY, FONT_UI, BRAND_URL } from "@/lib/wadak-card";
-import { DIMENSION_LABELS, type Archetype } from "@/lib/wadak-content";
+import { type Archetype } from "@/lib/wadak-content";
 import type { ScoreResult } from "@/lib/wadak-engine";
+import { radarPoints } from "./RadarChart";
 
 function roundedRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
@@ -37,7 +38,65 @@ async function ensureFonts() {
   } catch { /* fallback face beats no card */ }
 }
 
-export async function renderResultCardToCanvas(archetype: Archetype, result: ScoreResult): Promise<HTMLCanvasElement> {
+const DIMENSION_LABELS_AR: Record<string, string> = {
+  spontaneity: "العفوية", overthinking: "التفكير الزايد", comfort: "حب الراحة",
+  recklessness: "التهور", drama: "الدراما", control: "حب التحكم",
+};
+
+function drawRadar(ctx: CanvasRenderingContext2D, result: ScoreResult, cx: number, cy: number, maxR: number) {
+  const order: (keyof typeof DIMENSION_LABELS_AR)[] = ["spontaneity", "overthinking", "comfort", "recklessness", "drama", "control"];
+  const rings = [0.25, 0.5, 0.75, 1];
+
+  ctx.save();
+  ctx.strokeStyle = "rgba(255,255,255,0.25)";
+  ctx.lineWidth = 1.5;
+  for (const r of rings) {
+    ctx.beginPath();
+    order.forEach((_, i) => {
+      const angle = (Math.PI * 2 * i) / order.length - Math.PI / 2;
+      const x = cx + maxR * r * Math.cos(angle), y = cy + maxR * r * Math.sin(angle);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.stroke();
+  }
+  order.forEach((_, i) => {
+    const angle = (Math.PI * 2 * i) / order.length - Math.PI / 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + maxR * Math.cos(angle), cy + maxR * Math.sin(angle));
+    ctx.stroke();
+  });
+  ctx.restore();
+
+  const pts = radarPoints(result.percentages, cx, cy, maxR);
+  ctx.beginPath();
+  pts.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+  ctx.closePath();
+  ctx.fillStyle = "rgba(255,249,240,0.5)";
+  ctx.fill();
+  ctx.strokeStyle = CREAM;
+  ctx.lineWidth = 4;
+  ctx.stroke();
+  for (const p of pts) {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
+    ctx.fillStyle = CREAM;
+    ctx.fill();
+  }
+
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `700 26px "${FONT_UI}", sans-serif`;
+  ctx.fillStyle = CREAM;
+  order.forEach((dim, i) => {
+    const angle = (Math.PI * 2 * i) / order.length - Math.PI / 2;
+    const lx = cx + (maxR + 60) * Math.cos(angle), ly = cy + (maxR + 60) * Math.sin(angle);
+    ctx.fillText(DIMENSION_LABELS_AR[dim], lx, ly);
+  });
+}
+
+export async function renderResultCardToCanvas(archetype: Archetype, result: ScoreResult, nickname?: string): Promise<HTMLCanvasElement> {
   await ensureFonts();
 
   const canvas = document.createElement("canvas");
@@ -45,7 +104,6 @@ export async function renderResultCardToCanvas(archetype: Archetype, result: Sco
   canvas.height = CARD_H;
   const ctx = canvas.getContext("2d")!;
 
-  // Background
   const grad = ctx.createLinearGradient(0, 0, CARD_W, CARD_H);
   grad.addColorStop(0, TEAL);
   grad.addColorStop(1, INDIGO);
@@ -53,7 +111,6 @@ export async function renderResultCardToCanvas(archetype: Archetype, result: Sco
   roundedRectPath(ctx, 0, 0, CARD_W, CARD_H, RADIUS);
   ctx.fill();
 
-  // Frame
   ctx.save();
   ctx.strokeStyle = "rgba(255,255,255,0.35)";
   ctx.lineWidth = 2;
@@ -64,62 +121,58 @@ export async function renderResultCardToCanvas(archetype: Archetype, result: Sco
   ctx.textAlign = "center";
   ctx.direction = "rtl";
 
-  // Eyebrow
-  ctx.font = `800 34px "${FONT_UI}", sans-serif`;
+  ctx.font = `800 32px "${FONT_UI}", sans-serif`;
   ctx.fillStyle = "rgba(255,255,255,0.85)";
-  ctx.fillText("وش وضعك؟ 👀", CARD_W / 2, 190);
+  ctx.fillText("وش وضعك؟ 👀", CARD_W / 2, 130);
 
-  // Emoji (big)
-  ctx.font = `160px sans-serif`;
-  ctx.fillText(archetype.emoji, CARD_W / 2, 400);
+  if (nickname?.trim()) {
+    ctx.font = `700 30px "${FONT_UI}", sans-serif`;
+    ctx.fillStyle = "rgba(255,255,255,0.75)";
+    ctx.fillText(nickname.trim(), CARD_W / 2, 172);
+  }
 
-  // Archetype name
-  ctx.font = `800 88px "${FONT_DISPLAY}", sans-serif`;
+  ctx.font = `130px sans-serif`;
+  ctx.fillText(archetype.emoji, CARD_W / 2, 330);
+
+  ctx.font = `800 70px "${FONT_DISPLAY}", sans-serif`;
   ctx.fillStyle = CREAM;
-  ctx.fillText(archetype.name, CARD_W / 2, 500);
+  ctx.fillText(archetype.name, CARD_W / 2, 420);
 
-  // Card line (funny one-liner)
-  ctx.font = `700 38px "${FONT_UI}", sans-serif`;
+  ctx.font = `700 32px "${FONT_UI}", sans-serif`;
   ctx.fillStyle = "rgba(255,255,255,0.92)";
   const lineWrapped = wrapText(ctx, archetype.cardLine, CARD_W - PAD_X * 2);
-  let ly = 580;
-  for (const line of lineWrapped) { ctx.fillText(line, CARD_W / 2, ly); ly += 50; }
+  let ly = 470;
+  for (const line of lineWrapped) { ctx.fillText(line, CARD_W / 2, ly); ly += 42; }
 
-  // Stat bars — top 2 dimensions
-  const statsY = ly + 90;
-  const barW = CARD_W - PAD_X * 2;
-  const barH = 30;
-  const gap = 130;
-  result.ranked.slice(0, 3).forEach((stat, i) => {
-    const y = statsY + i * gap;
-    ctx.textAlign = "right";
-    ctx.font = `700 34px "${FONT_UI}", sans-serif`;
-    ctx.fillStyle = CREAM;
-    ctx.fillText(DIMENSION_LABELS[stat.dimension], CARD_W - PAD_X, y - 14);
-    ctx.textAlign = "left";
-    ctx.fillText(`${stat.percentage}%`, PAD_X, y - 14);
+  // Radar chart — the main visual centerpiece now, replacing flat bars.
+  drawRadar(ctx, result, CARD_W / 2, ly + 300, 210);
 
-    // track
-    ctx.fillStyle = "rgba(255,255,255,0.2)";
-    roundedRectPath(ctx, PAD_X, y, barW, barH, barH / 2);
-    ctx.fill();
-    // fill
-    ctx.fillStyle = CREAM;
-    const fillW = Math.max(barH, (barW * stat.percentage) / 100);
-    roundedRectPath(ctx, PAD_X, y, fillW, barH, barH / 2);
-    ctx.fill();
-  });
+  // Top dimension callout below the chart
+  const topStat = result.ranked[0];
+  const calloutY = ly + 610;
+  ctx.font = `700 28px "${FONT_UI}", sans-serif`;
+  ctx.fillStyle = "rgba(255,255,255,0.85)";
+  ctx.fillText(`أعلى صفة: ${DIMENSION_LABELS_AR[topStat.dimension]} — ${topStat.percentage}%`, CARD_W / 2, calloutY);
+
+  // Strength + flaw, brief, for more information on the card
+  ctx.font = `700 26px "${FONT_UI}", sans-serif`;
+  ctx.fillStyle = CREAM;
+  const strengthLines = wrapText(ctx, `💪 ${archetype.strengths[0]}`, CARD_W - PAD_X * 2);
+  let sy = calloutY + 56;
+  for (const line of strengthLines) { ctx.fillText(line, CARD_W / 2, sy); sy += 36; }
+  const flawLines = wrapText(ctx, `💀 ${archetype.flaw}`, CARD_W - PAD_X * 2);
+  sy += 10;
+  for (const line of flawLines) { ctx.fillText(line, CARD_W / 2, sy); sy += 36; }
 
   // Footer branding
-  ctx.textAlign = "center";
   ctx.font = `800 40px "${FONT_DISPLAY}", sans-serif`;
   ctx.fillStyle = CREAM;
   ctx.direction = "ltr";
   ctx.fillText(BRAND_URL, CARD_W / 2, CARD_H - 110);
-  ctx.font = `700 28px "${FONT_UI}", sans-serif`;
+  ctx.font = `700 26px "${FONT_UI}", sans-serif`;
   ctx.fillStyle = "rgba(255,255,255,0.75)";
   ctx.direction = "rtl";
-  ctx.fillText("جرب وشوف وش وضعك انت", CARD_W / 2, CARD_H - 60);
+  ctx.fillText("جرب وشوف وش وضعك انت", CARD_W / 2, CARD_H - 62);
 
   return canvas;
 }
@@ -132,9 +185,9 @@ function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
 
 export type ShareResult = "shared" | "downloaded" | "cancelled" | "failed";
 
-export async function shareResultCard(archetype: Archetype, result: ScoreResult): Promise<ShareResult> {
+export async function shareResultCard(archetype: Archetype, result: ScoreResult, nickname?: string): Promise<ShareResult> {
   try {
-    const canvas = await renderResultCardToCanvas(archetype, result);
+    const canvas = await renderResultCardToCanvas(archetype, result, nickname);
     const blob = await canvasToBlob(canvas);
     const file = new File([blob], `bagdoonis-wadak-${archetype.key}.png`, { type: "image/png" });
 
