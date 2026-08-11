@@ -35,14 +35,23 @@ const WEIGHTED_POOL: string[] = Object.entries(LETTER_WEIGHTS).flatMap(([letter,
   Array(weight).fill(letter)
 );
 
-/** Draws `count` letters independently at random from the weighted pool
- *  (with replacement, so duplicates within a hand are expected and fine —
- *  real Arabic words repeat letters constantly). Called once per player,
- *  so different players naturally end up with different hands. */
+/** Draws `count` DISTINCT letters (no repeats within a hand) — weighted
+ *  toward common letters via the repeated-entries trick above, but each
+ *  letter can only be picked once. Arabic has ~29 letters, comfortably
+ *  more than the 15 needed, so this always succeeds without needing to
+ *  fall back to the full alphabet. */
 export function drawLetters(count = 15): string[] {
+  const shuffledPool = [...WEIGHTED_POOL].sort(() => Math.random() - 0.5);
   const hand: string[] = [];
-  for (let i = 0; i < count; i++) {
-    hand.push(WEIGHTED_POOL[Math.floor(Math.random() * WEIGHTED_POOL.length)]);
+  for (const letter of shuffledPool) {
+    if (hand.length >= count) break;
+    if (!hand.includes(letter)) hand.push(letter);
+  }
+  if (hand.length < count) {
+    for (const letter of Object.keys(LETTER_WEIGHTS)) {
+      if (hand.length >= count) break;
+      if (!hand.includes(letter)) hand.push(letter);
+    }
   }
   return hand;
 }

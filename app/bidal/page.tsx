@@ -83,7 +83,7 @@ export default function BidalLandingPage() {
           <div className="card pop" style={{ marginTop: 32, padding: 20, textAlign: "start" }}>
             <p className="font-body" style={{ fontSize: 12.5, fontWeight: 700, color: "var(--ink-soft)", lineHeight: 1.9, margin: 0 }}>
               {ar
-                ? "بدّل حرف من كلمة الثلاث أحرف بحرف من عندك وسوّي كلمة جديدة. ما فيه صح أو غلط آلي — أنتم اللي تحكمون. أول واحد يخلص حروفه يفوز 🏆"
+                ? "بدّل حرف من الكلمة بحرف من عندك عشان تسوّي كلمة جديدة. ركزوا وتآكدوا محد يخترع كلمات من راسه 😂. أول واحد يخلص حروفه يفوز 🏆"
                 : "Swap one letter in the 3-letter word for one of your own to make a new word. No automatic right/wrong — you all decide. First to empty their hand wins 🏆"}
             </p>
           </div>

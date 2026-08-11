@@ -141,21 +141,24 @@ export function BidalArt({ size = 120 }: P) {
   const ORANGE = "#FF8A3D";
   const CORAL = "#FF5A5F";
   const TEAL = "#14B8A6";
-  const hex = "M100 60 L130 78 L130 114 L100 132 L70 114 L70 78 Z";
+  // Centered at its own local (0,0) so translate/rotate never fight a
+  // scale-from-origin pivot the way the previous version did.
+  const hex = "M0 -36 L31 -18 L31 18 L0 36 L-31 18 L-31 -18 Z";
   return (
     <Tile bg={ORANGE}>
       <Confetti a={CORAL} b={CREAM} />
-      <g transform="translate(-46 6) rotate(-8 100 100) scale(0.72)">
+      {/* ل — leftmost, since Arabic reads right-to-left: ب (right) د (center) ل (left) */}
+      <g transform="translate(52 104) rotate(-8)">
         <path d={hex} fill={CREAM} stroke={INK} strokeWidth="7" strokeLinejoin="round" />
-        <text x="100" y="110" textAnchor="middle" fontSize="38" fontWeight="800" fill={INK} fontFamily="sans-serif">ب</text>
+        <text x="0" y="13" textAnchor="middle" fontSize="34" fontWeight="800" fill={INK} fontFamily="sans-serif">ل</text>
       </g>
-      <g transform="translate(0 -14) scale(0.72)">
+      <g transform="translate(100 88)">
         <path d={hex} fill={TEAL} stroke={INK} strokeWidth="7" strokeLinejoin="round" />
-        <text x="100" y="110" textAnchor="middle" fontSize="38" fontWeight="800" fill={CREAM} fontFamily="sans-serif">د</text>
+        <text x="0" y="13" textAnchor="middle" fontSize="34" fontWeight="800" fill={CREAM} fontFamily="sans-serif">د</text>
       </g>
-      <g transform="translate(46 6) rotate(8 100 100) scale(0.72)">
+      <g transform="translate(148 104) rotate(8)">
         <path d={hex} fill={CORAL} stroke={INK} strokeWidth="7" strokeLinejoin="round" />
-        <text x="100" y="110" textAnchor="middle" fontSize="38" fontWeight="800" fill={CREAM} fontFamily="sans-serif">ل</text>
+        <text x="0" y="13" textAnchor="middle" fontSize="34" fontWeight="800" fill={CREAM} fontFamily="sans-serif">ب</text>
       </g>
     </Tile>
   );
