@@ -122,3 +122,21 @@ export function IbaratArt({ size = 120 }: P) {
     </Tile>
   );
 }
+
+/* ─── وش وضعك؟ — a big curious eye, mid-wink ─── */
+export function WadakArt({ size = 120 }: P) {
+  const TEAL = "#14B8A6";
+  const INDIGO = "#4C1D95";
+  return (
+    <Tile bg={TEAL}>
+      <Confetti a={INDIGO} b={CREAM} />
+      <g transform="rotate(-4 100 104)">
+        <path d="M 34 104 Q 100 46 166 104 Q 100 162 34 104 Z" fill={CREAM} stroke={INK} strokeWidth="6" />
+        <circle cx="100" cy="104" r="30" fill={INDIGO} stroke={INK} strokeWidth="6" />
+        <circle cx="100" cy="104" r="12" fill={INK} />
+        <circle cx="92" cy="96" r="5" fill={CREAM} />
+        <path d="M 38 90 Q 100 58 162 90" fill="none" stroke={INK} strokeWidth="6" strokeLinecap="round" opacity=".5" />
+      </g>
+    </Tile>
+  );
+}
