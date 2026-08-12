@@ -65,23 +65,17 @@ export async function renderShofahSoloCard(married: boolean, luckyCount: number,
 
   // Two-pass: measure first, then draw a vertically centered block.
   ctx.font = `800 60px "${FONT_DISPLAY}", sans-serif`;
-  const titleText = married ? "مبروك! انكتب لك نصيب 🎉" : "ما انكتب نصيب... بعدها 😅";
+  const titleText = married ? "مبروك! انكتب لك نصيب 🎉" : "ما انكتب نصيب🥲... خيرها بغيرها";
   const titleLines = wrapText(ctx, titleText, CARD_W - PAD_X * 2);
 
-  const eyebrowH = 90;
   const emojiH = 220;
   const titleH = titleLines.length * 76 + 20;
   const subH = 70;
   const footerReserve = 220;
-  const totalH = eyebrowH + emojiH + titleH + subH;
+  const totalH = emojiH + titleH + subH;
   const topMargin = Math.max(140, (CARD_H - footerReserve - totalH) / 2);
 
   let y = topMargin;
-  ctx.font = `800 44px "${FONT_DISPLAY}", sans-serif`;
-  ctx.fillStyle = CREAM;
-  ctx.fillText("💍 أبي أتزوج — العب لحالك", CARD_W / 2, y);
-  y += eyebrowH;
-
   ctx.font = `160px sans-serif`;
   ctx.fillText(married ? "💍" : "😅", CARD_W / 2, y + 60);
   y += emojiH;

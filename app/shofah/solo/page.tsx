@@ -358,7 +358,7 @@ function SoloVerdict({
       <span className="pop" style={{ fontSize: 60, display: "block", marginBottom: 8 }}>{married ? "💍" : "😅"}</span>
       <div style={{ marginBottom: 10 }}><Character size={100} /></div>
       <h1 className="font-display" style={{ fontSize: 26, fontWeight: 800, marginBottom: 8 }}>
-        {married ? (ar ? "مبروك! انكتب لك نصيب 🎉" : "Congrats! It's written 🎉") : (ar ? "ما انكتب نصيب... بعدها 😅" : "Not this time... 😅")}
+        {married ? (ar ? "مبروك! انكتب لك نصيب 🎉" : "Congrats! It's written 🎉") : (ar ? "ما انكتب نصيب🥲... خيرها بغيرها" : "Not this time... 😅")}
       </h1>
       <p className="font-body" style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 28 }}>
         {ar ? `الحظ وقف معك بـ ${luckyCount}/${MAX_LUCKY} من علامات الزواج` : `Luck was with you in ${luckyCount}/${MAX_LUCKY} of marriage signs`}
