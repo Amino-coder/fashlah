@@ -46,7 +46,7 @@ export default function Home() {
   const LIMITED_FREE = "#FF7A1A";
 
   const entries = [
-    { href: "/bidal", title: "بدل الكلمة", sub: ar ? "بدّل حرف، أسرع من الباقين 🔤" : "Swap a letter, beat the rest 🔤", Art: BidalArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
+    { href: "/bidal", title: "بدل الكلمة", sub: ar ? "بدّل حرف، واصنع كلمات جديدة 🔤" : "Swap a letter, beat the rest 🔤", Art: BidalArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE, soloBadge: ar ? "لعبة فردية" : "Solo game" },
     { href: "/shofah", title: SHOFAH_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين بيتزوج أول" : "Who gets married first?", Art: ShofahArt, badge: ar ? "مجاناً" : "Free", badgeColor: ALWAYS_FREE },
     { href: "/ihj", title: "إنسان حيوان جماد", sub: ar ? "لعبة الطيبين - مين أسرعكم بالكتابة 🧠" : "Find the answer nobody else thinks of 🧠", Art: IhjArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
     { href: "/wadak", title: "وش شخصيتك", sub: ar ? "جاوب وشوف شخصيتك الحقيقية 🧠" : "Answer and find your real personality 🧠", Art: WadakArt, badge: ar ? "مجاناً" : "Free", badgeColor: ALWAYS_FREE, soloBadge: ar ? "لعبة فردية" : "Solo game" },
@@ -159,13 +159,13 @@ export default function Home() {
                   <span
                     className="font-body"
                     style={{
-                      position: "absolute", top: -10, left: -8, zIndex: 2,
+                      position: "absolute", top: badge ? 34 : -10, right: -8, zIndex: 2,
                       maxWidth: 92, textAlign: "center",
                       background: "var(--card)", color: "var(--ink)",
                       fontSize: 8.5, fontWeight: 800, lineHeight: 1.3,
                       padding: "5px 8px", borderRadius: 10,
                       border: "2px solid var(--icon-outline)", boxShadow: "2px 2px 0 var(--icon-outline)",
-                      transform: "rotate(8deg)",
+                      transform: "rotate(-4deg)",
                     }}
                   >
                     {soloBadge}
