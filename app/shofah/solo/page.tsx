@@ -40,8 +40,8 @@ function ShofahSolo() {
   const [prompts, setPrompts] = useState<PromptRow[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Warm-up (وش شخصيتك Round 1 questions)
-  const [warmupQuestions] = useState(() => [...SHOFAH_WARMUP_QUESTIONS].sort(() => Math.random() - 0.5));
+  // Warm-up (شوفة's own forked questions — see lib/shofah-solo-warmup.ts)
+  const [warmupQuestions, setWarmupQuestions] = useState(() => [...SHOFAH_WARMUP_QUESTIONS].sort(() => Math.random() - 0.5));
   const [wIdx, setWIdx] = useState(0);
   const [warmupAnswers, setWarmupAnswers] = useState<WarmupAnswer[]>([]);
 
@@ -50,25 +50,46 @@ function ShofahSolo() {
   const [draft, setDraft] = useState("");
   const [answers, setAnswers] = useState<string[]>([]);
 
+  async function fetchPrompts() {
+    try {
+      const { data, error: err } = await supabase
+        .from("shofah_prompts")
+        .select("text_ar, category")
+        .eq("active", true)
+        .or(`audience.is.null,audience.eq.${character}`);
+      if (err || !data || data.length < TOTAL_ROUNDS) throw err || new Error("not enough prompts");
+      const shuffled = [...data].sort(() => Math.random() - 0.5).slice(0, TOTAL_ROUNDS);
+      setPrompts(shuffled);
+      setError(null);
+    } catch {
+      setError(lang === "ar" ? "ما قدرنا نجهز الأسئلة، حاول مرة ثانية" : "Couldn't load questions, try again");
+    } finally {
+      setStage("warmup");
+    }
+  }
+
   useEffect(() => {
     if (!ready) return;
-    (async () => {
-      try {
-        const { data, error: err } = await supabase
-          .from("shofah_prompts")
-          .select("text_ar, category")
-          .eq("active", true)
-          .or(`audience.is.null,audience.eq.${character}`);
-        if (err || !data || data.length < TOTAL_ROUNDS) throw err || new Error("not enough prompts");
-        const shuffled = [...data].sort(() => Math.random() - 0.5).slice(0, TOTAL_ROUNDS);
-        setPrompts(shuffled);
-      } catch {
-        setError(lang === "ar" ? "ما قدرنا نجهز الأسئلة، حاول مرة ثانية" : "Couldn't load questions, try again");
-      } finally {
-        setStage("warmup");
-      }
-    })();
+    fetchPrompts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, character, lang]);
+
+  // "Try Again" used to be a <Link> to this same route+query — which,
+  // since the destination URL was identical to the current one, Next's
+  // router treated as a no-op (no navigation event, nothing remounts, no
+  // state resets). This resets every piece of state directly instead, and
+  // re-shuffles/re-fetches fresh content so a second playthrough isn't
+  // just a re-run of the exact same warm-up order and prompts.
+  function resetGame() {
+    setStage("loading");
+    setWarmupQuestions([...SHOFAH_WARMUP_QUESTIONS].sort(() => Math.random() - 0.5));
+    setWIdx(0);
+    setWarmupAnswers([]);
+    setRound(0);
+    setDraft("");
+    setAnswers([]);
+    fetchPrompts();
+  }
 
   function answerWarmup(optionId: string) {
     setWarmupAnswers((a) => [...a, { questionId: warmupQuestions[wIdx].id, optionId }]);
@@ -187,7 +208,7 @@ function ShofahSolo() {
         )}
 
         {!error && stage === "verdict" && (
-          <SoloVerdict character={character} answers={answers} prompts={prompts} luckyCount={luckyCount} married={married} lang={lang} />
+          <SoloVerdict character={character} answers={answers} prompts={prompts} luckyCount={luckyCount} married={married} lang={lang} onRestart={resetGame} />
         )}
       </div>
     </div>
@@ -314,9 +335,10 @@ function DrumrollVerdict({
 }
 
 function SoloVerdict({
-  character, answers, prompts, luckyCount, married, lang,
+  character, answers, prompts, luckyCount, married, lang, onRestart,
 }: {
   character: ShofahCharacter; answers: string[]; prompts: PromptRow[]; luckyCount: number; married: boolean; lang: string;
+  onRestart: () => void;
 }) {
   const ar = lang === "ar";
   const Character = character === "girl" ? NiqabGirl : ShemaghGuy;
@@ -365,16 +387,16 @@ function SoloVerdict({
         {shareState === "working" ? "..." : shareState === "shared" ? "تم!" : shareState === "downloaded" ? "انحفظت الصورة!" : (ar ? "شارك نتيجتك" : "Share Results")}
       </button>
 
-      <Link
-        href={`/shofah/solo?character=${character}`}
+      <button
+        onClick={onRestart}
         className="font-body"
         style={{
           display: "block", width: "100%", padding: 14, fontSize: 13, fontWeight: 700, borderRadius: 999,
-          border: "2px solid var(--ring)", color: "var(--ink)", textDecoration: "none", marginBottom: 10,
+          border: "2px solid var(--ring)", color: "var(--ink)", background: "transparent", marginBottom: 10,
         }}
       >
         {ar ? "جرب مرة ثانية 🔄" : "Try Again 🔄"}
-      </Link>
+      </button>
       <Link
         href="/shofah/create"
         className="font-body"

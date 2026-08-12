@@ -53,7 +53,7 @@ export const ROUND1_POOL: Question[] = [
     options: [
       { id: "a", emoji: "⏰", text: "أصحى بدري", weights: { control: 2 } },
       { id: "b", emoji: "😴", text: "أأجل المنبه للأبد", weights: { comfort: 2 } },
-      { id: "c", emoji: "🌪️", text: "من أول ثانية أزمة", weights: { drama: 2 } },
+      { id: "c", emoji: "🎶", text: "المنبه يقلب DJ بالحلم", weights: { spontaneity: 2 } },
       { id: "d", emoji: "🤷", text: "ما أتذكر إني صحيت", weights: { spontaneity: 2 } },
     ],
   },
@@ -63,7 +63,7 @@ export const ROUND1_POOL: Question[] = [
       { id: "a", emoji: "⚡", text: "أرد فوراً", weights: { recklessness: 2 } },
       { id: "b", emoji: "👀", text: "أقرا واسكت", weights: { overthinking: 2 } },
       { id: "c", emoji: "🎙️", text: "أرسل ١٠ فويس", weights: { drama: 2 } },
-      { id: "d", emoji: "🔕", text: "أكتم كل شي", weights: { comfort: 2 } },
+      { id: "d", emoji: "🔕", text: "أصمت كل شي", weights: { comfort: 2 } },
     ],
   },
   {
@@ -72,7 +72,7 @@ export const ROUND1_POOL: Question[] = [
       { id: "a", emoji: "📚", text: "أذاكر من أسابيع", weights: { control: 2 } },
       { id: "b", emoji: "🌙", text: "أذاكر آخر ليلة", weights: { spontaneity: 2 } },
       { id: "c", emoji: "🎲", text: "أرتجل", weights: { recklessness: 2 } },
-      { id: "d", emoji: "🔍", text: "أقلّب قوقل ذعران", weights: { overthinking: 2 } },
+      { id: "d", emoji: "🔍", text: "أبرشم كل شي", weights: { overthinking: 2 } },
     ],
   },
   {
@@ -89,7 +89,7 @@ export const ROUND1_POOL: Question[] = [
     options: [
       { id: "a", emoji: "🗓️", text: "جدول مليان", weights: { control: 1, overthinking: 1 } },
       { id: "b", emoji: "🎲", text: "قرار اللحظة الأخيرة", weights: { spontaneity: 2 } },
-      { id: "c", emoji: "🛏️", text: "أضل بالسرير كله", weights: { comfort: 2 } },
+      { id: "c", emoji: "🛏️", text: "أقعد بالسرير", weights: { comfort: 2 } },
       { id: "d", emoji: "🤝", text: "أي شي يقرره القروب", weights: { drama: 1, comfort: 1 } },
     ],
   },
