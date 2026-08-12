@@ -10,7 +10,7 @@ import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import NiqabGirl from "@/components/shofah/NiqabGirl";
 import ShemaghGuy from "@/components/shofah/ShemaghGuy";
-import { ROUND1_POOL } from "@/lib/wadak-content";
+import { SHOFAH_WARMUP_QUESTIONS, LUCKY_OPTIONS_BY_QUESTION, MAX_LUCKY, MARRIED_THRESHOLD } from "@/lib/shofah-solo-warmup";
 import { shareShofahSoloCard } from "@/components/shofah-solo/exportSoloCard";
 import type { ShofahCharacter } from "@/lib/shofah-types";
 
@@ -20,24 +20,6 @@ const TOTAL_ROUNDS = 5; // same as the real game
 
 type PromptRow = { text_ar: string; category: string };
 type WarmupAnswer = { questionId: string; optionId: string };
-
-// The real warm-up prompts ("مين آخر شخص ممكن يتزوج", "مين بيكون اكبر
-// سيمب") are all GROUP-comparison questions with no one to compare
-// against in solo mode. Reusing وش شخصيتك's real Round 1 pool instead —
-// same content already proven to work standing alone. One option per
-// question reads as the "put-together / ready" answer; the marriage
-// verdict is the count of those picks, same threshold logic as before,
-// just driven by richer questions now.
-const LUCKY_OPTION_BY_QUESTION: Record<string, string> = {
-  r1_mood: "c",        // مرتاح
-  r1_mornings: "a",     // أصحى بدري
-  r1_groupchats: "a",   // أرد فوراً
-  r1_exams: "a",        // أذاكر من أسابيع
-  r1_room: "a",         // نظيفة ومرتبة
-  r1_weekend: "a",      // جدول مليان
-};
-const MAX_LUCKY = Object.keys(LUCKY_OPTION_BY_QUESTION).length;
-const MARRIED_THRESHOLD = 4;
 
 type Stage = "loading" | "warmup" | "writing" | "conversation" | "drumroll" | "verdict";
 
@@ -59,7 +41,7 @@ function ShofahSolo() {
   const [error, setError] = useState<string | null>(null);
 
   // Warm-up (وش شخصيتك Round 1 questions)
-  const [warmupQuestions] = useState(() => [...ROUND1_POOL].sort(() => Math.random() - 0.5));
+  const [warmupQuestions] = useState(() => [...SHOFAH_WARMUP_QUESTIONS].sort(() => Math.random() - 0.5));
   const [wIdx, setWIdx] = useState(0);
   const [warmupAnswers, setWarmupAnswers] = useState<WarmupAnswer[]>([]);
 
@@ -101,7 +83,7 @@ function ShofahSolo() {
     else setStage("conversation");
   }
 
-  const luckyCount = warmupAnswers.filter((a) => LUCKY_OPTION_BY_QUESTION[a.questionId] === a.optionId).length;
+  const luckyCount = warmupAnswers.filter((a) => (LUCKY_OPTIONS_BY_QUESTION[a.questionId] || []).includes(a.optionId)).length;
   const married = luckyCount >= MARRIED_THRESHOLD;
 
   if (!ready) return null;
@@ -354,7 +336,7 @@ function SoloVerdict({
         {married ? (ar ? "مبروك! انكتب لك نصيب 🎉" : "Congrats! It's written 🎉") : (ar ? "ما انكتب نصيب... بعدها 😅" : "Not this time... 😅")}
       </h1>
       <p className="font-body" style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 28 }}>
-        {ar ? `الحظ وقف معك بـ ${luckyCount}/${MAX_LUCKY} من علامات اليوم` : `Luck was with you in ${luckyCount}/${MAX_LUCKY} of today's signs`}
+        {ar ? `الحظ وقف معك بـ ${luckyCount}/${MAX_LUCKY} من علامات الزواج` : `Luck was with you in ${luckyCount}/${MAX_LUCKY} of marriage signs`}
       </p>
 
       <div className="card pop" style={{ padding: 20, marginBottom: 24, textAlign: "start" }}>

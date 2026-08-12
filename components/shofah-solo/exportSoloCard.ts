@@ -93,7 +93,7 @@ export async function renderShofahSoloCard(married: boolean, luckyCount: number,
 
   ctx.font = `700 38px "${FONT_UI}", sans-serif`;
   ctx.fillStyle = "rgba(255,255,255,0.9)";
-  ctx.fillText(`الحظ وقف معك بـ ${luckyCount}/${maxLucky} من علامات اليوم`, CARD_W / 2, y);
+  ctx.fillText(`الحظ وقف معك بـ ${luckyCount}/${maxLucky} من علامات الزواج`, CARD_W / 2, y);
 
   ctx.direction = "ltr";
   ctx.font = `800 42px "${FONT_DISPLAY}", sans-serif`;
