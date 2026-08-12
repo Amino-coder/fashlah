@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase, ensureUser, generateRoomCode } from "@/lib/supabase";
 import { unlockAudio } from "@/lib/sound-engine";
@@ -137,6 +138,17 @@ function ShofahCreate() {
         >
           {loading ? t.loading : t.createBtn}
         </button>
+
+        <Link
+          href={`/shofah/solo?character=${character}`}
+          className="font-body"
+          style={{
+            display: "block", textAlign: "center", padding: 14, fontSize: 14, fontWeight: 700,
+            color: "var(--ink-soft)", textDecoration: "underline", marginTop: 14,
+          }}
+        >
+          {lang === "ar" ? "🎲 العب لحالك" : "🎲 Play Solo"}
+        </Link>
       </div>
     </div>
   );

@@ -22,6 +22,7 @@ export default function ShofahLanding() {
   const { lang, setLang, dark, setDark, ready } = usePrefs();
   const t = SHOFAH_STR[lang as ShofahLang];
   const [subtitle, setSubtitle] = useState("");
+  const [choice, setChoice] = useState<"girl" | "guy" | null>(null);
 
   useEffect(() => {
     if (!ready) return;
@@ -80,14 +81,44 @@ export default function ShofahLanding() {
           </p>
         </div>
 
+        <p className="font-display" style={{ fontSize: 15, fontWeight: 800, textAlign: "center", margin: "0 0 12px" }}>
+          {t.charSelectTitle}
+        </p>
+        <div style={{ display: "flex", gap: 14, marginBottom: 16 }}>
+          {(["girl", "guy"] as const).map((c) => {
+            const active = choice === c;
+            return (
+              <button
+                key={c}
+                onClick={() => setChoice(c)}
+                style={{
+                  flex: 1, padding: "18px 10px", borderRadius: 24, background: "var(--card)",
+                  border: active ? "3px solid #FF2E93" : "3px solid transparent",
+                  boxShadow: active ? "0 10px 24px #FF2E9333" : "0 8px 22px var(--ring)",
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  transform: active ? "translateY(-3px)" : "none", transition: "transform 0.15s ease",
+                }}
+              >
+                {c === "girl" ? <NiqabGirl size={78} /> : <ShemaghGuy size={78} />}
+                <span className="font-display" style={{ fontSize: 14, fontWeight: 800 }}>
+                  {c === "girl" ? `👰 ${t.girlLabel}` : `👳 ${t.guyLabel}`}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         <Link
-          href="/shofah/select"
+          href={choice ? `/shofah/create?character=${choice}` : "#"}
+          aria-disabled={!choice}
           className="font-display btn-bag"
+          onClick={(e) => { if (!choice) e.preventDefault(); }}
           style={{
             display: "block", textAlign: "center", padding: 18, fontSize: 18,
             borderRadius: 999, color: "#fff", textDecoration: "none",
-            background: `linear-gradient(135deg, ${ROSE}, ${WINE})`,
-            boxShadow: `0 10px 30px ${ROSE}55`,
+            background: choice ? `linear-gradient(135deg, ${ROSE}, ${WINE})` : "var(--ring)",
+            boxShadow: choice ? `0 10px 30px ${ROSE}55` : "none",
+            opacity: choice ? 1 : 0.6, cursor: choice ? "pointer" : "not-allowed",
           }}
         >
           {t.startGame}
