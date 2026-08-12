@@ -9,9 +9,7 @@ import { BIDAL_AVATARS } from "@/lib/bidal-i18n";
 import HomeButton from "@/components/HomeButton";
 
 // Solo has no lobby to wait in — create the session, deal letters, and go
-// straight to the game. Started here (not via /api/bidal-start) since
-// there's only ever the one player's own row to write, which RLS already
-// permits for that player directly — no service-role needed for solo.
+// straight to the game.
 export default function BidalSoloPage() {
   const { lang } = usePrefs();
   const router = useRouter();

@@ -1,5 +1,5 @@
 import { CARD_W, CARD_H, PAD_X, RADIUS, FRAME_INSET, TEAL, CORAL, CREAM, FONT_DISPLAY, FONT_UI, BRAND_URL } from "@/lib/bidal-card";
-import { ordinalAr, medalFor, formatDuration, type BidalResult } from "@/lib/bidal-results";
+import { formatDuration, type BidalResult } from "@/lib/bidal-results";
 
 function roundedRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
@@ -128,7 +128,7 @@ export async function renderBidalCardToCanvas(result: BidalResult, nickname?: st
   const statusH = 130;
   const flowH = flowLines.length * FLOW_LINE_HEIGHT + 30;
   const dividerH = 90;
-  const statsH = (result.finished || (!result.isSolo && result.position === 1)) ? 90 : (result.remainingLetters.length > 0 ? 190 : 100);
+  const statsH = result.finished ? 90 : (result.remainingLetters.length > 0 ? 190 : 100);
   const footerReserve = 220;
 
   const totalContentH = eyebrowH + nicknameH + statusH + flowH + dividerH + statsH;
@@ -151,17 +151,8 @@ export async function renderBidalCardToCanvas(result: BidalResult, nickname?: st
   }
 
   ctx.fillStyle = CREAM;
-  if (result.isSolo) {
-    ctx.font = `800 64px "${FONT_DISPLAY}", sans-serif`;
-    ctx.fillText(result.finished ? "🏆 خلصتها!" : `${result.lettersUsed}/${result.totalLetters} حروف 🔤`, CARD_W / 2, y);
-  } else if (result.position === 1) {
-    ctx.font = `800 64px "${FONT_DISPLAY}", sans-serif`;
-    ctx.fillText(`${medalFor(1)} المركز الأول`, CARD_W / 2, y);
-  } else if (result.position) {
-    ctx.font = `800 56px "${FONT_DISPLAY}", sans-serif`;
-    const medal = medalFor(result.position);
-    ctx.fillText(`${medal ? medal + " " : "🎮 "}المركز ${ordinalAr(result.position)}`, CARD_W / 2, y);
-  }
+  ctx.font = `800 64px "${FONT_DISPLAY}", sans-serif`;
+  ctx.fillText(result.finished ? "🏆 خلصتها!" : `${result.lettersUsed}/${result.totalLetters} حروف 🔤`, CARD_W / 2, y);
   y += statusH;
 
   y = drawWordFlowLines(ctx, flowLines, result.wordFlow, y) + 30;
@@ -179,8 +170,6 @@ export async function renderBidalCardToCanvas(result: BidalResult, nickname?: st
   ctx.fillStyle = CREAM;
   if (result.finished && result.completionSeconds !== null) {
     ctx.fillText(`⏱️ انتهيت في ${formatDuration(result.completionSeconds)}`, CARD_W / 2, y);
-  } else if (!result.isSolo && result.position === 1 && result.completionSeconds !== null) {
-    ctx.fillText(`⏱️ خلصتها في ${formatDuration(result.completionSeconds)}`, CARD_W / 2, y);
   } else {
     ctx.fillText(`📝 استخدمت ${result.lettersUsed}/${result.totalLetters} حرف`, CARD_W / 2, y);
     if (result.remainingLetters.length > 0) {

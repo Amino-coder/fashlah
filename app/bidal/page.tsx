@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { Shuffle, Users, Zap } from "lucide-react";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
+import Link from "next/link";
+import { Zap } from "lucide-react";
 import { usePrefs } from "@/lib/usePrefs";
 import { BIDAL_STR, BidalLang } from "@/lib/bidal-i18n";
 
@@ -40,51 +40,23 @@ export default function BidalLandingPage() {
             {t.tagline}
           </p>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <Link
-              href="/bidal/create"
-              className="font-display"
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                padding: 18, fontSize: 16, borderRadius: 999, border: "none", color: "#fff",
-                background: `linear-gradient(135deg, ${TEAL}, ${CORAL})`, boxShadow: `0 10px 24px ${CORAL}33`,
-              }}
-            >
-              <Users size={18} /> {t.playMultiplayer}
-            </Link>
-            <Link
-              href="/bidal/join"
-              className="font-body"
-              style={{
-                display: "block", textAlign: "center", padding: 14, fontSize: 14, fontWeight: 700,
-                color: "var(--ink-soft)", textDecoration: "underline",
-              }}
-            >
-              {t.joinGame}
-            </Link>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "8px 0" }}>
-              <div style={{ flex: 1, height: 1, background: "var(--ring)" }} />
-              <span className="font-body" style={{ fontSize: 12, color: "var(--ink-soft)" }}>{ar ? "أو" : "or"}</span>
-              <div style={{ flex: 1, height: 1, background: "var(--ring)" }} />
-            </div>
-            <Link
-              href="/bidal/solo"
-              className="font-display"
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                padding: 18, fontSize: 16, borderRadius: 999, border: "2px solid var(--ring)", color: "var(--ink)",
-                background: "var(--card)",
-              }}
-            >
-              <Zap size={18} /> {t.playSolo}
-            </Link>
-          </div>
+          <Link
+            href="/bidal/solo"
+            className="font-display"
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+              padding: 18, fontSize: 16, borderRadius: 999, border: "none", color: "#fff",
+              background: `linear-gradient(135deg, ${TEAL}, ${CORAL})`, boxShadow: `0 10px 24px ${CORAL}33`,
+            }}
+          >
+            <Zap size={18} /> {t.playSolo}
+          </Link>
 
           <div className="card pop" style={{ marginTop: 32, padding: 20, textAlign: "start" }}>
             <p className="font-body" style={{ fontSize: 12.5, fontWeight: 700, color: "var(--ink-soft)", lineHeight: 1.9, margin: 0 }}>
               {ar
-                ? "بدّل حرف من الكلمة بحرف من عندك عشان تسوّي كلمة جديدة. ركزوا وتآكدوا محد يخترع كلمات من راسه 😂. أول واحد يخلص حروفه يفوز 🏆"
-                : "Swap one letter in the 3-letter word for one of your own to make a new word. No automatic right/wrong — you all decide. First to empty their hand wins 🏆"}
+                ? "بدّل حرف من الكلمة بحرف من عندك عشان تسوّي كلمة جديدة. عندك وقت محدود، وخصمك هو الساعة ⏱️. خلّص حروفك قبل ما ينتهي الوقت 🏆"
+                : "Swap one letter in the 3-letter word for one of your own to make a new word. You're racing the clock ⏱️ — empty your hand before time runs out 🏆"}
             </p>
           </div>
         </div>
@@ -92,3 +64,4 @@ export default function BidalLandingPage() {
     </div>
   );
 }
+

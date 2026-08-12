@@ -3,23 +3,30 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Shuffle, Undo2, Copy, Check } from "lucide-react";
+import { Shuffle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import LeaveGameButton from "@/components/LeaveGameButton";
-import ShareInvite from "@/components/ShareInvite";
 import HexTile from "@/components/bidal/HexTile";
 import { BIDAL_STR, BidalLang } from "@/lib/bidal-i18n";
 import { usePrefs } from "@/lib/usePrefs";
 import type { BidalSessionRow, BidalPlayerRow } from "@/lib/bidal-types";
-import { computeBidalResult, formatDuration, ordinalAr, type BidalMoveRow } from "@/lib/bidal-results";
+import { computeBidalResult, formatDuration, type BidalMoveRow } from "@/lib/bidal-results";
 import { shareBidalResultCard } from "@/components/bidal/exportResultCard";
 
 const TEAL = "#14B8A6";
 const CORAL = "#FF5A5F";
-const INK = "#17122B";
 
+// بدل الكلمة is solo-only — every session created here is mode: "solo"
+// (see app/bidal/solo/page.tsx) and starts at status "in_progress"
+// directly, so this page never needs to render a multiplayer lobby,
+// host controls, or another player's letter count. Supabase is still
+// used underneath for move validation (bidal_attempt_move is the
+// server-authoritative source of truth, so the client can't just fake
+// a finish) and so results survive a refresh — removing it entirely
+// would mean rebuilding that anti-cheat/persistence layer client-side,
+// which is a bigger separate change.
 export default function BidalSessionPage() {
   const params = useParams();
   const code = String(params.code).toUpperCase();
@@ -31,9 +38,6 @@ export default function BidalSessionPage() {
   const [players, setPlayers] = useState<BidalPlayerRow[]>([]);
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [starting, setStarting] = useState(false);
-  const [startError, setStartError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
   const [moves, setMoves] = useState<BidalMoveRow[]>([]);
   const [shareState, setShareState] = useState<"idle" | "working" | "shared" | "downloaded" | "failed">("idle");
 
@@ -45,10 +49,12 @@ export default function BidalSessionPage() {
   const wordRefs = [useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null)];
 
   const myPlayer = players.find((p) => p.user_id === myUserId) || null;
-  const isHost = !!session && !!myUserId && session.host_user_id === myUserId;
-  const isSolo = session?.mode === "solo";
 
-  // ---- fetch + realtime + poll fallback (same pattern as every other game) ----
+  // ---- fetch + poll (no realtime channel needed — solo means no other
+  // player's write can ever land, so a shared postgres_changes
+  // subscription would only ever be reconciling this same client's own
+  // in-flight moves, which loadAll() already does right after each
+  // move settles). ----
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -59,11 +65,11 @@ export default function BidalSessionPage() {
   }, []);
 
   // While a move is in flight, loadAll() bails out instead of refreshing —
-  // otherwise a poll tick (every 1200ms) or a realtime event can land
-  // between the optimistic update below and the server actually
-  // processing the move, fetching the still-old current_word and
-  // snapping the UI back to it for a moment before the real result
-  // arrives. That round-trip (new → old → new again) is the flashing.
+  // otherwise a poll tick (every 1200ms) can land between the optimistic
+  // update below and the server actually processing the move, fetching
+  // the still-old current_word and snapping the UI back to it for a
+  // moment before the real result arrives. That round-trip (new → old →
+  // new again) is the flashing.
   const pendingMoveRef = useRef(false);
 
   const loadAll = useCallback(async () => {
@@ -77,32 +83,9 @@ export default function BidalSessionPage() {
 
   useEffect(() => {
     loadAll();
-    const channel = supabase
-      .channel(`bidal-${code}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "bidal_sessions" }, loadAll)
-      .on("postgres_changes", { event: "*", schema: "public", table: "bidal_players" }, loadAll)
-      .subscribe();
     const poll = setInterval(loadAll, 1200);
-    return () => { supabase.removeChannel(channel); clearInterval(poll); };
+    return () => clearInterval(poll);
   }, [code, loadAll]);
-
-  // ---- host: start game ----
-  async function handleStart() {
-    if (!session) return;
-    setStarting(true);
-    setStartError(null);
-    try {
-      const res = await fetch("/api/bidal-start", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: session.id }),
-      }).then((r) => r.json());
-      if (!res.success) setStartError(res.reason || t.errorGeneric);
-    } catch {
-      setStartError(t.errorGeneric);
-    } finally {
-      setStarting(false);
-    }
-  }
 
   // ---- attempt a move (shared by tap and drag paths) ----
   const attemptMove = useCallback(async (letter: string, position: number) => {
@@ -179,33 +162,23 @@ export default function BidalSessionPage() {
     window.addEventListener("pointerup", onUp, { once: true });
   }
 
-  // ---- host undo ----
-  async function handleUndo() {
-    if (!session || !myUserId) return;
-    await fetch("/api/bidal-undo", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId: session.id, hostUserId: myUserId }),
-    }).catch(() => {});
-    loadAll();
-  }
-
   // ---- shuffle ----
   async function handleShuffle() {
     if (!session || !myUserId) return;
     await fetch("/api/bidal-shuffle", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId: session.id, requesterUserId: myUserId, isSolo }),
+      body: JSON.stringify({ sessionId: session.id, requesterUserId: myUserId, isSolo: true }),
     }).catch(() => {});
     loadAll();
   }
 
-  // ---- solo timer ----
+  // ---- timer ----
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    if (session?.status !== "in_progress" || !isSolo) return;
+    if (session?.status !== "in_progress") return;
     const id = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(id);
-  }, [session?.status, isSolo]);
+  }, [session?.status]);
 
   const soloRemaining = useMemo(() => {
     if (!session?.started_at) return session?.time_limit_seconds ?? 50;
@@ -213,12 +186,12 @@ export default function BidalSessionPage() {
     return Math.max(0, Math.ceil((session.time_limit_seconds || 50) - elapsed));
   }, [session, now]);
 
-  // Solo timeout — client-detected and written directly (RLS already
-  // permits this: in solo mode the lone player IS the host).
+  // Timeout — client-detected and written directly (RLS already permits
+  // this: the lone player IS the host).
   useEffect(() => {
-    if (!isSolo || session?.status !== "in_progress" || soloRemaining > 0) return;
+    if (session?.status !== "in_progress" || soloRemaining > 0) return;
     supabase.from("bidal_sessions").update({ status: "completed", ended_at: new Date().toISOString() }).eq("id", session!.id).then(() => loadAll());
-  }, [isSolo, session, soloRemaining, loadAll]);
+  }, [session, soloRemaining, loadAll]);
 
   useEffect(() => {
     if (session?.status !== "completed" || !session.id) return;
@@ -235,12 +208,6 @@ export default function BidalSessionPage() {
     setShareState(res === "failed" ? "failed" : res === "cancelled" ? "idle" : res);
   }
 
-  function copyCode() {
-    navigator.clipboard?.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  }
-
   if (error || !session) {
     return (
       <div dir={t.dir} style={{ minHeight: "100vh", background: "var(--bg)" }}>
@@ -253,101 +220,20 @@ export default function BidalSessionPage() {
   return (
     <div dir={t.dir} className="" style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
       <Blobs />
-      {session.status === "waiting" && <HomeButton label={t.backHome} href="/bidal" />}
       {session.status === "completed" && <HomeButton label={t.backHome} href="/bidal" />}
 
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
         {session.status === "in_progress" && <LeaveGameButton lang={lang} />}
 
-        {/* ---------------- LOBBY ---------------- */}
-        {session.status === "waiting" && (
-          <div className="screen-enter" style={{ marginTop: 40 }}>
-            <p className="font-body" style={{ textAlign: "center", fontSize: 13, fontWeight: 700, color: "var(--ink-soft)" }}>{t.roomCode}</p>
-            <button
-              onClick={copyCode}
-              className="font-mono"
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 10, margin: "8px auto 28px",
-                fontSize: 34, fontWeight: 800, letterSpacing: "0.2em", background: "none", border: "none", color: TEAL,
-              }}
-            >
-              {code} {copied ? <Check size={22} /> : <Copy size={20} />}
-            </button>
-
-            <div style={{ marginBottom: 20 }}>
-              <ShareInvite
-                code={code}
-                joinPath="/bidal/join"
-                lang={lang}
-                accent={`linear-gradient(135deg, ${TEAL}, ${CORAL})`}
-                label={t.roomCode}
-                emoji={"\u{1F524}\u{1F608}"}
-              />
-            </div>
-
-            <p className="font-body" style={{ fontSize: 12, fontWeight: 800, color: "var(--ink-soft)", marginBottom: 10 }}>
-              {t.players} ({players.length})
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 28 }}>
-              {players.map((p) => (
-                <div key={p.id} className="card" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px" }}>
-                  <span style={{ fontSize: 20 }}>{p.avatar_emoji}</span>
-                  <span className="font-body" style={{ fontWeight: 700, fontSize: 14 }}>{p.nickname}</span>
-                  {p.user_id === session.host_user_id && (
-                    <span className="font-body" style={{ marginInlineStart: "auto", fontSize: 10, fontWeight: 800, color: TEAL }}>HOST</span>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {isHost ? (
-              <>
-                <button
-                  onClick={handleStart}
-                  disabled={players.length < 2 || starting}
-                  className="font-display"
-                  style={{
-                    display: "block", width: "100%", padding: 18, fontSize: 16, borderRadius: 999, border: "none", color: "#fff",
-                    background: `linear-gradient(135deg, ${TEAL}, ${CORAL})`, opacity: players.length < 2 || starting ? 0.5 : 1,
-                  }}
-                >
-                  {starting ? t.loading : t.startGame}
-                </button>
-                {startError && (
-                  <p className="font-body" style={{ textAlign: "center", fontSize: 12, color: "#E63946", fontWeight: 700, marginTop: 10, direction: "ltr" }}>
-                    {startError}
-                  </p>
-                )}
-              </>
-            ) : (
-              <p className="font-body" style={{ textAlign: "center", fontSize: 13, color: "var(--ink-soft)", fontWeight: 700 }}>
-                {t.waitingHost}
-              </p>
-            )}
-          </div>
-        )}
-
         {/* ---------------- RACING ---------------- */}
         {session.status === "in_progress" && session.current_word && myPlayer && (
           <div className="screen-enter" style={{ marginTop: 10 }}>
-            {isSolo && (
-              <div style={{ textAlign: "center", marginBottom: 10 }}>
-                <span className="font-mono" style={{ fontSize: 30, fontWeight: 800, color: soloRemaining <= 10 ? CORAL : TEAL }}>
-                  {soloRemaining}
-                </span>
-              </div>
-            )}
+            <div style={{ textAlign: "center", marginBottom: 10 }}>
+              <span className="font-mono" style={{ fontSize: 30, fontWeight: 800, color: soloRemaining <= 10 ? CORAL : TEAL }}>
+                {soloRemaining}
+              </span>
+            </div>
 
-            {!isSolo && (
-              <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
-                {players.map((p) => (
-                  <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 999, background: "var(--card)", border: "1.5px solid var(--ring)" }}>
-                    <span style={{ fontSize: 14 }}>{p.avatar_emoji}</span>
-                    <span className="font-mono" style={{ fontSize: 12, fontWeight: 700 }}>{p.letters.length}</span>
-                  </div>
-                ))}
-              </div>
-            )}
 
             <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 30 }}>
               {[0, 1, 2].map((pos) => (
@@ -369,25 +255,18 @@ export default function BidalSessionPage() {
             </div>
 
             <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 22 }}>
-              {isHost && !isSolo && (
-                <button onClick={handleUndo} className="font-body" style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 14px", borderRadius: 999, border: "1.5px solid var(--ring)", background: "var(--card)", color: "var(--ink-soft)", fontSize: 11, fontWeight: 700 }}>
-                  <Undo2 size={13} /> {t.undo}
-                </button>
-              )}
-              {(isSolo || isHost) && (
-                <button
-                  onClick={handleShuffle}
-                  disabled={session.shuffle_used}
-                  className="font-body"
-                  style={{
-                    display: "flex", alignItems: "center", gap: 5, padding: "8px 14px", borderRadius: 999,
-                    border: "1.5px solid var(--ring)", background: "var(--card)", color: "var(--ink-soft)", fontSize: 11, fontWeight: 700,
-                    opacity: session.shuffle_used ? 0.4 : 1,
-                  }}
-                >
-                  <Shuffle size={13} /> {t.shuffleLabel} ({session.shuffle_used ? 0 : 1})
-                </button>
-              )}
+              <button
+                onClick={handleShuffle}
+                disabled={session.shuffle_used}
+                className="font-body"
+                style={{
+                  display: "flex", alignItems: "center", gap: 5, padding: "8px 14px", borderRadius: 999,
+                  border: "1.5px solid var(--ring)", background: "var(--card)", color: "var(--ink-soft)", fontSize: 11, fontWeight: 700,
+                  opacity: session.shuffle_used ? 0.4 : 1,
+                }}
+              >
+                <Shuffle size={13} /> {t.shuffleLabel} ({session.shuffle_used ? 0 : 1})
+              </button>
             </div>
 
             <p className="font-body" style={{ textAlign: "center", fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 14 }}>
@@ -451,9 +330,7 @@ function ResultsView({
         }}
       >
         <h1 className="font-display" style={{ fontSize: 26, fontWeight: 800, margin: "0 0 20px" }}>
-          {result.isSolo
-            ? (result.finished ? "🏆 خلصتها!" : `${result.lettersUsed}/${result.totalLetters} حروف`)
-            : (result.position === 1 ? `🥇 المركز الأول` : result.position ? `المركز ${ordinalAr(result.position)}` : "")}
+          {result.finished ? "🏆 خلصتها!" : `${result.lettersUsed}/${result.totalLetters} حروف`}
         </h1>
 
         {/* Word flow — the signature visual, right-to-left, wraps naturally */}
@@ -470,11 +347,7 @@ function ResultsView({
 
         {result.finished && result.completionSeconds !== null ? (
           <p className="font-body" style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>
-            {result.isSolo ? `انتهيت في ${formatDuration(result.completionSeconds)}` : `خلصتها في ${formatDuration(result.completionSeconds)}`}
-          </p>
-        ) : !result.isSolo && result.position === 1 && result.completionSeconds !== null ? (
-          <p className="font-body" style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>
-            {`خلصتها في ${formatDuration(result.completionSeconds)}`}
+            {`انتهيت في ${formatDuration(result.completionSeconds)}`}
           </p>
         ) : (
           <>

@@ -45,13 +45,11 @@ export type BidalResult = {
 };
 
 /**
- * Position for non-winners is ranked by fewest letters remaining — the
- * base game ends the session the moment the first player finishes (an
- * explicit requirement from the original spec: "the game should end
- * immediately"), so there's no second real finish time to rank by. This
- * is a deliberate simplification, not an oversight — see the note left
- * for the person using this app about the tension between that rule and
- * a full multi-finisher leaderboard.
+ * بدل الكلمة is solo-only now — position/multiplayer ranking was already
+ * a known rough edge (see the note below about the "ends on first
+ * finisher" tension) and is now moot since there's only ever one player.
+ * Kept as a field on BidalResult (always null) so callers/types don't
+ * need to change if multiplayer ever comes back.
  */
 export function computeBidalResult(
   session: BidalSessionRow,
@@ -59,44 +57,19 @@ export function computeBidalResult(
   allPlayers: BidalPlayerRow[],
   moves: BidalMoveRow[]
 ): BidalResult {
-  const isSolo = session.mode === "solo";
+  const isSolo = true;
   const finished = myPlayer.letters.length === 0;
   const totalLetters = 15; // matches drawLetters(15) in bidal-letters.ts
   const lettersUsed = totalLetters - myPlayer.letters.length;
   const wordFlow = buildWordFlow(session.starting_word, moves);
 
-  let position: number | null = null;
   let completionSeconds: number | null = null;
-
-  if (!isSolo) {
-    if (session.winner_player_id === myPlayer.id) {
-      position = 1;
-      if (session.started_at && session.ended_at) {
-        completionSeconds = (new Date(session.ended_at).getTime() - new Date(session.started_at).getTime()) / 1000;
-      }
-    } else {
-      const nonWinners = allPlayers
-        .filter((p) => p.id !== session.winner_player_id)
-        .sort((a, b) => a.letters.length - b.letters.length);
-      const rank = nonWinners.findIndex((p) => p.id === myPlayer.id);
-      position = rank >= 0 ? rank + 2 : null;
-    }
-  } else if (finished && session.started_at && session.ended_at) {
+  if (finished && session.started_at && session.ended_at) {
     completionSeconds = (new Date(session.ended_at).getTime() - new Date(session.started_at).getTime()) / 1000;
   }
 
   return {
-    finished, isSolo, position, totalPlayers: allPlayers.length,
+    finished, isSolo, position: null, totalPlayers: allPlayers.length,
     lettersUsed, totalLetters, remainingLetters: myPlayer.letters, completionSeconds, wordFlow,
   };
-}
-
-const ORDINALS_AR = ["", "الأول", "الثاني", "الثالث", "الرابع", "الخامس", "السادس", "السابع", "الثامن"];
-const MEDALS = ["", "🥇", "🥈", "🥉"];
-
-export function ordinalAr(position: number): string {
-  return ORDINALS_AR[position] || `${position}`;
-}
-export function medalFor(position: number): string {
-  return MEDALS[position] || "";
 }
