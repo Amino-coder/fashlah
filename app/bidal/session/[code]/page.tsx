@@ -58,7 +58,16 @@ export default function BidalSessionPage() {
     return () => { cancelled = true; };
   }, []);
 
+  // While a move is in flight, loadAll() bails out instead of refreshing —
+  // otherwise a poll tick (every 1200ms) or a realtime event can land
+  // between the optimistic update below and the server actually
+  // processing the move, fetching the still-old current_word and
+  // snapping the UI back to it for a moment before the real result
+  // arrives. That round-trip (new → old → new again) is the flashing.
+  const pendingMoveRef = useRef(false);
+
   const loadAll = useCallback(async () => {
+    if (pendingMoveRef.current) return;
     const { data: s } = await supabase.from("bidal_sessions").select("*").eq("code", code).maybeSingle();
     if (!s) { setError(t.errorGeneric); return; }
     setSession(s as BidalSessionRow);
@@ -106,6 +115,7 @@ export default function BidalSessionPage() {
     // Optimistic local update — instant feedback; realtime/poll will
     // reconcile shortly after regardless of whether this specific
     // request wins the race.
+    pendingMoveRef.current = true;
     setSession((s) => (s ? { ...s, current_word: newWord } : s));
     setPlayers((ps) => ps.map((p) => (p.id === myPlayer.id ? { ...p, letters: removeOne(p.letters, letter) } : p)));
 
@@ -116,6 +126,7 @@ export default function BidalSessionPage() {
         expectedWord: session.current_word, newWord, position, letter,
       }),
     }).catch(() => {});
+    pendingMoveRef.current = false;
     // Whether this specific attempt won or lost the race, the next
     // realtime/poll tick brings everyone back in sync with the server's
     // actual current_word — no special handling needed for the losing
