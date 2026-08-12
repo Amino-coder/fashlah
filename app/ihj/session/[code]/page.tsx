@@ -15,6 +15,7 @@ import { IHJ_CATEGORIES } from "@/lib/ihj-categories";
 import { pickNextLetter } from "@/lib/ihj-letters";
 import { ihjNormalize } from "@/lib/ihj-normalize";
 import type { IhjSessionRow, IhjPlayerRow, IhjAnswerRow, IhjCategory } from "@/lib/ihj-types";
+import { shareIhjResultCard } from "@/components/ihj/exportResultCard";
 
 const PURPLE = "#7C3AED";
 const PINK = "#FF2E93";
@@ -84,9 +85,10 @@ export default function IhjSessionPage() {
     return Math.max(0, Math.ceil((session.time_limit_seconds || 60) - elapsed));
   }, [session, now]);
 
-  const mySubmittedCount = answers.filter((a) => a.player_id === myPlayer?.id).length;
+  const currentRoundAnswers = answers.filter((a) => a.round_number === session?.current_round);
+  const mySubmittedCount = currentRoundAnswers.filter((a) => a.player_id === myPlayer?.id).length;
   const mySubmitted = mySubmittedCount >= IHJ_CATEGORIES.length;
-  const submittedPlayerIds = new Set(answers.map((a) => a.player_id));
+  const submittedPlayerIds = new Set(currentRoundAnswers.map((a) => a.player_id));
   const allSubmitted = players.length > 0 && players.every((p) => submittedPlayerIds.has(p.id));
 
   // Host: once everyone's submitted (or time's up), score the round.
@@ -236,14 +238,14 @@ export default function IhjSessionPage() {
         {/* ---------------- REVEAL + LEADERBOARD ---------------- */}
         {session.status === "in_progress" && session.round_phase === "reveal" && (
           <RevealScreen
-            session={session} players={players} answers={answers} isHost={isHost}
+            session={session} players={players} answers={currentRoundAnswers} isHost={isHost}
             onNextRound={handleNextRound} t={t} ar={ar}
           />
         )}
 
         {/* ---------------- FINAL RESULTS ---------------- */}
         {session.status === "completed" && (
-          <FinalResults players={players} t={t} ar={ar} />
+          <FinalResults players={players} myPlayerId={myPlayer?.id} t={t} ar={ar} />
         )}
       </div>
     </div>
@@ -349,9 +351,6 @@ function RevealScreen({
   session: IhjSessionRow; players: IhjPlayerRow[]; answers: IhjAnswerRow[]; isHost: boolean;
   onNextRound: () => void; t: any; ar: boolean;
 }) {
-  const [stage, setStage] = useState(0); // 0..4 = categories, 5 = round score
-  const totalStages = IHJ_CATEGORIES.length + 1;
-
   function nameFor(playerId: string) { return players.find((p) => p.id === playerId)?.nickname || "?"; }
 
   const roundPoints: Record<string, number> = {};
@@ -363,100 +362,101 @@ function RevealScreen({
   const isLastRound = session.current_round >= session.total_rounds;
 
   return (
-    <div className="screen-enter" style={{ marginTop: 10 }} onClick={() => stage < totalStages - 1 && setStage((s) => s + 1)}>
-      <p className="font-body" style={{ textAlign: "center", fontSize: 12, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 14 }}>
+    <div className="screen-enter" style={{ marginTop: 10, paddingBottom: 20 }}>
+      <p className="font-body" style={{ textAlign: "center", fontSize: 12, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 16 }}>
         {t.roundOf} {session.current_round}/{session.total_rounds} — {t.reveal}
       </p>
 
-      <div style={{ display: "flex", gap: 5, marginBottom: 18 }}>
-        {Array.from({ length: totalStages }).map((_, i) => (
-          <div key={i} style={{ flex: 1, height: 4, borderRadius: 999, background: i <= stage ? PURPLE : "var(--ring)" }} />
+      {/* All 5 categories, every answer with its points, grouped by match */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 18, marginBottom: 26 }}>
+        {IHJ_CATEGORIES.map((cat) => {
+          const catAnswers = answers.filter((a) => a.category === cat.key);
+          const groups = new Map<string, IhjAnswerRow[]>();
+          for (const a of catAnswers) {
+            const key = a.normalized_answer || "";
+            if (!groups.has(key)) groups.set(key, []);
+            groups.get(key)!.push(a);
+          }
+          const sortedGroups = [...groups.entries()].sort((a, b) => (b[1][0]?.points || 0) - (a[1][0]?.points || 0));
+
+          return (
+            <div key={cat.key}>
+              <p className="font-body" style={{ fontSize: 13, fontWeight: 800, marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ fontSize: 16 }}>{cat.emoji}</span> {cat.label}
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {sortedGroups.map(([key, group], gi) => (
+                  <div key={gi} className="card" style={{ padding: "10px 14px", display: "flex", alignItems: "center", gap: 10 }}>
+                    <span className="font-display" style={{ fontSize: 15, fontWeight: 800, flexShrink: 0 }}>
+                      {key ? group[0].answer_text : (ar ? "بدون إجابة" : "No answer")}
+                    </span>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5, justifyContent: "flex-end", flex: 1 }}>
+                      {group.map((a) => (
+                        <span key={a.id} className="font-body" style={{ fontSize: 10.5, fontWeight: 700, padding: "3px 8px", borderRadius: 999, background: "var(--ring)", whiteSpace: "nowrap" }}>
+                          {nameFor(a.player_id)} +{a.points ?? 0}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                {catAnswers.length === 0 && (
+                  <p className="font-body" style={{ textAlign: "center", fontSize: 12, color: "var(--ink-soft)" }}>—</p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ height: 1, background: "var(--ring)", margin: "0 0 22px" }} />
+
+      <p className="font-display" style={{ fontSize: 18, fontWeight: 800, textAlign: "center", marginBottom: 14 }}>{t.roundScore}</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 26 }}>
+        {rankedByRound.map((p, i) => (
+          <div key={p.id} className="card" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px" }}>
+            <span style={{ fontSize: 16 }}>{["🥇", "🥈", "🥉"][i] || "🎮"}</span>
+            <span style={{ fontSize: 18 }}>{p.avatar_emoji}</span>
+            <span className="font-body" style={{ fontWeight: 700, fontSize: 13, flex: 1 }}>{p.nickname}</span>
+            <span className="font-display" style={{ fontWeight: 800, color: MINT, fontSize: 14 }}>+{roundPoints[p.id] || 0}</span>
+          </div>
         ))}
       </div>
 
-      {stage < IHJ_CATEGORIES.length && (() => {
-        const cat = IHJ_CATEGORIES[stage];
-        const catAnswers = answers.filter((a) => a.category === cat.key);
-        const groups = new Map<string, IhjAnswerRow[]>();
-        for (const a of catAnswers) {
-          const key = a.normalized_answer || "";
-          if (!groups.has(key)) groups.set(key, []);
-          groups.get(key)!.push(a);
-        }
-        const sortedGroups = [...groups.entries()].sort((a, b) => (b[1][0]?.points || 0) - (a[1][0]?.points || 0));
-
-        return (
-          <div key={cat.key} className="pop">
-            <p className="font-display" style={{ fontSize: 22, fontWeight: 800, textAlign: "center", marginBottom: 18 }}>
-              {cat.emoji} {cat.label}
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {sortedGroups.map(([key, group], gi) => (
-                <div key={gi} className="card" style={{ padding: 14 }}>
-                  <p className="font-display" style={{ fontSize: 17, fontWeight: 800, margin: "0 0 8px", textAlign: "center" }}>
-                    {key ? group[0].answer_text : (ar ? "بدون إجابة" : "No answer")}
-                  </p>
-                  <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6 }}>
-                    {group.map((a) => (
-                      <span key={a.id} className="font-body" style={{ fontSize: 11.5, fontWeight: 700, padding: "4px 10px", borderRadius: 999, background: "var(--ring)" }}>
-                        {nameFor(a.player_id)} — {a.points ?? 0}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-              {catAnswers.length === 0 && (
-                <p className="font-body" style={{ textAlign: "center", fontSize: 13, color: "var(--ink-soft)" }}>—</p>
-              )}
-            </div>
-            <p className="font-body" style={{ textAlign: "center", fontSize: 11, color: "var(--ink-soft)", opacity: 0.6, marginTop: 18 }}>{t.tapToContinue}</p>
+      <p className="font-display" style={{ fontSize: 16, fontWeight: 800, textAlign: "center", marginBottom: 12 }}>{t.leaderboard}</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
+        {rankedByTotal.map((p, i) => (
+          <div key={p.id} className="card" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px" }}>
+            <span style={{ fontSize: 16 }}>{["🥇", "🥈", "🥉"][i] || "🎮"}</span>
+            <span style={{ fontSize: 18 }}>{p.avatar_emoji}</span>
+            <span className="font-body" style={{ fontWeight: 700, fontSize: 13, flex: 1 }}>{p.nickname}</span>
+            <span className="font-body" style={{ fontSize: 11, color: MINT, fontWeight: 700 }}>+{roundPoints[p.id] || 0} {t.thisRound}</span>
+            <span className="font-display" style={{ fontWeight: 800, fontSize: 15 }}>{p.total_score}</span>
           </div>
-        );
-      })()}
+        ))}
+      </div>
 
-      {stage === IHJ_CATEGORIES.length && (
-        <div className="pop" onClick={(e) => e.stopPropagation()}>
-          <p className="font-display" style={{ fontSize: 20, fontWeight: 800, textAlign: "center", marginBottom: 16 }}>{t.roundScore}</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
-            {rankedByRound.map((p, i) => (
-              <div key={p.id} className="card" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px" }}>
-                <span style={{ fontSize: 16 }}>{["🥇", "🥈", "🥉"][i] || "🎮"}</span>
-                <span style={{ fontSize: 18 }}>{p.avatar_emoji}</span>
-                <span className="font-body" style={{ fontWeight: 700, fontSize: 13, flex: 1 }}>{p.nickname}</span>
-                <span className="font-display" style={{ fontWeight: 800, color: MINT, fontSize: 14 }}>+{roundPoints[p.id] || 0}</span>
-              </div>
-            ))}
-          </div>
-
-          <p className="font-display" style={{ fontSize: 16, fontWeight: 800, textAlign: "center", marginBottom: 12 }}>{t.leaderboard}</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
-            {rankedByTotal.map((p, i) => (
-              <div key={p.id} className="card" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px" }}>
-                <span style={{ fontSize: 16 }}>{["🥇", "🥈", "🥉"][i] || "🎮"}</span>
-                <span style={{ fontSize: 18 }}>{p.avatar_emoji}</span>
-                <span className="font-body" style={{ fontWeight: 700, fontSize: 13, flex: 1 }}>{p.nickname}</span>
-                <span className="font-body" style={{ fontSize: 11, color: MINT, fontWeight: 700 }}>+{roundPoints[p.id] || 0} {t.thisRound}</span>
-                <span className="font-display" style={{ fontWeight: 800, fontSize: 15 }}>{p.total_score}</span>
-              </div>
-            ))}
-          </div>
-
-          {isHost && (
-            <button
-              onClick={onNextRound}
-              className="font-display"
-              style={{ display: "block", width: "100%", padding: 17, fontSize: 16, borderRadius: 999, border: "none", color: "#fff", background: `linear-gradient(135deg, ${PURPLE}, ${PINK})` }}
-            >
-              {isLastRound ? t.gameOver : t.nextRound}
-            </button>
-          )}
-        </div>
+      {isHost && (
+        <button
+          onClick={onNextRound}
+          className="font-display"
+          style={{ display: "block", width: "100%", padding: 17, fontSize: 16, borderRadius: 999, border: "none", color: "#fff", background: `linear-gradient(135deg, ${PURPLE}, ${PINK})` }}
+        >
+          {isLastRound ? t.gameOver : t.nextRound}
+        </button>
       )}
     </div>
   );
 }
 
-function FinalResults({ players, t, ar }: { players: IhjPlayerRow[]; t: any; ar: boolean }) {
+function FinalResults({ players, myPlayerId, t, ar }: { players: IhjPlayerRow[]; myPlayerId?: string; t: any; ar: boolean }) {
+  const [shareState, setShareState] = useState<"idle" | "working" | "shared" | "downloaded" | "failed">("idle");
+
+  async function handleShare() {
+    setShareState("working");
+    const res = await shareIhjResultCard(players, myPlayerId);
+    setShareState(res === "failed" ? "failed" : res === "cancelled" ? "idle" : res);
+  }
+
   const sorted = [...players].sort((a, b) => b.total_score - a.total_score);
   // Ties share a position — no tiebreak rules invented, per spec.
   const positions: number[] = [];
@@ -481,7 +481,7 @@ function FinalResults({ players, t, ar }: { players: IhjPlayerRow[]; t: any; ar:
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 28 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
         {others.map(({ player, position }) => (
           <div key={player.id} className="card" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px" }}>
             <span style={{ fontSize: 16 }}>{position === 1 ? "🥇" : position === 2 ? "🥈" : position === 3 ? "🥉" : "🎮"}</span>
@@ -492,10 +492,26 @@ function FinalResults({ players, t, ar }: { players: IhjPlayerRow[]; t: any; ar:
         ))}
       </div>
 
+      <button
+        onClick={handleShare}
+        disabled={shareState === "working"}
+        className="font-display"
+        style={{
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", marginBottom: 12,
+          padding: 16, fontSize: 15, borderRadius: 999, border: "none", color: "#fff",
+          background: `linear-gradient(135deg, ${PURPLE}, ${PINK})`,
+        }}
+      >
+        {shareState === "working" ? "..." : shareState === "shared" ? "تم!" : shareState === "downloaded" ? "انحفظت الصورة!" : (ar ? "شارك نتيجتك" : "Share Results")}
+      </button>
+
       <Link
         href="/ihj"
         className="font-display"
-        style={{ display: "inline-block", padding: "15px 36px", fontSize: 15, borderRadius: 999, border: "none", color: "#fff", background: `linear-gradient(135deg, ${PURPLE}, ${PINK})` }}
+        style={{
+          display: "inline-block", padding: "13px 36px", fontSize: 14, borderRadius: 999,
+          border: "2px solid var(--ring)", color: "var(--ink)", background: "transparent",
+        }}
       >
         {t.playAgain}
       </Link>
