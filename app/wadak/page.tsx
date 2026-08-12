@@ -7,7 +7,7 @@ import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import RadarChart from "@/components/wadak/RadarChart";
 import { shareResultCard } from "@/components/wadak/exportResultCard";
-import { trackPageView } from "@/lib/trackPageView";
+import { trackPageView, trackPageComplete, newSessionKey } from "@/lib/trackPageView";
 import {
   ROUND1_POOL, ROUND2_QUESTIONS, ROUND3_POOL, ROUND4_POOL,
   REACTION_AFTER_QUESTION, DIMENSION_LABELS, type Question,
@@ -22,7 +22,8 @@ type Stage = "intro" | "round1" | "round2" | "round3" | "round4" | "reaction" | 
 type Selection = { questionId: string; optionId: string };
 
 export default function WadakPage() {
-  useEffect(() => { trackPageView("wadak"); }, []);
+  const [sessionKey] = useState(() => newSessionKey());
+  useEffect(() => { trackPageView("wadak", sessionKey); }, [sessionKey]);
   const [stage, setStage] = useState<Stage>("intro");
   const [nickname, setNickname] = useState("");
   const [qInRound, setQInRound] = useState(0);
@@ -66,6 +67,7 @@ export default function WadakPage() {
     if (isLastOverall) {
       const finalResult = scoreAnswers(allAsked, nextSelections);
       setResult(finalResult);
+      trackPageComplete("wadak", sessionKey);
       upcoming = "story";
     } else if (isLastOfRound) {
       upcoming = stage === "round1" ? "round2" : stage === "round2" ? "round3" : "round4";

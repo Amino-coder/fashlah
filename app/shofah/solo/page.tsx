@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Share2, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { usePrefs } from "@/lib/usePrefs";
-import { trackPageView } from "@/lib/trackPageView";
+import { trackPageView, trackPageComplete, newSessionKey } from "@/lib/trackPageView";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import NiqabGirl from "@/components/shofah/NiqabGirl";
@@ -33,7 +33,8 @@ export default function ShofahSoloPage() {
 }
 
 function ShofahSolo() {
-  useEffect(() => { trackPageView("shofah_solo"); }, []);
+  const [sessionKey] = useState(() => newSessionKey());
+  useEffect(() => { trackPageView("shofah_solo", sessionKey); }, [sessionKey]);
   const { lang, dark, ready } = usePrefs();
   const searchParams = useSearchParams();
   const character = (searchParams.get("character") as ShofahCharacter) || "guy";
@@ -206,7 +207,7 @@ function ShofahSolo() {
         )}
 
         {!error && stage === "drumroll" && (
-          <DrumrollVerdict married={married} character={character} lang={lang} onDone={() => setStage("verdict")} />
+          <DrumrollVerdict married={married} character={character} lang={lang} onDone={() => { trackPageComplete("shofah_solo", sessionKey); setStage("verdict"); }} />
         )}
 
         {!error && stage === "verdict" && (
