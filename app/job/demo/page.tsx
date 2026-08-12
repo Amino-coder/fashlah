@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { trackPageView } from "@/lib/trackPageView";
 import { Briefcase } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import Blobs from "@/components/Blobs";
@@ -27,6 +28,7 @@ type PromptRow = { text_ar: string; category: string };
  * DemoDrumrollResults component.
  */
 export default function JobDemoPage() {
+  useEffect(() => { trackPageView("job_demo"); }, []);
   const [prompts, setPrompts] = useState<PromptRow[] | null>(null);
 
   useEffect(() => {

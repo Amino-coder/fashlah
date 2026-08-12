@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { trackPageView } from "@/lib/trackPageView";
 import { BookOpen, ChevronLeft } from "lucide-react";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
@@ -12,6 +13,7 @@ const ORANGE = "#FF8A3D";
 const DEEP = "#E0409A";
 
 export default function QissaDemoPage() {
+  useEffect(() => { trackPageView("qissa_demo"); }, []);
   const engine = useDemoQissa("أنت", "😎");
 
   if (engine.phase === "done") {

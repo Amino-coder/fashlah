@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { trackPageView } from "@/lib/trackPageView";
 import { Heart } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import Blobs from "@/components/Blobs";
@@ -34,6 +35,7 @@ type PromptRow = { text_ar: string; category: string };
  * written back to Supabase.
  */
 export default function ShofahDemoPage() {
+  useEffect(() => { trackPageView("shofah_demo"); }, []);
   const [prompts, setPrompts] = useState<PromptRow[] | null>(null);
 
   useEffect(() => {

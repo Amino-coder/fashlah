@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { trackPageView } from "@/lib/trackPageView";
 import { Feather } from "lucide-react";
 import HomeButton from "@/components/HomeButton";
 import Blobs from "@/components/Blobs";
@@ -18,6 +19,7 @@ type Verse = { line1: string; line2: string };
 type PoemLine = Verse & { author: string | null };
 
 export default function QaseedaDemoPage() {
+  useEffect(() => { trackPageView("qaseeda_demo"); }, []);
   const [poemLines, setPoemLines] = useState<PoemLine[]>([
     { line1: QASEEDA_DEMO_OPENING.line1, line2: QASEEDA_DEMO_OPENING.line2, author: QASEEDA_DEMO_OPENING.poet },
   ]);

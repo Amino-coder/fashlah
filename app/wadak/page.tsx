@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Share2, Check, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import RadarChart from "@/components/wadak/RadarChart";
 import { shareResultCard } from "@/components/wadak/exportResultCard";
+import { trackPageView } from "@/lib/trackPageView";
 import {
   ROUND1_POOL, ROUND2_QUESTIONS, ROUND3_POOL, ROUND4_POOL,
   REACTION_AFTER_QUESTION, DIMENSION_LABELS, type Question,
@@ -21,6 +22,7 @@ type Stage = "intro" | "round1" | "round2" | "round3" | "round4" | "reaction" | 
 type Selection = { questionId: string; optionId: string };
 
 export default function WadakPage() {
+  useEffect(() => { trackPageView("wadak"); }, []);
   const [stage, setStage] = useState<Stage>("intro");
   const [nickname, setNickname] = useState("");
   const [qInRound, setQInRound] = useState(0);

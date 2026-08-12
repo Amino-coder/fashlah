@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { trackPageView } from "@/lib/trackPageView";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import Blobs from "@/components/Blobs";
@@ -45,6 +46,7 @@ type Round4Choice = { question: Question; type: "this_or_that"; picks: Record<st
 type Round4Text = { question: Question; type: "open_text"; texts: Record<string, string> };
 
 export default function FashlahDemoPage() {
+  useEffect(() => { trackPageView("fashlah_demo"); }, []);
   const [stage, setStage] = useState<Stage>("loading");
   const [error, setError] = useState<string | null>(null);
 
