@@ -19,7 +19,7 @@ export const SHOFAH_STR: Record<ShofahLang, Record<string, string>> = {
     backHome: "الصفحة الرئيسية",
     phase2Notice: "الردهة والتحدي الجماعي بييجون في المرحلة الجاية 🚧",
     nickname: "اسمك",
-    nicknamePh: "شلونك تحب نناديك؟",
+    nicknamePh: "اكتب اسمك او لقبك",
     codeLabel: "كود الغرفة",
     codePh: "اكتب الكود",
     joinSession: "انضم لجلسة",

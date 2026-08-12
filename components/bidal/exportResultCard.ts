@@ -165,6 +165,7 @@ export async function renderBidalCardToCanvas(result: BidalResult, nickname?: st
   y += statusH;
 
   y = drawWordFlowLines(ctx, flowLines, result.wordFlow, y) + 30;
+  ctx.textAlign = "center"; // drawWordFlowLines sets "right" for its own manual positioning and never resets it — without this, every line drawn after (divider, stats, footer) would inherit that
 
   ctx.strokeStyle = "rgba(255,255,255,0.3)";
   ctx.lineWidth = 2;

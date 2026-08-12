@@ -72,9 +72,9 @@ export default function IhjLandingPage() {
           </div>
 
           <div className="card pop" style={{ marginTop: 28, padding: 20, textAlign: "start" }}>
-            <p className="font-body" style={{ fontSize: 12.5, fontWeight: 700, color: "var(--ink-soft)", lineHeight: 1.9, margin: 0 }}>
+            <p className="font-body" style={{ fontSize: 12.5, fontWeight: 700, color: "var(--ink-soft)", lineHeight: 1.9, margin: 0, whiteSpace: "pre-line" }}>
               {ar
-                ? "كل جولة توصلكم حرف، وتكتبون إنسان وحيوان وجماد ونبات وبلاد يبدون فيه. إجابة محد كتبها غيرك = ١٠ نقاط. إجابة تكررت = ٥. فاضية أو غلط = صفر 🧠"
+                ? "كل جولة يطلع لكم حرف، ولازم تكتبون كلمات تبدا بالحرف هذا.\nإجابة محد كتبها غيرك = ١٠ نقاط. إجابة تكررت = ٥. فاضية أو غلط = صفر 🧠"
                 : "Each round gives you a letter — write a person, animal, object, plant, and country starting with it. An answer nobody else wrote = 10 points. A repeated answer = 5. Blank or wrong = zero 🧠"}
             </p>
           </div>

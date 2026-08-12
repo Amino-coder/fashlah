@@ -14,7 +14,7 @@ export const STR: Record<Lang, Record<string, string>> = {
     groupName: "اسم القروب",
     groupNamePh: "مثلاً: شلة الحي",
     nickname: "اسمك",
-    nicknamePh: "شلونك تحب يناديك القروب؟",
+    nicknamePh: "اكتب اسمك او لقبك",
     codeLabel: "كود الغرفة",
     codePh: "اكتب الكود",
     create: "إنشاء الجلسة",

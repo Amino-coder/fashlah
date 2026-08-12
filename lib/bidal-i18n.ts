@@ -11,7 +11,7 @@ export const BIDAL_STR = {
     playSolo: "العب لحالك",
     playMultiplayer: "العب مع أصحابك",
     yourName: "اسمك",
-    namePh: "اكتب اسمك...",
+    namePh: "اكتب اسمك او لقبك",
     roomCode: "كود الغرفة",
     enterCode: "أدخل الكود",
     waitingHost: "بانتظار المضيف يبدأ اللعبة...",

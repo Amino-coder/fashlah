@@ -15,7 +15,7 @@ export const QISSA_STR: Record<QissaLang, Record<string, string>> = {
     continueBtn: "التالي",
     backHome: "الصفحة الرئيسية",
     nickname: "اسمك",
-    nicknamePh: "شلونك تحب نناديك؟",
+    nicknamePh: "اكتب اسمك او لقبك",
     codeLabel: "كود الغرفة",
     codePh: "اكتب الكود",
     joinSession: "انضم لجلسة",
