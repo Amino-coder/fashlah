@@ -141,10 +141,11 @@ function ShofahCreate() {
 
         <Link
           href={`/shofah/solo?character=${character}`}
-          className="font-body"
+          className="font-display"
           style={{
-            display: "block", textAlign: "center", padding: 14, fontSize: 14, fontWeight: 700,
-            color: "var(--ink-soft)", textDecoration: "underline", marginTop: 14,
+            display: "block", textAlign: "center", width: "100%", padding: 16, fontSize: 15, fontWeight: 800,
+            borderRadius: 999, border: "2px solid var(--ring)", color: "var(--ink)", background: "var(--card)",
+            textDecoration: "none", marginTop: 14,
           }}
         >
           {lang === "ar" ? "🎲 العب لحالك" : "🎲 Play Solo"}
