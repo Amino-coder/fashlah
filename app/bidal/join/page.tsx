@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase, ensureUser } from "@/lib/supabase";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
@@ -12,15 +12,33 @@ const TEAL = "#14B8A6";
 const CORAL = "#FF5A5F";
 
 export default function BidalJoinPage() {
+  // useSearchParams() requires a Suspense boundary in Next's app router.
+  return (
+    <Suspense fallback={null}>
+      <BidalJoin />
+    </Suspense>
+  );
+}
+
+function BidalJoin() {
   const { lang, dark, ready } = usePrefs();
   const t = BIDAL_STR[lang as BidalLang];
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [code, setCode] = useState("");
   const [nickname, setNickname] = useState("");
   const [emoji, setEmoji] = useState(() => BIDAL_AVATARS[Math.floor(Math.random() * BIDAL_AVATARS.length)]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Same pattern as the other games' join pages: a shared link carries
+  // ?code=XXXX, so pull it in and pre-fill instead of leaving the person
+  // to retype a code they already tapped a link for.
+  useEffect(() => {
+    const fromUrl = searchParams.get("code");
+    if (fromUrl) setCode(fromUrl.toUpperCase().slice(0, 6));
+  }, [searchParams]);
 
   if (!ready) return null;
 
