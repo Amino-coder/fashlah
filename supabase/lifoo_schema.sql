@@ -50,7 +50,7 @@ create table lifoo_sessions (
   code          text unique not null,
   host_user_id  uuid references users(id),
   lang          text default 'ar' check (lang in ('ar', 'en')),
-  status        text default 'waiting' check (status in ('waiting', 'in_progress', 'completed')),
+  status        text default 'waiting' check (status in ('waiting', 'in_progress', 'completed', 'cancelled')),
   -- 0 = lobby + opening selection, 1-4 = writing/voting rounds,
   -- 5 = cinematic final reveal
   current_round int default 0,
