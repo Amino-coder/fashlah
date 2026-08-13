@@ -364,16 +364,38 @@ function SoloVerdict({
         {ar ? `الحظ وقف معك بـ ${luckyCount}/${MAX_LUCKY} من علامات الزواج` : `Luck was with you in ${luckyCount}/${MAX_LUCKY} of marriage signs`}
       </p>
 
-      <div className="card pop" style={{ padding: 20, marginBottom: 24, textAlign: "start" }}>
-        <p className="font-body" style={{ fontSize: 11, fontWeight: 800, color: ROSE, marginBottom: 12, textTransform: "uppercase" }}>
-          {ar ? "إجاباتك" : "Your Answers"}
+      <div className="card pop" style={{ padding: "20px 16px", marginBottom: 24, textAlign: "start" }}>
+        <p className="font-body" style={{ fontSize: 11, fontWeight: 800, color: ROSE, marginBottom: 14, textTransform: "uppercase", paddingInlineStart: 4 }}>
+          {ar ? "المحادثة" : "The Conversation"}
         </p>
-        {answers.map((a, i) => (
-          <div key={i} style={{ marginBottom: i < answers.length - 1 ? 12 : 0 }}>
-            <p className="font-body" style={{ fontSize: 11.5, color: "var(--ink-soft)", fontWeight: 700, margin: "0 0 2px" }}>{prompts[i]?.text_ar}</p>
-            <p className="font-display" style={{ fontSize: 14.5, fontWeight: 800, margin: 0 }}>{a || (ar ? "(فاضي)" : "(blank)")}</p>
-          </div>
-        ))}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {prompts.map((p, i) => (
+            <div key={i} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div className="pop" style={{ display: "flex", justifyContent: "flex-start" }}>
+                <div
+                  style={{
+                    maxWidth: "82%", padding: "10px 16px", borderRadius: 18, borderBottomLeftRadius: 4,
+                    background: "var(--bg)", border: "1.5px solid var(--ring)",
+                  }}
+                >
+                  <p className="font-body" style={{ margin: 0, fontSize: 13.5, fontWeight: 600, lineHeight: 1.6, color: "var(--ink)" }}>{p.text_ar}</p>
+                </div>
+              </div>
+              <div className="pop" style={{ display: "flex", justifyContent: "flex-end" }}>
+                <div
+                  style={{
+                    maxWidth: "82%", padding: "10px 16px", borderRadius: 18, borderBottomRightRadius: 4,
+                    background: `linear-gradient(135deg, ${ROSE}, ${WINE})`,
+                  }}
+                >
+                  <p className="font-body" style={{ margin: 0, fontSize: 13.5, fontWeight: 600, lineHeight: 1.6, color: "#fff" }}>
+                    {answers[i] || (ar ? "(فاضي)" : "(blank)")}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <button
