@@ -55,7 +55,7 @@ export default function Home() {
     { href: "/qissa", title: QISSA_STR[lang].gameNameArabic, sub: ar ? "قصة توها تبدأ... وتضيع بين الكل 😂" : "A story that gets lost along the way 😂", Art: QissaArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
     { href: "/job", title: JOB_STR[lang].gameNameArabic, sub: ar ? "لعبة للعاطلين 👀" : "A game for the unemployed 👀", Art: JobArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
     { href: "/qaseeda", title: QASEEDA_STR[lang].gameNameArabic, sub: ar ? "اكتبوا قصيدة سوا، بيت بيت 🪶" : "Write a poem together, line by line 🪶", Art: QaseedaArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
-    { href: "/lifoo", title: LIFOO_STR[lang].gameNameArabic, sub: ar ? "لفّوا أغنية سوا، سطر سطر 🎶" : "Build a song together, line by line 🎶", Art: LifooArt, badge: ar ? "جديد" : "New", badgeColor: LIMITED_FREE },
+    { href: "/lifoo", title: LIFOO_STR[lang].gameNameArabic, sub: ar ? "الِّفوا أغنية سوا، سطر سطر 🎶" : "Build a song together, line by line 🎶", Art: LifooArt, badge: ar ? "جديد" : "New", badgeColor: LIMITED_FREE },
     { href: "/ibarat", title: "عبارات", sub: ar ? "بطاقة إلهام يومية" : "A daily card of inspiration", Art: IbaratArt, badge: ar ? "مجاناً" : "Free", badgeColor: ALWAYS_FREE },
   ];
 

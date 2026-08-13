@@ -29,9 +29,9 @@ export type LifooPalette = {
 // gold-on-navy poetry register, since this is meant to feel like a fun
 // group song, not a literary keepsake.
 export const LIFOO_PALETTES: LifooPalette[] = [
-  { name: "coral-night", from: "#3A1420", mid: "#2A0F18", to: "#160810", gold: "#FF8A3D", ink: "#FFF3E8", soft: "rgba(255,243,232,0.66)", faint: "rgba(255,138,61,0.55)" },
-  { name: "teal-dusk",   from: "#0F3A38", mid: "#0B2A28", to: "#061716", gold: "#FFD400", ink: "#F0FBF8", soft: "rgba(240,251,248,0.66)", faint: "rgba(255,212,0,0.55)" },
-  { name: "purple-pop",  from: "#3A1350", mid: "#280D38", to: "#14061C", gold: "#FF2E93", ink: "#FBF3FF", soft: "rgba(251,243,255,0.66)", faint: "rgba(255,46,147,0.55)" },
+  { name: "coral-night",  from: "#3A1420", mid: "#2A0F18", to: "#160810", gold: "#FF8A3D", ink: "#FFF3E8", soft: "rgba(255,243,232,0.66)", faint: "rgba(255,138,61,0.55)" },
+  { name: "magenta-pop",  from: "#4A0E3D", mid: "#33092A", to: "#180413", gold: "#FF2E93", ink: "#FDF2FA", soft: "rgba(253,242,250,0.66)", faint: "rgba(255,46,147,0.55)" },
+  { name: "purple-pop",   from: "#3A1350", mid: "#280D38", to: "#14061C", gold: "#FF2E93", ink: "#FBF3FF", soft: "rgba(251,243,255,0.66)", faint: "rgba(255,46,147,0.55)" },
 ];
 
 export function paletteForCode(code: string): LifooPalette {

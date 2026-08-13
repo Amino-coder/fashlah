@@ -28,7 +28,7 @@ const TOTAL_ROUNDS = 4;
  * network round trip needed to show them here either.
  */
 type Stage = "select" | "customInput" | "writing" | "results";
-type Opening = { line1: string; line2: string; poet: string | null; category: string | null; isCustom: boolean };
+type Opening = { line1: string; line2: string | null; poet: string | null; category: string | null; isCustom: boolean };
 
 export default function LifooSoloPage() {
   const { lang, dark, ready } = usePrefs();
@@ -41,7 +41,6 @@ export default function LifooSoloPage() {
   const [stage, setStage] = useState<Stage>("select");
   const [opening, setOpening] = useState<Opening | null>(null);
   const [customLine1, setCustomLine1] = useState("");
-  const [customLine2, setCustomLine2] = useState("");
   const [round, setRound] = useState(1);
   const [lines, setLines] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
@@ -56,10 +55,10 @@ export default function LifooSoloPage() {
   }
 
   function confirmCustom() {
-    if (!customLine1.trim() || !customLine2.trim()) return;
+    if (!customLine1.trim()) return;
     setOpening({
       line1: customLine1.trim().slice(0, MAX_LINE_CHARS),
-      line2: customLine2.trim().slice(0, MAX_LINE_CHARS),
+      line2: null,
       poet: null, category: null, isCustom: true,
     });
     setStage("writing");
@@ -82,7 +81,6 @@ export default function LifooSoloPage() {
     setStage("select");
     setOpening(null);
     setCustomLine1("");
-    setCustomLine2("");
     setRound(1);
     setLines([]);
     setDraft("");
@@ -188,44 +186,26 @@ export default function LifooSoloPage() {
               {t.customOpeningLabel}
             </p>
             <div className="card pop" style={{ padding: 20, border: "1.5px solid rgba(255,90,95,0.3)" }}>
-              <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <label htmlFor="lifoo-solo-line1" className="font-body" style={{ display: "block", textAlign: "center", fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>
-                    {t.shatr1Label}
-                  </label>
-                  <textarea
-                    id="lifoo-solo-line1"
-                    value={customLine1}
-                    onChange={(e) => setCustomLine1(e.target.value.slice(0, MAX_LINE_CHARS))}
-                    placeholder={t.shatr1Ph}
-                    dir="rtl" rows={3} autoFocus
-                    className="font-quote"
-                    style={{ width: "100%", padding: 10, borderRadius: 14, border: "2px solid var(--ring)", background: "transparent", color: "var(--ink)", fontSize: 15, outline: "none", resize: "none", textAlign: "center", fontFamily: "inherit" }}
-                  />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <label htmlFor="lifoo-solo-line2" className="font-body" style={{ display: "block", textAlign: "center", fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>
-                    {t.shatr2Label}
-                  </label>
-                  <textarea
-                    id="lifoo-solo-line2"
-                    value={customLine2}
-                    onChange={(e) => setCustomLine2(e.target.value.slice(0, MAX_LINE_CHARS))}
-                    placeholder={t.shatr2Ph}
-                    dir="rtl" rows={3}
-                    className="font-quote"
-                    style={{ width: "100%", padding: 10, borderRadius: 14, border: "2px solid var(--ring)", background: "transparent", color: "var(--ink)", fontSize: 15, outline: "none", resize: "none", textAlign: "center", fontFamily: "inherit" }}
-                  />
-                </div>
-              </div>
+              <label htmlFor="lifoo-solo-line1" className="font-body" style={{ display: "block", textAlign: "center", fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>
+                {t.lineLabel}
+              </label>
+              <textarea
+                id="lifoo-solo-line1"
+                value={customLine1}
+                onChange={(e) => setCustomLine1(e.target.value.slice(0, MAX_LINE_CHARS))}
+                placeholder={t.linePh}
+                dir="rtl" rows={3} autoFocus
+                className="font-quote"
+                style={{ width: "100%", padding: 10, borderRadius: 14, border: "2px solid var(--ring)", background: "transparent", color: "var(--ink)", fontSize: 16, outline: "none", resize: "none", textAlign: "center", fontFamily: "inherit", marginBottom: 14 }}
+              />
               <button
                 onClick={confirmCustom}
-                disabled={!customLine1.trim() || !customLine2.trim()}
+                disabled={!customLine1.trim()}
                 className="font-display"
                 style={{
                   width: "100%", padding: 14, fontSize: 15, borderRadius: 999, border: "none", color: "#fff",
                   background: `linear-gradient(135deg, ${CORAL}, ${NAVY})`,
-                  opacity: customLine1.trim() && customLine2.trim() ? 1 : 0.5,
+                  opacity: customLine1.trim() ? 1 : 0.5,
                 }}
               >
                 {t.customOpeningConfirm}
@@ -347,7 +327,7 @@ export default function LifooSoloPage() {
                 border: "2px solid var(--ring)", color: "var(--ink)", background: "transparent", marginBottom: 10,
               }}
             >
-              {ar ? "لفّوا وحدة ثانية 🔄" : "Build another 🔄"}
+              {ar ? "الِّفوا وحدة ثانية 🔄" : "Build another 🔄"}
             </button>
             <Link
               href="/lifoo/create"

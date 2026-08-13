@@ -166,23 +166,15 @@ export function BidalArt({ size = 120 }: P) {
 
 /* ─── الِّفوا أغنية — a music note with a growing sound-wave tail ─── */
 export function LifooArt({ size = 120 }: P) {
+  const BABY_BLUE = "#8ECAE6";
   const CORAL = "#FF5A5F";
-  const PURPLE2 = "#7C3AED";
   return (
-    <Tile bg={PURPLE2}>
+    <Tile bg={BABY_BLUE}>
       <Confetti a={CORAL} b={CREAM} />
-      {/* single music note, off-axis like the other tiles' motifs */}
-      <g transform="translate(72 108) rotate(-6)">
-        <ellipse cx="0" cy="34" rx="17" ry="13" fill={CREAM} stroke={INK} strokeWidth="6" />
-        <rect x="12" y="-46" width="9" height="82" rx="4" fill={CREAM} stroke={INK} strokeWidth="6" />
-        <path d="M 21 -46 Q 46 -40 46 -14 L 37 -16 Q 37 -32 21 -37 Z" fill={CORAL} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
-      </g>
-      {/* sound-wave bars trailing off to the right, echoing "song building up" */}
-      <g transform="translate(128 106)">
-        <rect x="0" y="-10" width="10" height="20" rx="5" fill={CREAM} opacity=".95" />
-        <rect x="16" y="-22" width="10" height="44" rx="5" fill={CREAM} opacity=".8" />
-        <rect x="32" y="-14" width="10" height="28" rx="5" fill={CREAM} opacity=".65" />
-      </g>
+      {/* the music emoji itself, rendered directly as the tile's motif */}
+      <text x="100" y="122" textAnchor="middle" fontSize="92" fontFamily="sans-serif">
+        🎶
+      </text>
     </Tile>
   );
 }

@@ -24,7 +24,6 @@ export default function OpeningSelect({
   const [openings, setOpenings] = useState<LifooOpeningRow[] | null>(null);
   const [customOpen, setCustomOpen] = useState(false);
   const [line1, setLine1] = useState("");
-  const [line2, setLine2] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,14 +59,14 @@ export default function OpeningSelect({
   }
 
   async function confirmCustom() {
-    if (!isHost || submitting || !line1.trim() || !line2.trim() || !myPlayerId) return;
+    if (!isHost || submitting || !line1.trim() || !myPlayerId) return;
     setSubmitting(true);
     setError(null);
     const { error: err } = await supabase
       .from("lifoo_sessions")
       .update({
         opening_line1: line1.trim().slice(0, MAX_LINE_CHARS),
-        opening_line2: line2.trim().slice(0, MAX_LINE_CHARS),
+        opening_line2: null,
         opening_poet: null,
         opening_category: null,
         opening_is_custom: true,
@@ -177,63 +176,36 @@ export default function OpeningSelect({
           </button>
         ) : (
           <div className="card pop" style={{ padding: 20, border: "1.5px solid rgba(255,90,95,0.3)" }}>
-            <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <label
-                  htmlFor="lifoo-opening-line1"
-                  className="font-body"
-                  style={{ display: "block", textAlign: "center", fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}
-                >
-                  {t.shatr1Label}
-                </label>
-                <textarea
-                  id="lifoo-opening-line1"
-                  value={line1}
-                  onChange={(e) => setLine1(e.target.value.slice(0, MAX_LINE_CHARS))}
-                  placeholder={t.shatr1Ph}
-                  dir="rtl"
-                  rows={3}
-                  autoFocus
-                  className="font-quote"
-                  style={{
-                    width: "100%", padding: 10, borderRadius: 14, border: "2px solid var(--ring)",
-                    background: "transparent", color: "var(--ink)", fontSize: 15, outline: "none",
-                    resize: "none", textAlign: "center", fontFamily: "inherit",
-                  }}
-                />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <label
-                  htmlFor="lifoo-opening-line2"
-                  className="font-body"
-                  style={{ display: "block", textAlign: "center", fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}
-                >
-                  {t.shatr2Label}
-                </label>
-                <textarea
-                  id="lifoo-opening-line2"
-                  value={line2}
-                  onChange={(e) => setLine2(e.target.value.slice(0, MAX_LINE_CHARS))}
-                  placeholder={t.shatr2Ph}
-                  dir="rtl"
-                  rows={3}
-                  className="font-quote"
-                  style={{
-                    width: "100%", padding: 10, borderRadius: 14, border: "2px solid var(--ring)",
-                    background: "transparent", color: "var(--ink)", fontSize: 15, outline: "none",
-                    resize: "none", textAlign: "center", fontFamily: "inherit",
-                  }}
-                />
-              </div>
-            </div>
+            <label
+              htmlFor="lifoo-opening-line1"
+              className="font-body"
+              style={{ display: "block", textAlign: "center", fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}
+            >
+              {t.lineLabel}
+            </label>
+            <textarea
+              id="lifoo-opening-line1"
+              value={line1}
+              onChange={(e) => setLine1(e.target.value.slice(0, MAX_LINE_CHARS))}
+              placeholder={t.linePh}
+              dir="rtl"
+              rows={3}
+              autoFocus
+              className="font-quote"
+              style={{
+                width: "100%", padding: 10, borderRadius: 14, border: "2px solid var(--ring)",
+                background: "transparent", color: "var(--ink)", fontSize: 16, outline: "none",
+                resize: "none", textAlign: "center", fontFamily: "inherit", marginBottom: 14,
+              }}
+            />
             <button
               onClick={confirmCustom}
-              disabled={!line1.trim() || !line2.trim() || submitting}
+              disabled={!line1.trim() || submitting}
               className="font-display"
               style={{
                 width: "100%", padding: 14, fontSize: 15, borderRadius: 999, border: "none", color: "#fff",
                 background: `linear-gradient(135deg, ${CORAL}, ${NAVY})`,
-                opacity: line1.trim() && line2.trim() ? 1 : 0.5,
+                opacity: line1.trim() ? 1 : 0.5,
               }}
             >
               {t.customOpeningConfirm}

@@ -16,7 +16,7 @@ import type {
 
 const CORAL = "#FF5A5F";
 const NAVY = "#1B1030";
-const ANSWER_SECONDS = 45;
+const ANSWER_SECONDS = 40;
 const VOTE_SECONDS = 20;
 const COUNTDOWN_SECONDS = 5;
 const REVEAL_SECONDS = 3;
@@ -296,6 +296,21 @@ export default function RoundScreen({
       submitAnswer();
     }
   }, [now, myAnswer, draft]);
+
+  // Safety net on top of the deadline check above: that one relies on this
+  // tab's own `now` ticking past the computed deadline, which can lag (a
+  // backgrounded tab throttles setInterval) or race against the host's
+  // independent "time's up" detection. This instead reacts directly to the
+  // round actually moving on — the moment round_phase leaves "answering"
+  // while there's still unsent text sitting in the box and no answer has
+  // been recorded yet, submit it immediately rather than losing it. Draft
+  // isn't cleared until the round number itself changes (see the reset
+  // effect above), so it's still here to grab even if this fires late.
+  useEffect(() => {
+    if (session.round_phase === "answering" || myAnswer || autoSubmitRef.current || !draft.trim()) return;
+    autoSubmitRef.current = true;
+    submitAnswer();
+  }, [session.round_phase]);
 
   useEffect(() => {
     if (session.round_phase === "voting" && session.phase_started_at) {
