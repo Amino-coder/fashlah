@@ -15,7 +15,7 @@ import type { Lang } from "@/lib/i18n";
  * from memory.
  */
 
-export type GameKey = "fashlah" | "shofah" | "job" | "qaseeda" | "qissa";
+export type GameKey = "fashlah" | "shofah" | "job" | "qaseeda" | "qissa" | "lifoo";
 
 type Step = { icon: string; title: string; body: string };
 type Content = { title: string; tagline: string; steps: Step[]; footer: string };
@@ -159,6 +159,34 @@ const CONTENT: Record<GameKey, Record<Lang, Content>> = {
       footer: "The less you can see, the funnier it gets 😂",
     },
   },
+  lifoo: {
+    ar: {
+      title: "كيف تلعبون الِّفوا أغنية؟",
+      tagline: "بيت البداية، أربع جولات، وأغنية كاملة 🎶",
+      steps: [
+        { icon: "🎤", title: "اختاروا بداية الأغنية", body: "المضيف يختار من ثلاث بدايات مشهورة، أو يكتب بيت خاص بكم." },
+        { icon: "📱", title: "جهاز لكل شخص", body: "المضيف ينشئ غرفة ويشارك الكود مع الشلة." },
+        { icon: "✍️", title: "٤ جولات", body: "كل جولة، الكل يكتب سطر واحد جديد بنفس الوقت." },
+        { icon: "🗳️", title: "صوّتوا", body: "صوّتوا لأحلى سطر — السطر الفايز يصير رسمي وينضم للأغنية." },
+        { icon: "🎶", title: "الأغنية", body: "بالنهاية تشوفون الأغنية كاملة، سطر سطر، ومين كتب كل واحد." },
+        { icon: "🖼️", title: "شاركوها", body: "بطاقة جاهزة للمشاركة — أغنيتكم الجماعية المجنونة." },
+      ],
+      footer: "كل ما زاد الجنون، زادت الأغنية حلاوة 😂",
+    },
+    en: {
+      title: "How to play Build a Song",
+      tagline: "One starting verse, four rounds, one finished song 🎶",
+      steps: [
+        { icon: "🎤", title: "Pick the starting verse", body: "The host chooses from three famous verses, or writes a custom one." },
+        { icon: "📱", title: "One phone each", body: "The host creates a room and shares the code with the group." },
+        { icon: "✍️", title: "4 rounds", body: "Each round, everyone writes one new line at the same time." },
+        { icon: "🗳️", title: "Vote", body: "Vote for the best line — the winner becomes official and joins the song." },
+        { icon: "🎶", title: "The song", body: "At the end you'll see the whole song, line by line, and who wrote each one." },
+        { icon: "🖼️", title: "Share it", body: "A shareable card, ready to go — your group's ridiculous song." },
+      ],
+      footer: "The sillier it gets, the better the song 😂",
+    },
+  },
 };
 
 const ACCENTS: Record<GameKey, { from: string; to: string }> = {
@@ -167,6 +195,7 @@ const ACCENTS: Record<GameKey, { from: string; to: string }> = {
   job: { from: "#3B82F6", to: "#1E40AF" },
   qaseeda: { from: "#D9A441", to: "#1B3A55" },
   qissa: { from: "#FF8A3D", to: "#E0409A" },
+  lifoo: { from: "#FF5A5F", to: "#1B1030" },
 };
 
 function storageKey(game: GameKey) {
