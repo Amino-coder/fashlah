@@ -23,6 +23,7 @@ const ALLOWED_TABLES = new Set([
   "job_sessions",
   "qaseeda_sessions",
   "qissa_sessions",
+  "lifoo_sessions",
 ]);
 
 export async function POST(req: NextRequest) {
