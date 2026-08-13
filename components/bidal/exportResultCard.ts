@@ -1,5 +1,8 @@
-import { CARD_W, CARD_H, PAD_X, RADIUS, FRAME_INSET, TEAL, CORAL, CREAM, FONT_DISPLAY, FONT_UI, BRAND_URL } from "@/lib/bidal-card";
+import { CARD_W, CARD_H, PAD_X, RADIUS, FRAME_INSET, TEAL, CORAL, CREAM, INK, FONT_DISPLAY, FONT_UI, BRAND_URL } from "@/lib/bidal-card";
 import { formatDuration, type BidalResult } from "@/lib/bidal-results";
+import { honeycombGeometry, honeycombSlotPosition } from "@/components/bidal/Honeycomb";
+
+const GOLD = "#FFD400";
 
 function roundedRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
@@ -9,6 +12,105 @@ function roundedRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w:
   ctx.arcTo(x, y + h, x, y, r);
   ctx.arcTo(x, y, x + w, y, r);
   ctx.closePath();
+}
+
+/** Flat-top hexagon outline, same 6-point proportions as HexTile's CSS
+ *  clip-path — (x, y) is the tile's top-left corner, matching how
+ *  Honeycomb.tsx positions each slot, so the two stay pixel-consistent. */
+function hexPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
+  ctx.beginPath();
+  ctx.moveTo(x + 0.25 * w, y);
+  ctx.lineTo(x + 0.75 * w, y);
+  ctx.lineTo(x + w, y + 0.5 * h);
+  ctx.lineTo(x + 0.75 * w, y + h);
+  ctx.lineTo(x + 0.25 * w, y + h);
+  ctx.lineTo(x, y + 0.5 * h);
+  ctx.closePath();
+}
+
+/** The pointy-top hex mark used for the app icon (components/art/GameArt.tsx
+ *  BidalArt) — a different orientation from the letter-tile hexes above.
+ *  Redrawn here point-for-point from that SVG's path/coordinates rather
+ *  than rasterizing the component, so it stays crisp at card resolution
+ *  and needs no image loading/CORS handling. */
+function drawLogoHex(ctx: CanvasRenderingContext2D, cx: number, cy: number, scale: number, rotationDeg: number, fill: string, letter: string, letterColor: string) {
+  const pts: [number, number][] = [[0, -36], [31, -18], [31, 18], [0, 36], [-31, 18], [-31, -18]];
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate((rotationDeg * Math.PI) / 180);
+  ctx.scale(scale, scale);
+  ctx.beginPath();
+  pts.forEach(([px, py], i) => (i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py)));
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.lineWidth = 7;
+  ctx.strokeStyle = INK;
+  ctx.lineJoin = "round";
+  ctx.stroke();
+  ctx.font = `800 34px sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = letterColor;
+  ctx.fillText(letter, 0, 13);
+  ctx.restore();
+}
+
+/** The 3-hex ل/د/ب cluster from the app's own game icon, drawn at the
+ *  top of the card so the share image is recognizably "بدل الكلمة" at a
+ *  glance even before anyone reads the text. */
+function drawBidalIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, scale: number) {
+  const toCard = (vx: number, vy: number): [number, number] => [cx + (vx - 100) * scale, cy + (vy - 96) * scale];
+  const [lx, ly] = toCard(52, 104);
+  const [dx, dy] = toCard(100, 88);
+  const [bx, by] = toCard(148, 104);
+  drawLogoHex(ctx, lx, ly, scale, -8, CREAM, "ل", INK);
+  drawLogoHex(ctx, dx, dy, scale, 0, TEAL, "د", CREAM);
+  drawLogoHex(ctx, bx, by, scale, 8, CORAL, "ب", CREAM);
+}
+
+/** Draws the exact honeycomb the player was looking at in-game: same
+ *  geometry function as the live board (honeycombGeometry/
+ *  honeycombSlotPosition, imported straight from Honeycomb.tsx rather
+ *  than reimplemented), used letters left as a faint gap in place
+ *  instead of being omitted — the card should look like a screenshot of
+ *  the board's shape, not a fresh list. */
+function drawResultHoneycomb(ctx: CanvasRenderingContext2D, slots: BidalResult["slots"], centerX: number, topY: number, tileSize: number) {
+  const geom = honeycombGeometry(tileSize);
+  const originX = centerX - geom.width / 2;
+
+  slots.forEach((slot, index) => {
+    const { x, y } = honeycombSlotPosition(index, tileSize);
+    const left = originX + x;
+    const top = topY + y;
+
+    if (slot.used) {
+      ctx.save();
+      ctx.globalAlpha = 0.16;
+      ctx.fillStyle = CREAM;
+      hexPath(ctx, left, top, geom.tileW, geom.tileH);
+      ctx.fill();
+      ctx.restore();
+      return;
+    }
+
+    hexPath(ctx, left, top, geom.tileW, geom.tileH);
+    ctx.fillStyle = INK;
+    ctx.fill();
+
+    const pad = geom.tileW * 0.07;
+    hexPath(ctx, left + pad, top + pad, geom.tileW - pad * 2, geom.tileH - pad * 2);
+    ctx.fillStyle = CREAM;
+    ctx.fill();
+
+    ctx.font = `800 ${Math.round(geom.tileW * 0.4)}px "${FONT_DISPLAY}", sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = INK;
+    ctx.fillText(slot.letter, left + geom.tileW / 2, top + geom.tileH / 2 + 2);
+  });
+
+  ctx.textBaseline = "alphabetic"; // reset — the rest of this file relies on the canvas default
 }
 
 async function ensureFonts() {
@@ -94,7 +196,7 @@ function drawWordFlowLines(ctx: CanvasRenderingContext2D, lines: string[][], all
   return y;
 }
 
-export async function renderBidalCardToCanvas(result: BidalResult, nickname?: string): Promise<HTMLCanvasElement> {
+export async function renderBidalCardToCanvas(result: BidalResult): Promise<HTMLCanvasElement> {
   await ensureFonts();
 
   const canvas = document.createElement("canvas");
@@ -123,36 +225,51 @@ export async function renderBidalCardToCanvas(result: BidalResult, nickname?: st
   const flowMaxWidth = CARD_W - PAD_X * 2;
   const flowLines = layoutWordFlow(ctx, result.wordFlow, flowMaxWidth);
 
+  const iconH = 210;
   const eyebrowH = 100;
-  const nicknameH = nickname?.trim() ? 60 : 0;
-  const statusH = 130;
+  const statusH = 150;
   const flowH = flowLines.length * FLOW_LINE_HEIGHT + 30;
   const dividerH = 90;
-  const statsH = result.finished ? 90 : (result.remainingLetters.length > 0 ? 190 : 100);
+  const statsLineH = 100;
+  const showHoneycomb = !result.finished && result.slots.length > 0;
+  const honeycombTileSize = 130;
+  const honeycombGeom = honeycombGeometry(honeycombTileSize);
+  const honeycombH = showHoneycomb ? honeycombGeom.height + 36 : 0;
   const footerReserve = 220;
 
-  const totalContentH = eyebrowH + nicknameH + statusH + flowH + dividerH + statsH;
+  const totalContentH = iconH + eyebrowH + statusH + flowH + dividerH + statsLineH + honeycombH;
   const topMargin = Math.max(140, (CARD_H - footerReserve - totalContentH) / 2);
 
   // ---- Pass 2: draw, using the centered starting position ----
   let y = topMargin;
   ctx.textAlign = "center";
 
+  drawBidalIcon(ctx, CARD_W / 2, y + iconH / 2 - 10, 2.0);
+  y += iconH;
+
   ctx.font = `800 46px "${FONT_DISPLAY}", sans-serif`;
   ctx.fillStyle = CREAM;
-  ctx.fillText("🔤 بدل الكلمة", CARD_W / 2, y);
+  ctx.fillText("بدل الكلمة", CARD_W / 2, y);
   y += eyebrowH;
 
-  if (nickname?.trim()) {
-    ctx.font = `700 32px "${FONT_UI}", sans-serif`;
-    ctx.fillStyle = "rgba(255,255,255,0.8)";
-    ctx.fillText(nickname.trim(), CARD_W / 2, y);
-    y += nicknameH;
+  // Status headline — a plain trophy line when finished, otherwise the
+  // score as a percentage in gold with an ink outline so it pops off
+  // the teal/coral gradient instead of blending into it like the rest
+  // of the cream text.
+  if (result.finished) {
+    ctx.font = `800 64px "${FONT_DISPLAY}", sans-serif`;
+    ctx.fillStyle = CREAM;
+    ctx.fillText("🏆 خلصتها!", CARD_W / 2, y);
+  } else {
+    const pct = ((result.lettersUsed / result.totalLetters) * 100).toFixed(2);
+    ctx.font = `800 78px "${FONT_DISPLAY}", sans-serif`;
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = INK;
+    ctx.lineJoin = "round";
+    ctx.strokeText(`النتيجة ${pct}%`, CARD_W / 2, y);
+    ctx.fillStyle = GOLD;
+    ctx.fillText(`النتيجة ${pct}%`, CARD_W / 2, y);
   }
-
-  ctx.fillStyle = CREAM;
-  ctx.font = `800 64px "${FONT_DISPLAY}", sans-serif`;
-  ctx.fillText(result.finished ? "🏆 خلصتها!" : `${result.lettersUsed}/${result.totalLetters} حروف 🔤`, CARD_W / 2, y);
   y += statusH;
 
   y = drawWordFlowLines(ctx, flowLines, result.wordFlow, y) + 30;
@@ -171,12 +288,12 @@ export async function renderBidalCardToCanvas(result: BidalResult, nickname?: st
   if (result.finished && result.completionSeconds !== null) {
     ctx.fillText(`⏱️ انتهيت في ${formatDuration(result.completionSeconds)}`, CARD_W / 2, y);
   } else {
-    ctx.fillText(`📝 استخدمت ${result.lettersUsed}/${result.totalLetters} حرف`, CARD_W / 2, y);
-    if (result.remainingLetters.length > 0) {
-      y += 66;
-      ctx.font = `800 46px "${FONT_DISPLAY}", sans-serif`;
-      ctx.fillText(`🔠 باقي لي: ${result.remainingLetters.join(" ")}`, CARD_W / 2, y);
-    }
+    ctx.fillText(`📝 استخدمت ${result.lettersUsed} من ${result.totalLetters} حرف`, CARD_W / 2, y);
+  }
+  y += statsLineH;
+
+  if (showHoneycomb) {
+    drawResultHoneycomb(ctx, result.slots, CARD_W / 2, y, honeycombTileSize);
   }
 
   // Footer branding — fixed near the bottom regardless of content length
@@ -200,9 +317,9 @@ function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
 
 export type ShareResult = "shared" | "downloaded" | "cancelled" | "failed";
 
-export async function shareBidalResultCard(result: BidalResult, nickname?: string): Promise<ShareResult> {
+export async function shareBidalResultCard(result: BidalResult): Promise<ShareResult> {
   try {
-    const canvas = await renderBidalCardToCanvas(result, nickname);
+    const canvas = await renderBidalCardToCanvas(result);
     const blob = await canvasToBlob(canvas);
     const file = new File([blob], "bagdoonis-bidal-result.png", { type: "image/png" });
 

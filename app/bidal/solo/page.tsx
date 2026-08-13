@@ -196,7 +196,7 @@ export default function BidalSoloPage() {
 
   async function handleShare(result: BidalResult) {
     setShareState("working");
-    const res = await shareBidalResultCard(result, ar ? "أنت" : "You");
+    const res = await shareBidalResultCard(result);
     setShareState(res === "failed" ? "failed" : res === "cancelled" ? "idle" : res);
   }
 
@@ -210,6 +210,7 @@ export default function BidalSoloPage() {
     remainingLetters,
     completionSeconds,
     wordFlow: game.wordFlow,
+    slots: game.slots,
   };
 
   return (

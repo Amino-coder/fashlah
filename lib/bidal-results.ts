@@ -13,6 +13,8 @@ export function formatDuration(totalSeconds: number): string {
   return `${m}:${String(rem).padStart(2, "0")}`;
 }
 
+import type { BidalSlot } from "@/components/bidal/Honeycomb";
+
 export type BidalResult = {
   finished: boolean;
   lettersUsed: number;
@@ -20,4 +22,8 @@ export type BidalResult = {
   remainingLetters: string[];
   completionSeconds: number | null;
   wordFlow: string[];
+  /** Full 15-slot hand, used flags included — lets the share card draw
+   *  the exact same honeycomb (with gaps) the player was looking at,
+   *  not just a plain list of whatever letters are left. */
+  slots: BidalSlot[];
 };
