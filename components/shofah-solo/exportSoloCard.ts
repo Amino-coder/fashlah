@@ -6,8 +6,11 @@ const FRAME_INSET = 36;
 const ROSE = "#E63946";
 const WINE = "#C2185B";
 const CREAM = "#FFF9F0";
+const INK = "#17122B";
 const FONT_DISPLAY = "Baloo Bhaijaan 2";
 const FONT_UI = "Tajawal";
+
+export type ShofahSoloConversationBeat = { question: string; answer: string };
 
 function roundedRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
@@ -16,6 +19,29 @@ function roundedRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w:
   ctx.arcTo(x + w, y + h, x, y + h, r);
   ctx.arcTo(x, y + h, x, y, r);
   ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+/** Same asymmetric-corner shape as the app's chat bubbles (borderRadius
+ *  18, one corner flattened to 4 on the side that "points" at its
+ *  sender) — `flatCorner` picks which bottom corner gets flattened, so
+ *  question bubbles (bottom-left) and answer bubbles (bottom-right)
+ *  read as the same two-way conversation shape used everywhere else in
+ *  the app (see ConversationReveal / FinalConversation). */
+function bubblePath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, radius: number, flatCorner: "bl" | "br") {
+  const flat = radius * 0.22;
+  const brR = flatCorner === "br" ? flat : radius;
+  const blR = flatCorner === "bl" ? flat : radius;
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + w - radius, y);
+  ctx.arcTo(x + w, y, x + w, y + radius, radius);
+  ctx.lineTo(x + w, y + h - brR);
+  ctx.arcTo(x + w, y + h, x + w - brR, y + h, brR);
+  ctx.lineTo(x + blR, y + h);
+  ctx.arcTo(x, y + h, x, y + h - blR, blR);
+  ctx.lineTo(x, y + radius);
+  ctx.arcTo(x, y, x + radius, y, radius);
   ctx.closePath();
 }
 
@@ -40,7 +66,65 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
   return lines;
 }
 
-export async function renderShofahSoloCard(married: boolean, luckyCount: number, maxLucky: number): Promise<HTMLCanvasElement> {
+const BUBBLE_FONT = `700 34px "${FONT_UI}", sans-serif`;
+const BUBBLE_PAD_X = 34;
+const BUBBLE_PAD_Y = 26;
+const BUBBLE_LINE_H = 46;
+const BUBBLE_RADIUS = 40;
+const BUBBLE_MAX_W = 660;
+const BUBBLE_GAP = 16;      // between question and its answer
+const PAIR_GAP = 26;        // between one Q&A pair and the next
+const SIDE_MARGIN = 96;     // how close a bubble can get to the card edge
+
+type MeasuredBubble = { lines: string[]; width: number; height: number };
+
+function measureBubble(ctx: CanvasRenderingContext2D, text: string): MeasuredBubble {
+  ctx.font = BUBBLE_FONT;
+  const maxTextWidth = BUBBLE_MAX_W - BUBBLE_PAD_X * 2;
+  const lines = wrapText(ctx, text, maxTextWidth);
+  const textWidth = Math.min(maxTextWidth, Math.max(...lines.map((l) => ctx.measureText(l).width)));
+  return {
+    lines,
+    width: Math.min(BUBBLE_MAX_W, textWidth + BUBBLE_PAD_X * 2),
+    height: lines.length * BUBBLE_LINE_H + BUBBLE_PAD_Y * 2,
+  };
+}
+
+/** side: "left" = question (from the character), "right" = answer (from
+ *  the player) — mirrors ConversationReveal's fromMe flag exactly:
+ *  right-aligned + gradient fill for the player's own line, left-aligned
+ *  + flat card-toned fill for the other side. */
+function drawBubble(ctx: CanvasRenderingContext2D, bubble: MeasuredBubble, side: "left" | "right", y: number) {
+  const x = side === "left" ? SIDE_MARGIN : CARD_W - SIDE_MARGIN - bubble.width;
+  bubblePath(ctx, x, y, bubble.width, bubble.height, BUBBLE_RADIUS, side === "left" ? "bl" : "br");
+
+  if (side === "left") {
+    ctx.fillStyle = "rgba(255,255,255,0.14)";
+    ctx.fill();
+    ctx.save();
+    ctx.strokeStyle = "rgba(255,255,255,0.4)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+  } else {
+    ctx.fillStyle = CREAM;
+    ctx.fill();
+  }
+
+  ctx.font = BUBBLE_FONT;
+  ctx.textAlign = "right";
+  ctx.fillStyle = side === "left" ? CREAM : INK;
+  const textRight = x + bubble.width - BUBBLE_PAD_X;
+  let ty = y + BUBBLE_PAD_Y + 26;
+  for (const line of bubble.lines) {
+    ctx.fillText(line, textRight, ty);
+    ty += BUBBLE_LINE_H;
+  }
+}
+
+export async function renderShofahSoloCard(
+  married: boolean, luckyCount: number, maxLucky: number, conversation: ShofahSoloConversationBeat[]
+): Promise<HTMLCanvasElement> {
   await ensureFonts();
   const canvas = document.createElement("canvas");
   canvas.width = CARD_W;
@@ -63,32 +147,72 @@ export async function renderShofahSoloCard(married: boolean, luckyCount: number,
   ctx.stroke();
   ctx.restore();
 
-  // Two-pass: measure first, then draw a vertically centered block.
-  ctx.font = `800 60px "${FONT_DISPLAY}", sans-serif`;
+  // ---- Pass 1: measure everything — verdict block, then every bubble in
+  // the conversation — before drawing anything, so the whole thing can be
+  // centered as one block instead of pinned to the top. ----
+  ctx.font = `800 52px "${FONT_DISPLAY}", sans-serif`;
   const titleText = married ? "مبروك! انكتب لك نصيب 🎉" : "ما انكتب نصيب🥲... خيرها بغيرها";
   const titleLines = wrapText(ctx, titleText, CARD_W - PAD_X * 2);
 
-  const emojiH = 220;
-  const titleH = titleLines.length * 76 + 20;
-  const subH = 70;
-  const footerReserve = 220;
-  const totalH = emojiH + titleH + subH;
-  const topMargin = Math.max(140, (CARD_H - footerReserve - totalH) / 2);
+  const emojiH = 170;
+  const titleH = titleLines.length * 66 + 16;
+  const subH = 60;
+  const dividerH = 60;
+  const labelH = conversation.length > 0 ? 66 : 0;
 
+  const measured = conversation.map((beat) => ({
+    q: measureBubble(ctx, beat.question),
+    a: measureBubble(ctx, beat.answer),
+  }));
+  const conversationH = measured.reduce(
+    (sum, { q, a }) => sum + q.height + BUBBLE_GAP + a.height + PAIR_GAP,
+    0
+  );
+
+  const footerReserve = 220;
+  const totalH = emojiH + titleH + subH + dividerH + labelH + conversationH;
+  const topMargin = Math.max(130, (CARD_H - footerReserve - totalH) / 2);
+
+  // ---- Pass 2: draw ----
   let y = topMargin;
-  ctx.font = `160px sans-serif`;
-  ctx.fillText(married ? "💍" : "😅", CARD_W / 2, y + 60);
+  ctx.textAlign = "center";
+  ctx.font = `140px sans-serif`;
+  ctx.fillText(married ? "💍" : "😅", CARD_W / 2, y + 50);
   y += emojiH;
 
-  ctx.font = `800 60px "${FONT_DISPLAY}", sans-serif`;
+  ctx.font = `800 52px "${FONT_DISPLAY}", sans-serif`;
   ctx.fillStyle = CREAM;
-  for (const line of titleLines) { ctx.fillText(line, CARD_W / 2, y); y += 76; }
-  y += 20;
+  for (const line of titleLines) { ctx.fillText(line, CARD_W / 2, y); y += 66; }
+  y += 8;
 
-  ctx.font = `700 38px "${FONT_UI}", sans-serif`;
+  ctx.font = `700 34px "${FONT_UI}", sans-serif`;
   ctx.fillStyle = "rgba(255,255,255,0.9)";
   ctx.fillText(`الحظ وقف معك بـ ${luckyCount}/${maxLucky} من علامات الزواج`, CARD_W / 2, y);
+  y += subH;
 
+  if (conversation.length > 0) {
+    ctx.strokeStyle = "rgba(255,255,255,0.3)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(CARD_W / 2 - 120, y);
+    ctx.lineTo(CARD_W / 2 + 120, y);
+    ctx.stroke();
+    y += 46;
+
+    ctx.font = `800 30px "${FONT_UI}", sans-serif`;
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    ctx.fillText("المحادثة", CARD_W / 2, y);
+    y += labelH;
+
+    for (const { q, a } of measured) {
+      drawBubble(ctx, q, "left", y);
+      y += q.height + BUBBLE_GAP;
+      drawBubble(ctx, a, "right", y);
+      y += a.height + PAIR_GAP;
+    }
+  }
+
+  ctx.textAlign = "center";
   ctx.direction = "ltr";
   ctx.font = `800 42px "${FONT_DISPLAY}", sans-serif`;
   ctx.fillStyle = CREAM;
@@ -107,9 +231,11 @@ function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   });
 }
 
-export async function shareShofahSoloCard(married: boolean, luckyCount: number, maxLucky: number): Promise<"shared" | "downloaded" | "cancelled" | "failed"> {
+export async function shareShofahSoloCard(
+  married: boolean, luckyCount: number, maxLucky: number, conversation: ShofahSoloConversationBeat[]
+): Promise<"shared" | "downloaded" | "cancelled" | "failed"> {
   try {
-    const canvas = await renderShofahSoloCard(married, luckyCount, maxLucky);
+    const canvas = await renderShofahSoloCard(married, luckyCount, maxLucky, conversation);
     const blob = await canvasToBlob(canvas);
     const file = new File([blob], "bagdoonis-shofah-solo.png", { type: "image/png" });
 

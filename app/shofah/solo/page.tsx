@@ -349,7 +349,11 @@ function SoloVerdict({
 
   async function handleShare() {
     setShareState("working");
-    const res = await shareShofahSoloCard(married, luckyCount, MAX_LUCKY);
+    const conversation = prompts.map((p, i) => ({
+      question: p.text_ar,
+      answer: answers[i] || (ar ? "(فاضي)" : "(blank)"),
+    }));
+    const res = await shareShofahSoloCard(married, luckyCount, MAX_LUCKY, conversation);
     setShareState(res === "failed" ? "failed" : res === "cancelled" ? "idle" : res);
   }
 
