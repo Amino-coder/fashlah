@@ -13,6 +13,7 @@ import Blobs from "@/components/Blobs";
 import Mascot from "@/components/Mascot";
 import { FashlahArt, ShofahArt, JobArt, IbaratArt, QaseedaArt, QissaArt, WadakArt, BidalArt, IhjArt, LifooArt } from "@/components/art/GameArt";
 import InstallBagdoonisButton from "@/components/pwa/InstallBagdoonisButton";
+import LoginButton from "@/components/auth/LoginButton";
 
 /**
  * lucide-react (used for every other icon on this page) deliberately
@@ -72,6 +73,7 @@ export default function Home() {
             <InstallBagdoonisButton lang={lang} />
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+            <LoginButton lang={lang} />
             <button
               onClick={() => setLang(ar ? "en" : "ar")}
               aria-label={ar ? "Switch to English" : "التبديل إلى العربية"}

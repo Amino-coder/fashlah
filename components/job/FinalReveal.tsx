@@ -7,6 +7,7 @@ import HomeButton from "@/components/HomeButton";
 import SuitGuy from "./SuitGuy";
 import type { JobSessionRow, JobPlayerRow } from "@/lib/job-types";
 import EndGameShare from "@/components/EndGameShare";
+import SaveResult from "@/components/auth/SaveResult";
 
 const BLUE = "#3B82F6";
 const NAVY = "#1E40AF";
@@ -148,6 +149,16 @@ export default function FinalReveal({
           </div>
 
           <div style={{ marginTop: 24 }}>
+            <SaveResult
+              game="job"
+              lang={lang}
+              sessionCode={session.code}
+              resultSummary={
+                myPlayerId && winner?.id === myPlayerId
+                  ? (lang === "ar" ? "\u{1F389} توظفت أنا!" : "\u{1F389} I got hired!")
+                  : (lang === "ar" ? "\u{1F605} لسه عاطل... بس قريب!" : "\u{1F605} Still unemployed... for now!")
+              }
+            />
             <EndGameShare
               game="job"
               lang={lang}

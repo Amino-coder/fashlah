@@ -1,0 +1,141 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { User, X, LogOut } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { getRealUser, signOut } from "@/lib/auth";
+import EmailCaptureForm from "./EmailCaptureForm";
+
+const CORAL = "#FF5A5F";
+
+type RealUser = { id: string; email: string | null; display_name: string | null; phone: string | null };
+
+/**
+ * Small, unobtrusive top-of-app button. تسجيل الدخول when nobody's
+ * signed into a real account (anonymous play doesn't count — see
+ * getRealUser()'s is_anonymous check), otherwise a compact chip with
+ * their name and a sign-out affordance. Never blocks or interrupts the
+ * game underneath it — this is a modal layered on top, not a route.
+ */
+export default function LoginButton({ lang }: { lang: "ar" | "en" }) {
+  const ar = lang === "ar";
+  const [user, setUser] = useState<RealUser | null | undefined>(undefined); // undefined = still checking
+  const [modalOpen, setModalOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    getRealUser().then(setUser);
+    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+      getRealUser().then(setUser);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  async function handleSignOut() {
+    setMenuOpen(false);
+    await signOut();
+    setUser(null);
+  }
+
+  if (user === undefined) return null; // avoid a flash of "تسجيل الدخول" before we know
+
+  if (user) {
+    return (
+      <div style={{ position: "relative" }}>
+        <button
+          onClick={() => setMenuOpen((v) => !v)}
+          className="font-body"
+          style={{
+            display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 999,
+            fontSize: 12, fontWeight: 800, background: "var(--card)", color: "var(--ink)",
+            border: "1.5px solid rgba(217,164,65,.5)",
+          }}
+        >
+          <User size={13} />
+          {user.display_name || (ar ? "حسابي" : "Account")}
+        </button>
+        {menuOpen && (
+          <>
+            <div onClick={() => setMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 39 }} />
+            <div
+              className="card pop"
+              style={{
+                position: "absolute", top: "calc(100% + 8px)", insetInlineEnd: 0, zIndex: 40,
+                minWidth: 160, padding: 8,
+              }}
+            >
+              <button
+                onClick={handleSignOut}
+                className="font-body"
+                style={{
+                  display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "10px 12px",
+                  borderRadius: 10, border: "none", background: "transparent", color: "var(--ink)",
+                  fontSize: 13, fontWeight: 700, textAlign: ar ? "right" : "left",
+                }}
+              >
+                <LogOut size={14} />
+                {ar ? "تسجيل الخروج" : "Sign out"}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setModalOpen(true)}
+        className="font-body"
+        style={{
+          padding: "7px 14px", borderRadius: 999, fontSize: 12, fontWeight: 800,
+          background: "var(--card)", color: "var(--ink)", border: "1.5px solid rgba(217,164,65,.5)",
+        }}
+      >
+        {ar ? "تسجيل الدخول" : "Log in"}
+      </button>
+
+      {modalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          dir={ar ? "rtl" : "ltr"}
+          onClick={() => setModalOpen(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 60,
+            background: "rgba(10, 6, 25, 0.55)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
+            display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="card screen-enter"
+            style={{ width: "100%", maxWidth: 380, padding: "28px 24px", textAlign: "center", position: "relative" }}
+          >
+            <button
+              onClick={() => setModalOpen(false)}
+              aria-label={ar ? "إغلاق" : "Close"}
+              style={{
+                position: "absolute", top: 14, insetInlineEnd: 14, width: 28, height: 28, borderRadius: 999,
+                border: "none", background: "var(--ring)", color: "var(--ink)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
+              <X size={14} />
+            </button>
+            <h2 className="font-display" style={{ fontSize: 19, fontWeight: 800, margin: "6px 0 20px" }}>
+              {ar ? "تسجيل الدخول إلى بقدونس" : "Log in to Bagdoonis"}
+            </h2>
+            <EmailCaptureForm
+              lang={lang}
+              buttonLabel={ar ? "أرسل الرابط" : "Send Link"}
+              sentLabel={ar ? "أرسلنا لك رابط الدخول 📩 تحقق من بريدك" : "We sent you a login link 📩 check your email"}
+              onSent={() => {}}
+            />
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
