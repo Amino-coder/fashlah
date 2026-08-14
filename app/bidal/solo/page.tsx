@@ -5,6 +5,8 @@ import { Shuffle } from "lucide-react";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import LeaveGameButton from "@/components/LeaveGameButton";
+import EndGameShare from "@/components/EndGameShare";
+import SaveResult from "@/components/auth/SaveResult";
 import HexTile from "@/components/bidal/HexTile";
 import Honeycomb, { type BidalSlot } from "@/components/bidal/Honeycomb";
 import { BIDAL_STR, BidalLang } from "@/lib/bidal-i18n";
@@ -293,12 +295,11 @@ export default function BidalSoloPage() {
 }
 
 function ResultsView({
-  result, shareState, onShare, onPlayAgain, ar,
+  result, shareState, onShare, ar,
 }: {
   result: BidalResult;
   shareState: "idle" | "working" | "shared" | "downloaded" | "failed";
   onShare: (result: BidalResult) => void;
-  onPlayAgain: () => void;
   ar: boolean;
 }) {
   return (
