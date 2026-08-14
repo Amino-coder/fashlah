@@ -29,6 +29,11 @@ export default function AuthCallbackPage() {
   const router = useRouter();
   const [stage, setStage] = useState<Stage>("waiting");
   const [error, setError] = useState<string | null>(null);
+  const [debugUrl, setDebugUrl] = useState("");
+
+  useEffect(() => {
+    setDebugUrl(window.location.href);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -78,7 +83,24 @@ export default function AuthCallbackPage() {
     // the "الرابط غير صالح" timeout this used to hit on every single
     // magic-link click.
     async function exchangeCodeIfPresent() {
-      const code = new URLSearchParams(window.location.search).get("code");
+      const params = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+
+      // Supabase itself can reject a link (already used, expired, etc.)
+      // and redirect here with its OWN error params instead of a code —
+      // in which case there's nothing for us to exchange, and without
+      // this check we'd silently do nothing for 8 seconds and then show
+      // a generic timeout message that hides the real reason.
+      const supabaseError = params.get("error_description") || hashParams.get("error_description")
+        || params.get("error") || hashParams.get("error");
+      if (supabaseError && !cancelled && !settled) {
+        settled = true;
+        setError((ar ? "رفض الرابط: " : "Link rejected: ") + decodeURIComponent(supabaseError));
+        setStage("error");
+        return;
+      }
+
+      const code = params.get("code");
       if (!code) return; // nothing to exchange — fall through to the listener below
       const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
       if (exchangeError && !cancelled && !settled) {
@@ -123,7 +145,10 @@ export default function AuthCallbackPage() {
       <div style={{ maxWidth: 420, margin: "0 auto", padding: 24, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", position: "relative", zIndex: 1 }}>
         {stage === "error" ? (
           <>
-            <p className="font-body" style={{ fontSize: 14, fontWeight: 700, color: "#E63946", marginBottom: 16 }}>{error}</p>
+            <p className="font-body" style={{ fontSize: 14, fontWeight: 700, color: "#E63946", marginBottom: 12 }}>{error}</p>
+            <p className="font-body" style={{ fontSize: 10, color: "var(--ink-soft)", wordBreak: "break-all", marginBottom: 16, opacity: 0.7 }}>
+              {debugUrl}
+            </p>
             <a href="/" className="font-display" style={{ padding: "12px 28px", borderRadius: 999, background: "var(--card)", border: "2px solid var(--ring)", color: "var(--ink)", textDecoration: "none", fontSize: 14 }}>
               {ar ? "الصفحة الرئيسية" : "Home"}
             </a>
