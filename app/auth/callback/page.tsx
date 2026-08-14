@@ -83,7 +83,13 @@ export default function AuthCallbackPage() {
       const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
       if (exchangeError && !cancelled && !settled) {
         settled = true;
-        setError(ar ? "الرابط غير صالح أو انتهت صلاحيته، حاول تسجيل الدخول مرة ثانية" : "This link is invalid or expired — try logging in again");
+        // Showing the raw message (not just the generic one below) while
+        // we're actively debugging why every link fails — nothing
+        // sensitive in a Supabase auth error string.
+        setError(
+          (ar ? "فشل الدخول: " : "Sign-in failed: ") + exchangeError.message
+          + (ar ? " — حاول تسجيل الدخول مرة ثانية" : " — try logging in again")
+        );
         setStage("error");
         return;
       }
