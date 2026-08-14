@@ -285,7 +285,7 @@ export default function BidalSoloPage() {
 
         {/* ---------------- RESULTS ---------------- */}
         {status !== "playing" && (
-          <ResultsView result={result} shareState={shareState} onShare={handleShare} onPlayAgain={handlePlayAgain} ar={ar} />
+          <ResultsView result={result} shareState={shareState} onShare={handleShare} ar={ar} />
         )}
       </div>
     </div>
@@ -346,6 +346,16 @@ function ResultsView({
         )}
       </div>
 
+      <SaveResult
+        game="bidal_solo"
+        lang={ar ? "ar" : "en"}
+        resultSummary={
+          result.finished && result.completionSeconds !== null
+            ? (ar ? `\u{1F3C6} خلصتها في ${formatDuration(result.completionSeconds)}` : `\u{1F3C6} Finished in ${formatDuration(result.completionSeconds)}`)
+            : (ar ? `${result.lettersUsed}/${result.totalLetters} حروف` : `${result.lettersUsed}/${result.totalLetters} letters`)
+        }
+      />
+
       <button
         onClick={() => onShare(result)}
         disabled={shareState === "working"}
@@ -359,16 +369,9 @@ function ResultsView({
         {shareState === "working" ? "..." : shareState === "shared" ? "تم!" : shareState === "downloaded" ? "انحفظت الصورة!" : "شارك نتيجتك"}
       </button>
 
-      <button
-        onClick={onPlayAgain}
-        className="font-display"
-        style={{
-          display: "inline-block", marginTop: 12, padding: "13px 36px", fontSize: 14, borderRadius: 999,
-          border: "2px solid var(--ring)", color: "var(--ink)", background: "transparent",
-        }}
-      >
-        {ar ? "العب مرة ثانية" : "Play Again"}
-      </button>
+      <div style={{ marginTop: 18 }}>
+        <EndGameShare game="bidal" lang={ar ? "ar" : "en"} nextGame="shofah" />
+      </div>
     </div>
   );
 }

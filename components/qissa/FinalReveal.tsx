@@ -208,7 +208,17 @@ export default function FinalReveal({
             {t.finishedAllStories}
           </p>
           <div onClick={(e) => e.stopPropagation()} style={{ width: "100%" }}>
-            <EndGameShare game="qissa" lang={lang} nextGame="shofah" />
+            <EndGameShare
+              game="qissa"
+              lang={lang}
+              nextGame="wadak"
+              sessionCode={session.code}
+              resultLine={
+                lang === "ar"
+                  ? `\u{1F4D6} أكملنا ${totalStories} قصص مع الشلة`
+                  : `\u{1F4D6} Finished ${totalStories} stories with the group`
+              }
+            />
           </div>
         </div>
       )}

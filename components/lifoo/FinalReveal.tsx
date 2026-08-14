@@ -11,6 +11,7 @@ import SongShareCard from "./SongShareCard";
 import { shareSongCard } from "./exportSongCard";
 import { CARD_W, CARD_H } from "@/lib/lifoo-card";
 import EndGameShare from "@/components/EndGameShare";
+import SaveResult from "@/components/auth/SaveResult";
 import HomeButton from "@/components/HomeButton";
 import type { LifooSessionRow, LifooPlayerRow } from "@/lib/lifoo-types";
 
@@ -209,6 +210,17 @@ export default function FinalReveal({
             </div>
           </div>
 
+          <SaveResult
+            game="lifoo"
+            lang={lang === "ar" ? "ar" : "en"}
+            sessionCode={session.code}
+            resultSummary={
+              lang === "ar"
+                ? `\u{1F3B6} لفّينا أغنية من ${song.length} أسطر مع الشلة`
+                : `\u{1F3B6} Built a ${song.length}-line song with the group`
+            }
+          />
+
           <button
             onClick={onShare}
             disabled={shareState === "working"}
@@ -232,7 +244,7 @@ export default function FinalReveal({
           </p>
 
           <div style={{ marginTop: 6, opacity: 0.9 }}>
-            <EndGameShare game="lifoo" lang={lang} nextGame="shofah" />
+            <EndGameShare game="lifoo" lang={lang} nextGame="bidal" />
           </div>
         </div>
       )}

@@ -10,7 +10,6 @@ import NiqabGirl from "./NiqabGirl";
 import ShemaghGuy from "./ShemaghGuy";
 import type { ShofahSessionRow, ShofahPlayerRow } from "@/lib/shofah-types";
 import EndGameShare from "@/components/EndGameShare";
-import SaveResult from "@/components/auth/SaveResult";
 
 const ROSE = "#E63946";
 const WINE = "#C2185B";
@@ -172,20 +171,11 @@ export default function FinalReveal({
           </div>
 
           <div style={{ marginTop: 24 }}>
-            <SaveResult
-              game="shofah"
-              lang={lang}
-              sessionCode={session.code}
-              resultSummary={
-                myPlayerId && winner?.id === myPlayerId
-                  ? (lang === "ar" ? "\u{1F389} أنا اللي بيتزوج أول!" : "\u{1F389} I'm getting married first!")
-                  : (lang === "ar" ? "\u{1F602} لسه بدون خاتم... بس قريب!" : "\u{1F602} Still without a ring... for now!")
-              }
-            />
             <EndGameShare
               game="shofah"
               lang={lang}
-              nextGame="fashlah"
+              nextGame="bidal"
+              sessionCode={session.code}
               resultLine={
                 myPlayerId && winner?.id === myPlayerId
                   ? (lang === "ar" ? "\u{1F389} أنا اللي بيتزوج أول!" : "\u{1F389} I'm getting married first!")

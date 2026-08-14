@@ -8,6 +8,8 @@ import { supabase } from "@/lib/supabase";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import LeaveGameButton from "@/components/LeaveGameButton";
+import EndGameShare from "@/components/EndGameShare";
+import SaveResult from "@/components/auth/SaveResult";
 import ShareInvite from "@/components/ShareInvite";
 import { IHJ_STR, IhjLang } from "@/lib/ihj-i18n";
 import { usePrefs } from "@/lib/usePrefs";
@@ -245,7 +247,7 @@ export default function IhjSessionPage() {
 
         {/* ---------------- FINAL RESULTS ---------------- */}
         {session.status === "completed" && (
-          <FinalResults players={players} myPlayerId={myPlayer?.id} t={t} ar={ar} />
+          <FinalResults players={players} myPlayerId={myPlayer?.id} sessionCode={session.code} t={t} ar={ar} />
         )}
       </div>
     </div>
@@ -448,7 +450,7 @@ function RevealScreen({
   );
 }
 
-function FinalResults({ players, myPlayerId, t, ar }: { players: IhjPlayerRow[]; myPlayerId?: string; t: any; ar: boolean }) {
+function FinalResults({ players, myPlayerId, sessionCode, t, ar }: { players: IhjPlayerRow[]; myPlayerId?: string; sessionCode: string; t: any; ar: boolean }) {
   const [shareState, setShareState] = useState<"idle" | "working" | "shared" | "downloaded" | "failed">("idle");
 
   async function handleShare() {
@@ -466,6 +468,7 @@ function FinalResults({ players, myPlayerId, t, ar }: { players: IhjPlayerRow[];
   const ranked = sorted.map((player, i) => ({ player, position: positions[i] }));
   const winner = ranked.find((r) => r.position === 1);
   const others = ranked.filter((r) => r.position !== 1);
+  const myResult = ranked.find((r) => r.player.id === myPlayerId);
 
   return (
     <div className="screen-enter" style={{ marginTop: 60, textAlign: "center" }}>
@@ -492,12 +495,25 @@ function FinalResults({ players, myPlayerId, t, ar }: { players: IhjPlayerRow[];
         ))}
       </div>
 
+      <SaveResult
+        game="ihj"
+        lang={ar ? "ar" : "en"}
+        sessionCode={sessionCode}
+        resultSummary={
+          myResult
+            ? (myResult.position === 1
+                ? (ar ? "\u{1F947} فزت بالمركز الأول!" : "\u{1F947} Came in first!")
+                : (ar ? `المركز ${myResult.position} \u{1F3AE} بـ${myResult.player.total_score} نقطة` : `Placed #${myResult.position} \u{1F3AE} with ${myResult.player.total_score} pts`))
+            : (ar ? "لعبت إنسان حيوان جماد مع الشلة \u{1F3AE}" : "Played Categories with the group \u{1F3AE}")
+        }
+      />
+
       <button
         onClick={handleShare}
         disabled={shareState === "working"}
         className="font-display"
         style={{
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", marginBottom: 12,
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", marginTop: 18, marginBottom: 18,
           padding: 16, fontSize: 15, borderRadius: 999, border: "none", color: "#fff",
           background: `linear-gradient(135deg, ${PURPLE}, ${PINK})`,
         }}
@@ -505,16 +521,7 @@ function FinalResults({ players, myPlayerId, t, ar }: { players: IhjPlayerRow[];
         {shareState === "working" ? "..." : shareState === "shared" ? "تم!" : shareState === "downloaded" ? "انحفظت الصورة!" : (ar ? "شارك نتيجتك" : "Share Results")}
       </button>
 
-      <Link
-        href="/ihj"
-        className="font-display"
-        style={{
-          display: "inline-block", padding: "13px 36px", fontSize: 14, borderRadius: 999,
-          border: "2px solid var(--ring)", color: "var(--ink)", background: "transparent",
-        }}
-      >
-        {t.playAgain}
-      </Link>
+      <EndGameShare game="ihj" lang={ar ? "ar" : "en"} nextGame="wadak" />
     </div>
   );
 }

@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Share2, Check, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
+import { Share2, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
+import SaveResult from "@/components/auth/SaveResult";
 import RadarChart from "@/components/wadak/RadarChart";
 import { shareResultCard } from "@/components/wadak/exportResultCard";
 import { trackPageView, trackPageComplete, newSessionKey } from "@/lib/trackPageView";
@@ -119,7 +120,7 @@ export default function WadakPage() {
       </div>
 
       {stage === "story" && result && (
-        <StoryResults result={result} nickname={nickname} onRestart={restart} />
+        <StoryResults result={result} nickname={nickname} />
       )}
     </div>
   );
@@ -308,7 +309,7 @@ function ReactionScreen({ text }: { text: string }) {
 
 const BG_COLORS = [TEAL, "#7C3AED", "#FF8A3D", INDIGO];
 
-function StoryResults({ result, nickname, onRestart }: { result: ScoreResult; nickname: string; onRestart: () => void }) {
+function StoryResults({ result, nickname }: { result: ScoreResult; nickname: string }) {
   const { archetype, ranked } = result;
   const [slide, setSlide] = useState(0);
   const [shareState, setShareState] = useState<"idle" | "working" | "shared" | "downloaded" | "failed">("idle");
@@ -399,28 +400,26 @@ function StoryResults({ result, nickname, onRestart }: { result: ScoreResult; ni
         <div style={{ width: "100%", position: "relative", zIndex: 3 }} onClick={(e) => e.stopPropagation()}>
           <span style={{ fontSize: 50, display: "block", marginBottom: 12 }}>🌿</span>
           <h2 className="font-display" style={{ fontSize: 22, fontWeight: 800, marginBottom: 20 }}>خلصنا! شارك وضعك</h2>
+
+          <SaveResult
+            game="wadak"
+            lang="ar"
+            resultSummary={`${archetype.emoji} شخصيتي: ${archetype.name}`}
+          />
+
           <button
             onClick={handleShare}
             disabled={shareState === "working"}
             className="font-display"
             style={{
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%",
-              padding: 16, fontSize: 15, borderRadius: 999, border: "none", color: INDIGO, background: CREAM_HEX, marginBottom: 12,
+              padding: 16, fontSize: 15, borderRadius: 999, border: "none", color: INDIGO, background: CREAM_HEX, margin: "18px 0 20px",
             }}
           >
             {shareState === "shared" || shareState === "downloaded" ? <Check size={18} /> : <Share2 size={18} />}
             {shareState === "working" ? "جاري التجهيز..." : shareState === "shared" ? "تم!" : shareState === "downloaded" ? "انحفظت الصورة!" : "شارك نتيجتك"}
           </button>
-          <button
-            onClick={onRestart}
-            className="font-body"
-            style={{
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%",
-              padding: 12, fontSize: 13, borderRadius: 999, border: "2px solid rgba(255,255,255,0.4)", background: "transparent", color: "#fff", fontWeight: 700, marginBottom: 18,
-            }}
-          >
-            <RotateCcw size={14} /> جرب مرة ثانية
-          </button>
+
           <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 18, padding: 20, textAlign: "center" }}>
             <p className="font-display" style={{ fontSize: 15, fontWeight: 800, margin: "0 0 6px" }}>
               طيب… هل أصحابك يشوفونك بنفس الطريقة؟ 👀

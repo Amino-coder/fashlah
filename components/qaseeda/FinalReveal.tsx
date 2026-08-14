@@ -11,6 +11,7 @@ import PoemShareCard from "./PoemShareCard";
 import { sharePoemCard } from "./exportPoemCard";
 import { CARD_W, CARD_H } from "@/lib/qaseeda-card";
 import EndGameShare from "@/components/EndGameShare";
+import SaveResult from "@/components/auth/SaveResult";
 import HomeButton from "@/components/HomeButton";
 import type { QaseedaSessionRow, QaseedaPlayerRow } from "@/lib/qaseeda-types";
 
@@ -222,6 +223,17 @@ export default function FinalReveal({
             </div>
           </div>
 
+          <SaveResult
+            game="qaseeda"
+            lang={lang === "ar" ? "ar" : "en"}
+            sessionCode={session.code}
+            resultSummary={
+              lang === "ar"
+                ? `\u{1FAB6} كتبنا قصيدة من ${poem.length} بيت مع الشلة`
+                : `\u{1FAB6} Wrote a ${poem.length}-verse poem with the group`
+            }
+          />
+
           <button
             onClick={onShare}
             disabled={shareState === "working"}
@@ -245,7 +257,7 @@ export default function FinalReveal({
           </p>
 
           <div style={{ marginTop: 6, opacity: 0.9 }}>
-            <EndGameShare game="qaseeda" lang={lang} nextGame="shofah" />
+            <EndGameShare game="qaseeda" lang={lang} nextGame="bidal" />
           </div>
         </div>
       )}

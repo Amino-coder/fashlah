@@ -2,13 +2,14 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { Share2, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { usePrefs } from "@/lib/usePrefs";
 import { trackPageView, trackPageComplete, newSessionKey } from "@/lib/trackPageView";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
+import EndGameShare from "@/components/EndGameShare";
+import SaveResult from "@/components/auth/SaveResult";
 import NiqabGirl from "@/components/shofah/NiqabGirl";
 import ShemaghGuy from "@/components/shofah/ShemaghGuy";
 import { SHOFAH_WARMUP_QUESTIONS, LUCKY_OPTIONS_BY_QUESTION, MAX_LUCKY, MARRIED_THRESHOLD } from "@/lib/shofah-solo-warmup";
@@ -76,23 +77,6 @@ function ShofahSolo() {
     fetchPrompts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, character, lang]);
-
-  // "Try Again" used to be a <Link> to this same route+query — which,
-  // since the destination URL was identical to the current one, Next's
-  // router treated as a no-op (no navigation event, nothing remounts, no
-  // state resets). This resets every piece of state directly instead, and
-  // re-shuffles/re-fetches fresh content so a second playthrough isn't
-  // just a re-run of the exact same warm-up order and prompts.
-  function resetGame() {
-    setStage("loading");
-    setWarmupQuestions([...SHOFAH_WARMUP_QUESTIONS].sort(() => Math.random() - 0.5));
-    setWIdx(0);
-    setWarmupAnswers([]);
-    setRound(0);
-    setDraft("");
-    setAnswers([]);
-    fetchPrompts();
-  }
 
   function answerWarmup(optionId: string) {
     setWarmupAnswers((a) => [...a, { questionId: warmupQuestions[wIdx].id, optionId }]);
@@ -211,7 +195,7 @@ function ShofahSolo() {
         )}
 
         {!error && stage === "verdict" && (
-          <SoloVerdict character={character} answers={answers} prompts={prompts} luckyCount={luckyCount} married={married} lang={lang} onRestart={resetGame} />
+          <SoloVerdict character={character} answers={answers} prompts={prompts} luckyCount={luckyCount} married={married} lang={lang} />
         )}
       </div>
     </div>
@@ -338,10 +322,9 @@ function DrumrollVerdict({
 }
 
 function SoloVerdict({
-  character, answers, prompts, luckyCount, married, lang, onRestart,
+  character, answers, prompts, luckyCount, married, lang,
 }: {
   character: ShofahCharacter; answers: string[]; prompts: PromptRow[]; luckyCount: number; married: boolean; lang: string;
-  onRestart: () => void;
 }) {
   const ar = lang === "ar";
   const Character = character === "girl" ? NiqabGirl : ShemaghGuy;
@@ -402,12 +385,18 @@ function SoloVerdict({
         </div>
       </div>
 
+      <SaveResult
+        game="shofah_solo"
+        lang={lang === "ar" ? "ar" : "en"}
+        resultSummary={married ? (ar ? "\u{1F48D} انكتب لي نصيب! 🎉" : "\u{1F48D} It's written for me! 🎉") : (ar ? "\u{1F605} ما انكتب نصيب... بعد" : "\u{1F605} Not written yet...")}
+      />
+
       <button
         onClick={handleShare}
         disabled={shareState === "working"}
         className="font-display"
         style={{
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", marginBottom: 10,
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", marginTop: 18, marginBottom: 18,
           padding: 16, fontSize: 15, borderRadius: 999, border: "none", color: "#fff",
           background: `linear-gradient(135deg, ${ROSE}, ${WINE})`,
         }}
@@ -416,26 +405,7 @@ function SoloVerdict({
         {shareState === "working" ? "..." : shareState === "shared" ? "تم!" : shareState === "downloaded" ? "انحفظت الصورة!" : (ar ? "شارك نتيجتك" : "Share Results")}
       </button>
 
-      <button
-        onClick={onRestart}
-        className="font-body"
-        style={{
-          display: "block", width: "100%", padding: 14, fontSize: 13, fontWeight: 700, borderRadius: 999,
-          border: "2px solid var(--ring)", color: "var(--ink)", background: "transparent", marginBottom: 10,
-        }}
-      >
-        {ar ? "جرب مرة ثانية 🔄" : "Try Again 🔄"}
-      </button>
-      <Link
-        href="/shofah/create"
-        className="font-body"
-        style={{
-          display: "block", width: "100%", padding: 14, fontSize: 13, fontWeight: 700, borderRadius: 999,
-          border: "2px solid var(--ring)", color: "var(--ink)", textDecoration: "none",
-        }}
-      >
-        {ar ? "العب مع أصحابك 👥" : "Play with Friends 👥"}
-      </Link>
+      <EndGameShare game="shofah" lang={ar ? "ar" : "en"} nextGame="wadak" />
     </div>
   );
 }

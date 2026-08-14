@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Music, Plus, Share2, Check } from "lucide-react";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
+import EndGameShare from "@/components/EndGameShare";
+import SaveResult from "@/components/auth/SaveResult";
 import SongLine from "@/components/lifoo/SongLine";
 import { shareSongCard } from "@/components/lifoo/exportSongCard";
 import type { SongLine as SongLineType } from "@/lib/lifoo-song";
@@ -75,16 +76,6 @@ export default function LifooSoloPage() {
       trackPageComplete("lifoo_solo", sessionKey);
       setStage("results");
     }
-  }
-
-  function restart() {
-    setStage("select");
-    setOpening(null);
-    setCustomLine1("");
-    setRound(1);
-    setLines([]);
-    setDraft("");
-    setShareState("idle");
   }
 
   const song: SongLineType[] = opening
@@ -302,12 +293,20 @@ export default function LifooSoloPage() {
               ))}
             </div>
 
+            <SaveResult
+              game="lifoo_solo"
+              lang={ar ? "ar" : "en"}
+              resultSummary={
+                ar ? `\u{1F3B6} لفّيت أغنية من ${song.length} أسطر` : `\u{1F3B6} Built a ${song.length}-line song`
+              }
+            />
+
             <button
               onClick={handleShare}
               disabled={shareState === "working"}
               className="font-display"
               style={{
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", marginBottom: 10,
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", marginTop: 18, marginBottom: 10,
                 padding: 16, fontSize: 15, borderRadius: 999, border: "none", color: "#fff",
                 background: `linear-gradient(135deg, ${CORAL}, ${NAVY})`,
               }}
@@ -319,26 +318,7 @@ export default function LifooSoloPage() {
               <p className="font-body" style={{ fontSize: 12, color: "#E63946", marginBottom: 10 }}>{t.shareFailed}</p>
             )}
 
-            <button
-              onClick={restart}
-              className="font-body"
-              style={{
-                display: "block", width: "100%", padding: 14, fontSize: 13, fontWeight: 700, borderRadius: 999,
-                border: "2px solid var(--ring)", color: "var(--ink)", background: "transparent", marginBottom: 10,
-              }}
-            >
-              {ar ? "الِّفوا وحدة ثانية 🔄" : "Build another 🔄"}
-            </button>
-            <Link
-              href="/lifoo/create"
-              className="font-body"
-              style={{
-                display: "block", width: "100%", padding: 14, fontSize: 13, fontWeight: 700, borderRadius: 999,
-                border: "2px solid var(--ring)", color: "var(--ink)", textDecoration: "none",
-              }}
-            >
-              {t.playMultiplayer}
-            </Link>
+            <EndGameShare game="lifoo" lang={ar ? "ar" : "en"} nextGame="wadak" />
           </div>
         )}
       </div>
