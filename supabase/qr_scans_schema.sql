@@ -30,4 +30,5 @@ alter table qr_scans enable row level security;
 -- itself is operational data for you, not something exposed to anyone
 -- hitting the API. Read it via the SQL editor (or a service-role admin
 -- view), not the public client.
+drop policy if exists "qr_scans_public_insert" on qr_scans;
 create policy "qr_scans_public_insert" on qr_scans for insert with check (true);

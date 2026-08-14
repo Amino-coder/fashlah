@@ -6,11 +6,22 @@ import Link from "next/link";
 import { Zap } from "lucide-react";
 import { usePrefs } from "@/lib/usePrefs";
 import { BIDAL_STR, BidalLang } from "@/lib/bidal-i18n";
+import PlusGate from "@/components/PlusGate";
 
 const TEAL = "#14B8A6";
 const CORAL = "#FF5A5F";
 
 export default function BidalLandingPage() {
+  const { lang, ready } = usePrefs();
+  if (!ready) return null;
+  return (
+    <PlusGate game="bidal" lang={(lang as BidalLang) === "en" ? "en" : "ar"}>
+      <BidalLandingContent />
+    </PlusGate>
+  );
+}
+
+function BidalLandingContent() {
   const { lang, dark, ready } = usePrefs();
   const t = BIDAL_STR[lang as BidalLang];
   const ar = lang === "ar";
