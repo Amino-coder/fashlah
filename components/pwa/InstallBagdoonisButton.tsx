@@ -88,9 +88,9 @@ export default function InstallBagdoonisButton({ lang }: { lang: "ar" | "en" }) 
         onClick={handleClick}
         className="font-body"
         style={{
-          padding: "8px 16px", borderRadius: 999, fontSize: 12.5, fontWeight: 800,
+          padding: "7px 14px", borderRadius: 999, fontSize: 12, fontWeight: 800,
           background: "var(--card)", color: "var(--ink)", border: "1.5px solid rgba(217,164,65,.5)",
-          display: "flex", alignItems: "center", gap: 6, boxShadow: "0 3px 10px var(--ring)",
+          display: "flex", alignItems: "center", gap: 5, boxShadow: "0 3px 10px var(--ring)",
           whiteSpace: "nowrap", cursor: "pointer",
         }}
       >

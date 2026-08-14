@@ -338,3 +338,12 @@ body::after {
   transition: transform .12s ease;
 }
 .btn-bag:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+
+/* Home header — the profile chip's name text drops out below ~360px so
+   [hamburger][👤 name][install] never wraps or overlaps on the narrowest
+   phones; the icon alone stays as an equally-tappable target. */
+.header-profile-name { display: inline; }
+@media (max-width: 359px) {
+  .header-profile-name { display: none; }
+}
+

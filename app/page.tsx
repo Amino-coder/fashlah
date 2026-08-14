@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Instagram, Mail, Moon, Sun } from "lucide-react";
+import { Instagram, Mail } from "lucide-react";
 import { STR } from "@/lib/i18n";
 import { SHOFAH_STR } from "@/lib/shofah-i18n";
 import { JOB_STR } from "@/lib/job-i18n";
@@ -14,6 +14,7 @@ import Mascot from "@/components/Mascot";
 import { FashlahArt, ShofahArt, JobArt, IbaratArt, QaseedaArt, QissaArt, WadakArt, BidalArt, IhjArt, LifooArt } from "@/components/art/GameArt";
 import InstallBagdoonisButton from "@/components/pwa/InstallBagdoonisButton";
 import LoginButton from "@/components/auth/LoginButton";
+import HamburgerMenu from "@/components/HamburgerMenu";
 
 /**
  * lucide-react (used for every other icon on this page) deliberately
@@ -69,26 +70,21 @@ export default function Home() {
       <Blobs />
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "22px 20px 48px", position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+          {/* Install stays in its original position/side, unchanged from
+              before — still the single most prominent header action, per
+              the new hierarchy (primary: install, secondary: profile,
+              utility: hamburger). */}
           <div>
             <InstallBagdoonisButton lang={lang} />
           </div>
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+
+          {/* Hamburger (theme + language, now tucked into its popover
+              instead of two permanently-visible buttons) sits with the
+              compact profile chip as a single utility+secondary group on
+              the opposite side. */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <HamburgerMenu lang={lang} setLang={setLang} dark={dark} setDark={setDark} />
             <LoginButton lang={lang} />
-            <button
-              onClick={() => setLang(ar ? "en" : "ar")}
-              aria-label={ar ? "Switch to English" : "التبديل إلى العربية"}
-              className="font-body"
-              style={{ padding: "7px 15px", borderRadius: 999, fontSize: 12, fontWeight: 800, background: "var(--card)", color: "var(--ink)", border: "1.5px solid rgba(217,164,65,.5)" }}
-            >
-              {ar ? "EN" : "AR"}
-            </button>
-            <button
-              onClick={() => setDark(!dark)}
-              aria-label={dark ? (ar ? "الوضع الفاتح" : "Light mode") : (ar ? "الوضع الداكن" : "Dark mode")}
-              style={{ width: 36, height: 36, borderRadius: 999, background: "var(--card)", color: "var(--ink)", display: "flex", alignItems: "center", justifyContent: "center", border: "1.5px solid rgba(217,164,65,.5)" }}
-            >
-              {dark ? <Sun size={15} /> : <Moon size={15} />}
-            </button>
           </div>
         </div>
 

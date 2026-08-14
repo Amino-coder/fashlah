@@ -64,13 +64,13 @@ export default function LoginButton({ lang }: { lang: "ar" | "en" }) {
             onClick={() => setMenuOpen((v) => !v)}
             className="font-body"
             style={{
-              display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 999,
+              display: "flex", alignItems: "center", gap: 5, padding: "7px 12px", borderRadius: 999,
               fontSize: 12, fontWeight: 800, background: "var(--card)", color: "var(--ink)",
-              border: "1.5px solid rgba(217,164,65,.5)",
+              border: "1.5px solid rgba(217,164,65,.5)", whiteSpace: "nowrap",
             }}
           >
             <User size={13} />
-            {user.display_name || (ar ? "حسابي" : "Account")}
+            <span className="header-profile-name">{user.display_name || (ar ? "حسابي" : "Account")}</span>
           </button>
           {menuOpen && (
             <>
