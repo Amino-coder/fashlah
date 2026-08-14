@@ -120,6 +120,19 @@ export default function AuthCallbackPage() {
 
     exchangeCodeIfPresent();
     proceed(); // covers the (older/rare) hash-fragment flow, which supabase-js does auto-detect
+
+    // The hash-fragment flow (#access_token=...) is parsed by supabase-js
+    // automatically the moment the client initializes — which can happen
+    // BEFORE this effect even runs, since the client is created at module
+    // load time in lib/supabase.ts, not inside this component. That means
+    // the SIGNED_IN event below can fire and be gone before our listener
+    // attaches, and we'd otherwise wait the full 8 seconds for an event
+    // that already happened. Polling getSession() directly sidesteps that
+    // race entirely — it doesn't matter when the session was established,
+    // only that it eventually IS established, which this will catch on
+    // whichever tick lands after that.
+    const poll = setInterval(() => { if (!settled) proceed(); }, 400);
+
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN") proceed();
     });
@@ -134,7 +147,7 @@ export default function AuthCallbackPage() {
       }
     }, 8000);
 
-    return () => { cancelled = true; sub.subscription.unsubscribe(); clearTimeout(timeout); };
+    return () => { cancelled = true; sub.subscription.unsubscribe(); clearTimeout(timeout); clearInterval(poll); };
   }, [router, ar]);
 
   if (!ready) return null;
