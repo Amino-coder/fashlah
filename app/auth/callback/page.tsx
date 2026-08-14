@@ -32,10 +32,11 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     let cancelled = false;
+    let settled = false; // true once we have a definitive success or failure — stops the timeout below from overriding it
 
     async function proceed() {
       const profile = await getRealUser();
-      if (cancelled) return;
+      if (cancelled || settled) return;
 
       if (!profile) {
         // No real (non-anonymous) session yet — either the link is still
@@ -43,6 +44,7 @@ export default function AuthCallbackPage() {
         return;
       }
 
+      settled = true;
       if (needsProfileSetup(profile)) {
         setStage("needsSetup");
         return;
@@ -66,7 +68,30 @@ export default function AuthCallbackPage() {
       if (!cancelled) router.replace("/");
     }
 
-    proceed();
+    // The magic link lands here as ?code=... (PKCE — the supabase-js
+    // client's default flow, not something set explicitly in
+    // lib/supabase.ts). Unlike the older hash-fragment (#access_token=...)
+    // implicit flow, supabase-js does NOT auto-exchange a ?code= param —
+    // detectSessionInUrl only handles the hash-fragment case. Without this
+    // explicit exchange, no SIGNED_IN event ever fires and proceed() below
+    // waits forever for a session that's never coming, which is exactly
+    // the "الرابط غير صالح" timeout this used to hit on every single
+    // magic-link click.
+    async function exchangeCodeIfPresent() {
+      const code = new URLSearchParams(window.location.search).get("code");
+      if (!code) return; // nothing to exchange — fall through to the listener below
+      const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+      if (exchangeError && !cancelled && !settled) {
+        settled = true;
+        setError(ar ? "الرابط غير صالح أو انتهت صلاحيته، حاول تسجيل الدخول مرة ثانية" : "This link is invalid or expired — try logging in again");
+        setStage("error");
+        return;
+      }
+      if (!cancelled) proceed();
+    }
+
+    exchangeCodeIfPresent();
+    proceed(); // covers the (older/rare) hash-fragment flow, which supabase-js does auto-detect
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN") proceed();
     });
@@ -74,7 +99,8 @@ export default function AuthCallbackPage() {
     // If nothing happens within a few seconds, the link likely expired
     // or was already used — don't leave the person staring at a spinner.
     const timeout = setTimeout(() => {
-      if (!cancelled) {
+      if (!cancelled && !settled) {
+        settled = true;
         setError(ar ? "الرابط غير صالح أو انتهت صلاحيته، حاول تسجيل الدخول مرة ثانية" : "This link is invalid or expired — try logging in again");
         setStage("error");
       }
