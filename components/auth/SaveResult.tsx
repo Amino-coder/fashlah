@@ -131,7 +131,7 @@ export default function SaveResult({
       ) : step === "code" ? (
         <div style={{ maxWidth: 300, margin: "0 auto" }}>
           <p className="font-body" style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", margin: "0 0 8px" }}>
-            {ar ? `أرسلنا رمز مكوّن من ٦ أرقام إلى ${email.trim()}` : `We sent a 6-digit code to ${email.trim()}`}
+            {ar ? `أرسلنا رمز مكوّن من ٨ أرقام إلى ${email.trim()}` : `We sent an 8-digit code to ${email.trim()}`}
           </p>
           <div style={{ display: "flex", gap: 6 }}>
             <input

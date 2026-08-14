@@ -66,7 +66,7 @@ export default function EmailCaptureForm({
     return (
       <div>
         <p className="font-body" style={{ fontSize: compact ? 12 : 13, fontWeight: 700, color: "var(--ink-soft)", textAlign: "center", margin: "0 0 10px" }}>
-          {ar ? `أرسلنا رمز مكوّن من ٦ أرقام إلى ${email.trim()}` : `We sent a 6-digit code to ${email.trim()}`}
+          {ar ? `أرسلنا رمز مكوّن من ٨ أرقام إلى ${email.trim()}` : `We sent an 8-digit code to ${email.trim()}`}
         </p>
         <div style={{ display: "flex", gap: 8 }}>
           <input
