@@ -71,9 +71,9 @@ export default function EmailCaptureForm({
         <div style={{ display: "flex", gap: 8 }}>
           <input
             value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 8))}
             onKeyDown={(e) => { if (e.key === "Enter") handleVerify(); }}
-            placeholder="000000"
+            placeholder="00000000"
             inputMode="numeric"
             autoComplete="one-time-code"
             autoFocus
