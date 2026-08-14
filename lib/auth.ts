@@ -58,6 +58,25 @@ export async function verifyLoginCode(email: string, code: string) {
     type: "email",
   });
   if (error) throw error;
+
+  // `users` rows are otherwise only ever created by ensureUser() in
+  // lib/supabase.ts — but that only runs for ANONYMOUS sign-ins
+  // (signInAnonymously), never for this real-account path. Without this,
+  // a brand-new magic-link/OTP account authenticates successfully at the
+  // Supabase auth level but has no matching row here, so getRealUser()'s
+  // select() finds nothing and returns null — which silently looks like
+  // "not signed in" everywhere else (LoginButton/SaveResult just close
+  // quietly instead of erroring, since a missing profile and "nothing to
+  // do" look identical from their point of view). device_id is required
+  // NOT NULL on this table; reusing the auth id itself as device_id
+  // mirrors exactly what ensureUser() does for anonymous rows.
+  if (data.user) {
+    await supabase.from("users").upsert(
+      { id: data.user.id, device_id: data.user.id, email: data.user.email },
+      { onConflict: "id" }
+    );
+  }
+
   return data;
 }
 
