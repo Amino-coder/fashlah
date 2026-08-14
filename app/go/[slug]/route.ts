@@ -7,9 +7,17 @@ import { supabase } from "@/lib/supabase";
 // launch today, a specific game next month, a campaign landing page
 // after that) with a single SQL update and zero reprinting.
 //
+// Every scan is also logged to qr_scans (slug, destination, user agent,
+// timestamp) — see supabase/qr_scans_schema.sql and qr_scan_log.sql for
+// the admin query. Logging is awaited (not fire-and-forget) because
+// serverless function instances can be torn down the moment a response
+// is returned, which would silently drop an un-awaited insert before it
+// ever reaches Supabase — a few extra milliseconds before redirecting is
+// worth not losing scan data.
+//
 // Always redirects somewhere rather than ever showing an error — nobody
 // scanning a QR code at an event should hit a broken page. Unknown slugs
-// and any lookup failure both fall back to the homepage.
+// and any lookup/logging failure both fall back to the homepage.
 //
 // 307 (temporary redirect), not 301/308, and explicitly uncached: the
 // whole point of this route is that the destination can change, so
@@ -30,6 +38,12 @@ export async function GET(req: NextRequest, { params }: { params: { slug: string
     if (!destination) {
       return NextResponse.redirect(homepage, { status: 307, headers: { "Cache-Control": "no-store" } });
     }
+
+    await supabase.from("qr_scans").insert({
+      slug: params.slug,
+      destination,
+      user_agent: req.headers.get("user-agent"),
+    });
 
     const target = destination.startsWith("http") ? destination : new URL(destination, req.url).toString();
     return NextResponse.redirect(target, { status: 307, headers: { "Cache-Control": "no-store" } });
