@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { User, X, LogOut } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { getRealUser, signOut } from "@/lib/auth";
+import { getRealUser, needsProfileSetup, signOut } from "@/lib/auth";
 import EmailCaptureForm from "./EmailCaptureForm";
+import ProfileSetupModal from "./ProfileSetupModal";
 
 const CORAL = "#FF5A5F";
 
@@ -16,11 +17,17 @@ type RealUser = { id: string; email: string | null; display_name: string | null;
  * getRealUser()'s is_anonymous check), otherwise a compact chip with
  * their name and a sign-out affordance. Never blocks or interrupts the
  * game underneath it — this is a modal layered on top, not a route.
+ *
+ * Sign-in itself (email → 6-digit code, see EmailCaptureForm) finishes
+ * entirely inside this modal — no redirect, no /auth/callback round
+ * trip. If the code verifies into a brand-new account, this shows
+ * ProfileSetupModal right here before closing.
  */
 export default function LoginButton({ lang }: { lang: "ar" | "en" }) {
   const ar = lang === "ar";
   const [user, setUser] = useState<RealUser | null | undefined>(undefined); // undefined = still checking
   const [modalOpen, setModalOpen] = useState(false);
+  const [needsSetup, setNeedsSetup] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -30,6 +37,16 @@ export default function LoginButton({ lang }: { lang: "ar" | "en" }) {
     });
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  async function handleVerified() {
+    const profile = await getRealUser();
+    setUser(profile);
+    if (needsProfileSetup(profile)) {
+      setNeedsSetup(true);
+    } else {
+      setModalOpen(false);
+    }
+  }
 
   async function handleSignOut() {
     setMenuOpen(false);
@@ -96,7 +113,7 @@ export default function LoginButton({ lang }: { lang: "ar" | "en" }) {
         {ar ? "تسجيل الدخول" : "Log in"}
       </button>
 
-      {modalOpen && (
+      {modalOpen && !needsSetup && (
         <div
           role="dialog"
           aria-modal="true"
@@ -129,12 +146,23 @@ export default function LoginButton({ lang }: { lang: "ar" | "en" }) {
             </h2>
             <EmailCaptureForm
               lang={lang}
-              buttonLabel={ar ? "أرسل الرابط" : "Send Link"}
-              sentLabel={ar ? "أرسلنا لك رابط الدخول 📩 تحقق من بريدك" : "We sent you a login link 📩 check your email"}
-              onSent={() => {}}
+              buttonLabel={ar ? "أرسل الرمز" : "Send Code"}
+              onVerified={handleVerified}
             />
           </div>
         </div>
+      )}
+
+      {needsSetup && (
+        <ProfileSetupModal
+          lang={lang}
+          onDone={async () => {
+            const profile = await getRealUser();
+            setUser(profile);
+            setNeedsSetup(false);
+            setModalOpen(false);
+          }}
+        />
       )}
     </>
   );

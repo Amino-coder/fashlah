@@ -11,16 +11,19 @@ import ProfileSetupModal from "@/components/auth/ProfileSetupModal";
 type Stage = "waiting" | "needsSetup" | "finishing" | "error";
 
 /**
- * Where every magic link points (see emailRedirectTo in lib/auth.ts's
- * sendMagicLink). supabase-js parses the auth token out of the URL
- * automatically on load (detectSessionInUrl, on by default) and fires
- * SIGNED_IN — this page just waits for that, then:
+ * Fallback path only — the primary sign-in flow (EmailCaptureForm) now
+ * verifies a 6-digit code directly in the same tab and never redirects
+ * here at all. This page still exists for anyone who taps the
+ * "{{ .ConfirmationURL }}" link in the email instead of typing the code
+ * (see supabase/email_templates.md, which keeps that link as a secondary
+ * option). Left in place, including the polling fix from when this WAS
+ * the primary flow, since it costs nothing to keep working correctly.
  *   1. First-time account (no name/phone yet)? Show the one-time setup
  *      modal before anything else.
  *   2. Was there a result stashed before they left to check email
- *      (SaveResult's "not signed in" path)? Save it now, under whichever
- *      account just signed in — new or existing, doesn't matter, this
- *      is the same finishing step either way.
+ *      (SaveResult's old localStorage path — largely moot now that
+ *      SaveResult verifies inline, but harmless to still honor if a
+ *      stale stash is somehow present)? Save it now.
  *   3. Back to the home page.
  */
 export default function AuthCallbackPage() {

@@ -26,18 +26,39 @@ export function needsProfileSetup(profile: { display_name: string | null; phone:
 }
 
 /**
- * Sends the magic link. Whether this creates a new user or signs into an
+ * Sends the email. Whether this creates a new user or signs into an
  * existing one is entirely Supabase's own behavior for signInWithOtp —
  * nothing here branches on new-vs-existing, which is exactly the "one
  * entry point handles both" requirement.
+ *
+ * shouldCreateUser is explicit (Supabase defaults to true anyway) so this
+ * reads clearly next to the intent described above.
  */
-export async function sendMagicLink(email: string) {
-  const redirectTo = `${window.location.origin}/auth/callback`;
+export async function sendLoginCode(email: string) {
   const { error } = await supabase.auth.signInWithOtp({
     email: email.trim(),
-    options: { emailRedirectTo: redirectTo },
+    options: { shouldCreateUser: true },
   });
   if (error) throw error;
+}
+
+/**
+ * Verifies the 6-digit code from that same email, right in the same tab
+ * — no redirect, no new page, no hash fragment to parse. This is the
+ * actual sign-in step; a successful call here establishes the session
+ * immediately and synchronously, which is what makes this so much more
+ * robust than the clickable-link flow: there's no gap in time or place
+ * where an email scanner, a wrong browser, or a client-init timing race
+ * can interfere, because nothing ever leaves this page.
+ */
+export async function verifyLoginCode(email: string, code: string) {
+  const { data, error } = await supabase.auth.verifyOtp({
+    email: email.trim(),
+    token: code.trim(),
+    type: "email",
+  });
+  if (error) throw error;
+  return data;
 }
 
 export async function completeProfileSetup(name: string, phone: string) {
