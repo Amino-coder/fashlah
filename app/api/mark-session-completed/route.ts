@@ -24,6 +24,7 @@ const ALLOWED_TABLES = new Set([
   "qaseeda_sessions",
   "qissa_sessions",
   "lifoo_sessions",
+  "ihj_sessions",
 ]);
 
 export async function POST(req: NextRequest) {

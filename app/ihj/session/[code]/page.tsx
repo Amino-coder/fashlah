@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Copy, Check } from "lucide-react";
@@ -41,6 +41,33 @@ export default function IhjSessionPage() {
 
   const myPlayer = players.find((p) => p.user_id === myUserId) || null;
   const isHost = !!session && !!myUserId && session.host_user_id === myUserId;
+
+  // Any client viewing the final round's reveal marks the session
+  // completed — not just the host. Previously the ONLY path to
+  // status='completed' was handleNextRound()'s direct client-side
+  // update() below, gated by `if (!isHost) return` — and since
+  // ihj_sessions' RLS UPDATE policy is host-only (same as every other
+  // game's), that check wasn't just a JS nicety, it was the actual wall:
+  // if the host's browser wasn't around to click "next round" on the
+  // final round, literally no one else could complete that write, RLS
+  // would reject it outright. Every other multiplayer game already had
+  // (or, as of this pass, now has) an any-client fallback through the
+  // service-role /api/mark-session-completed route for exactly this
+  // reason — إنسان حيوان جماد never had one until now. Consistent with
+  // its own numbers (6 completions from 21 views) looking like the same
+  // undercount شوفة's confirmed 20-session gap turned out to be.
+  const completedRef = useRef(false);
+  useEffect(() => {
+    if (!session || completedRef.current) return;
+    if (session.status !== "in_progress" || session.round_phase !== "reveal") return;
+    if (session.current_round < session.total_rounds) return;
+    completedRef.current = true;
+    fetch("/api/mark-session-completed", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ table: "ihj_sessions", sessionId: session.id }),
+    }).catch(() => {});
+  }, [session]);
 
   useEffect(() => {
     let cancelled = false;

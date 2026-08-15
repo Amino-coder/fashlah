@@ -83,15 +83,21 @@ export default function FinalReveal({
     return () => clearTimeout(id);
   }, [stage, song, revealedCount, totalLines]);
 
+  // Any client reaching this point marks the session completed — not
+  // host-only (see شوفة's FinalReveal.tsx for the host-only reasoning).
+  // Fires the moment `song` is fetched, NOT gated on stage>=4 anymore —
+  // reaching that stage required tapping through every line of the
+  // reveal first. Confirmed via شوفة's data that gating this on the
+  // reveal finishing causes real completed games to go unmarked.
   useEffect(() => {
-    if (stage < 4 || completedRef.current) return;
+    if (!song || completedRef.current) return;
     completedRef.current = true;
     fetch("/api/mark-session-completed", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ table: "lifoo_sessions", sessionId: session.id }),
     }).catch(() => {});
-  }, [stage, session.id]);
+  }, [song, session.id]);
 
   useEffect(() => {
     if (stage < 4) return;

@@ -85,19 +85,32 @@ export default function FinalReveal({
     playCelebration();
   }, [stage, soundOn]);
 
-  // Any client reaching this stage marks the session completed — not
-  // host-only. This used to be `!isHost || stage < 3`, but that meant a
-  // genuinely finished game could sit at status='in_progress' forever if
-  // the host's specific browser closed, refreshed, or wasn't the active
-  // tab by the time the reveal wrapped up: nobody else even attempted the
-  // write, since every other client was excluded by that check. Eventually
-  // the stale-session cleanup job would sweep it up as 'cancelled' — a
-  // genuinely completed game misreported as abandoned. The update itself
-  // is a simple idempotent write by session id, so multiple clients
-  // racing to set the same values is harmless; worst case is a couple of
-  // redundant writes, not a correctness issue.
+  // Any client reaching this point marks the session completed — not
+  // host-only, for the reason explained below. Fires the moment `winner`
+  // is computed, NOT gated on the visual drumroll stage anymore — it
+  // used to wait for stage>=3 (the "winner card appears" beat, ~4.6
+  // seconds after winner is known), which meant anyone closing the tab
+  // during that animation had genuinely finished the game but never
+  // triggered this write. Confirmed as a real gap, not just a theory: 20
+  // شوفة sessions had a full 5/5 round_results (unambiguous proof of a
+  // completed game) but sat at a non-'completed' status. Keying this off
+  // `winner?.id` instead removes that multi-second window entirely —
+  // the completion write no longer has any dependency on someone's tab
+  // staying open through an animation that has nothing to do with
+  // whether the game itself is actually over.
+  //
+  // Not host-only: this used to be `!isHost || stage < 3`, but that meant
+  // a genuinely finished game could sit at status='in_progress' forever
+  // if the host's specific browser closed, refreshed, or wasn't the
+  // active tab by the time the reveal wrapped up — nobody else even
+  // attempted the write, since every other client was excluded by that
+  // check. Eventually the stale-session cleanup job would sweep it up as
+  // 'cancelled' — a genuinely completed game misreported as abandoned.
+  // The update itself is a simple idempotent write by session id, so
+  // multiple clients racing to set the same values is harmless; worst
+  // case is a couple of redundant writes, not a correctness issue.
   useEffect(() => {
-    if (stage < 3 || completedRef.current) return;
+    if (!winner || completedRef.current) return;
     completedRef.current = true;
     fetch("/api/mark-session-completed", {
       method: "POST",
@@ -107,7 +120,7 @@ export default function FinalReveal({
       // Non-critical — worst case the cleanup job's own (much later,
       // much more conservative) sweep eventually reconciles this.
     });
-  }, [stage, session.id]);
+  }, [winner?.id, session.id]);
 
   const Character = session.character === "girl" ? NiqabGirl : ShemaghGuy;
   const others = players.filter((p) => p.id !== winner?.id);

@@ -90,17 +90,22 @@ export default function FinalReveal({
     setAuthorsShown(false);
   }
 
-  // Any client reaching this stage marks the session completed — not
-  // host-only. See شوفة's FinalReveal.tsx for the full reasoning.
+  // Any client reaching this point marks the session completed — not
+  // host-only (see شوفة's FinalReveal.tsx for the host-only reasoning).
+  // Fires the moment `stories` is fetched, NOT gated on stage>=3 anymore
+  // — reaching that stage required tapping through every sentence of
+  // every group's story first, a much longer and less reliable window
+  // than a timed animation. Confirmed via شوفة's data that gating this
+  // on the reveal finishing causes real completed games to go unmarked.
   useEffect(() => {
-    if (stage < 3 || completedRef.current) return;
+    if (!stories || completedRef.current) return;
     completedRef.current = true;
     fetch("/api/mark-session-completed", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ table: "qissa_sessions", sessionId: session.id }),
     }).catch(() => {});
-  }, [stage, session.id]);
+  }, [stories, session.id]);
 
   return (
     <div

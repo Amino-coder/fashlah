@@ -92,18 +92,25 @@ export default function FinalReveal({
     return () => clearTimeout(id);
   }, [stage, poem, revealedCount, totalLines]);
 
-  // Host-only: mark the session completed once the share card is showing.
-  // Any client reaching this stage marks the session completed — not
-  // host-only. See شوفة's FinalReveal.tsx for the full reasoning.
+  // Any client reaching this point marks the session completed — not
+  // host-only (see شوفة's FinalReveal.tsx for the host-only reasoning).
+  // Fires the moment `poem` is fetched, NOT gated on stage>=4 anymore —
+  // that required the person to manually tap through every single line
+  // of the reveal first, which could be a much longer and much less
+  // reliable window than a timed animation: confirmed via شوفة's data
+  // that gating this on the reveal finishing causes real completed games
+  // to go unmarked (20 sessions there alone), and this game's version of
+  // that gate depends on active tapping rather than just elapsed time,
+  // making it an even easier point to walk away before reaching.
   useEffect(() => {
-    if (stage < 4 || completedRef.current) return;
+    if (!poem || completedRef.current) return;
     completedRef.current = true;
     fetch("/api/mark-session-completed", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ table: "qaseeda_sessions", sessionId: session.id }),
     }).catch(() => {});
-  }, [stage, session.id]);
+  }, [poem, session.id]);
 
   // Same literal-1080x1920-scaled-to-fit technique as عبارات's card.
   useEffect(() => {

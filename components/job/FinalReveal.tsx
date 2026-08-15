@@ -71,21 +71,23 @@ export default function FinalReveal({
     return () => timers.forEach(clearTimeout);
   }, [winner?.id]);
 
-  // Host-only: mark the session as completed once the reveal is showing.
-  // Any client reaching this stage marks the session completed — not
-  // host-only. See شوفة's FinalReveal.tsx for the full reasoning: relying
-  // solely on the host's browser being present meant a genuinely finished
-  // game could sit at status='in_progress' until the cleanup job swept it
-  // up as 'cancelled', misreporting it as abandoned.
+  // Any client reaching this point marks the session completed — not
+  // host-only (see شوفة's FinalReveal.tsx for the host-only reasoning).
+  // Fires the moment `winner` is computed, not gated on the drumroll
+  // stage anymore — that used to wait ~4.6s after winner was known,
+  // during which a closed tab meant a genuinely finished game never got
+  // marked. Confirmed as a real gap in شوفة's data (20 sessions fully
+  // played but never marked completed); fixing the same pattern here
+  // before it causes the identical undercount.
   useEffect(() => {
-    if (stage < 3 || completedRef.current) return;
+    if (!winner || completedRef.current) return;
     completedRef.current = true;
     fetch("/api/mark-session-completed", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ table: "job_sessions", sessionId: session.id }),
     }).catch(() => {});
-  }, [stage, session.id]);
+  }, [winner?.id, session.id]);
 
   const others = players.filter((p) => p.id !== winner?.id);
 
