@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Users, Brain } from "lucide-react";
+import { Users, Zap } from "lucide-react";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import { usePrefs } from "@/lib/usePrefs";
@@ -52,7 +52,7 @@ export default function IhjLandingPage() {
 
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <Link
-              href="/ihj/create"
+              href="/ihj/solo"
               className="font-display"
               style={{
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
@@ -60,12 +60,23 @@ export default function IhjLandingPage() {
                 background: `linear-gradient(135deg, ${PURPLE}, ${PINK})`, boxShadow: `0 10px 24px ${PINK}33`,
               }}
             >
-              <Users size={18} /> {t.createGame}
+              <Zap size={18} /> {t.playSolo}
+            </Link>
+            <Link
+              href="/ihj/create"
+              className="font-body"
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                padding: 16, fontSize: 14, fontWeight: 700, borderRadius: 999,
+                border: "2px solid var(--ring)", color: "var(--ink)", background: "var(--card)", textDecoration: "none",
+              }}
+            >
+              <Users size={16} /> {t.playMultiplayer}
             </Link>
             <Link
               href="/ihj/join"
               className="font-body"
-              style={{ display: "block", textAlign: "center", padding: 14, fontSize: 14, fontWeight: 700, color: "var(--ink-soft)", textDecoration: "underline" }}
+              style={{ display: "block", textAlign: "center", padding: 10, fontSize: 13, fontWeight: 700, color: "var(--ink-soft)", textDecoration: "underline" }}
             >
               {t.joinGame}
             </Link>

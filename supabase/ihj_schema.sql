@@ -108,11 +108,13 @@ $$;
 -- ============================================================================
 -- Scoring — runs once per round, guarded against double-scoring by only
 -- proceeding while round_phase is still 'answering'. For each of the 5
--- categories: normalizes every submitted answer, treats blank or
--- wrong-starting-letter answers as invalid (0), then groups the remaining
--- valid answers by normalized text — a group of 1 scores 10, a group of
--- 2+ scores 5 each. A player who never submitted simply has no rows for
--- the round, which naturally nets 0 without any special-casing.
+-- categories: normalizes every submitted answer, treats blank, wrong-
+-- starting-letter, OR single-letter answers as invalid (0 — a lone
+-- letter like "ب" isn't a word, even though it technically starts with
+-- the round's letter), then groups the remaining valid answers by
+-- normalized text — a group of 1 scores 10, a group of 2+ scores 5 each.
+-- A player who never submitted simply has no rows for the round, which
+-- naturally nets 0 without any special-casing.
 -- ============================================================================
 create or replace function ihj_score_round(p_session_id uuid, p_round_number int) returns jsonb
 language plpgsql
@@ -142,6 +144,7 @@ begin
       from ihj_answers
       where session_id = p_session_id and round_number = p_round_number and category = cat
         and normalized_answer <> '' and left(normalized_answer, 1) = v_norm_letter
+        and char_length(normalized_answer) > 1
       group by normalized_answer
     loop
       update ihj_answers

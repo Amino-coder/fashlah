@@ -24,10 +24,8 @@ export default function ProfileSetupModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const valid = name.trim().length > 0 && phone.trim().length > 0;
-
   async function handleSave() {
-    if (!valid || saving) return;
+    if (saving) return;
     setSaving(true);
     setError(null);
     try {
@@ -89,12 +87,12 @@ export default function ProfileSetupModal({
 
         <button
           onClick={handleSave}
-          disabled={!valid || saving}
+          disabled={saving}
           className="font-display"
           style={{
             width: "100%", padding: 16, fontSize: 16, borderRadius: 999, border: "none", color: "#fff",
             background: `linear-gradient(135deg, ${CORAL}, ${NAVY})`,
-            opacity: valid && !saving ? 1 : 0.5,
+            opacity: saving ? 0.5 : 1,
           }}
         >
           {saving ? (ar ? "..." : "...") : (ar ? "حفظ" : "Save")}

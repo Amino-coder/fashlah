@@ -173,3 +173,156 @@ export async function shareIhjResultCard(players: IhjPlayerRow[], myPlayerId?: s
     return "failed";
   }
 }
+
+// ============================================================================
+// SOLO VARIANT — extends this same file rather than a separate image-
+// generation setup, per the spec this was built from. Reuses
+// roundedRectPath, ensureFonts, canvasToBlob, and ShareResult defined
+// above, plus the identical gradient/frame/footer treatment, so a solo
+// card is recognizably the same game's card, just with solo-shaped
+// content (score + title + a round-by-round grid) instead of a
+// leaderboard.
+// ============================================================================
+
+export type IhjSoloCardData = {
+  score: number;
+  title: { emoji: string; ar: string };
+  totalRounds: number;
+  /** One entry per round played, correctByCategory in the same order as
+   *  IHJ_CATEGORIES (human, animal, object, plant, country). */
+  rounds: { letter: string; correctByCategory: boolean[] }[];
+};
+
+export async function renderIhjSoloCardToCanvas(data: IhjSoloCardData): Promise<HTMLCanvasElement> {
+  await ensureFonts();
+
+  const canvas = document.createElement("canvas");
+  canvas.width = CARD_W;
+  canvas.height = CARD_H;
+  const ctx = canvas.getContext("2d")!;
+  ctx.direction = "rtl";
+  ctx.textAlign = "center";
+
+  const grad = ctx.createLinearGradient(0, 0, CARD_W, CARD_H);
+  grad.addColorStop(0, PURPLE);
+  grad.addColorStop(1, PINK);
+  ctx.fillStyle = grad;
+  roundedRectPath(ctx, 0, 0, CARD_W, CARD_H, RADIUS);
+  ctx.fill();
+
+  ctx.save();
+  ctx.strokeStyle = "rgba(255,255,255,0.35)";
+  ctx.lineWidth = 2;
+  roundedRectPath(ctx, FRAME_INSET, FRAME_INSET, CARD_W - FRAME_INSET * 2, CARD_H - FRAME_INSET * 2, RADIUS - 16);
+  ctx.stroke();
+  ctx.restore();
+
+  // ---- measure first, so the whole block can be vertically centered ----
+  const eyebrowH = 90;
+  const scoreBlockH = 150;
+  const titleH = 66;
+  const roundsLabelH = 60;
+  const dividerGap = 60;
+  const rowH = 64;
+  const gridH = data.rounds.length * rowH;
+  const footerReserve = 220;
+  const totalH = eyebrowH + scoreBlockH + titleH + roundsLabelH + dividerGap + gridH;
+  const topMargin = Math.max(140, (CARD_H - footerReserve - totalH) / 2);
+
+  let y = topMargin;
+
+  ctx.font = `800 46px "${FONT_DISPLAY}", sans-serif`;
+  ctx.fillStyle = CREAM;
+  ctx.fillText("🧠 إنسان حيوان جماد", CARD_W / 2, y);
+  y += eyebrowH;
+
+  ctx.font = `800 100px "${FONT_DISPLAY}", sans-serif`;
+  ctx.fillText(`${data.score}`, CARD_W / 2, y + 70);
+  y += 96;
+  ctx.font = `700 34px "${FONT_UI}", sans-serif`;
+  ctx.fillStyle = "rgba(255,255,255,0.85)";
+  ctx.fillText("نقطة", CARD_W / 2, y);
+  y += scoreBlockH - 96;
+
+  ctx.font = `800 42px "${FONT_DISPLAY}", sans-serif`;
+  ctx.fillStyle = CREAM;
+  ctx.fillText(`${data.title.emoji} ${data.title.ar}`, CARD_W / 2, y);
+  y += titleH;
+
+  ctx.font = `700 32px "${FONT_UI}", sans-serif`;
+  ctx.fillStyle = "rgba(255,255,255,0.85)";
+  ctx.fillText(`${data.totalRounds} جولات`, CARD_W / 2, y);
+  y += roundsLabelH;
+
+  ctx.strokeStyle = "rgba(255,255,255,0.3)";
+  ctx.beginPath();
+  ctx.moveTo(CARD_W / 2 - 120, y);
+  ctx.lineTo(CARD_W / 2 + 120, y);
+  ctx.stroke();
+  y += dividerGap;
+
+  // ---- round-by-round grid: letter + a colored dot per category ----
+  const boxW = CARD_W - PAD_X * 2;
+  for (const round of data.rounds) {
+    const rowY = y;
+    ctx.fillStyle = "rgba(255,255,255,0.14)";
+    roundedRectPath(ctx, PAD_X, rowY - 40, boxW, 56, 18);
+    ctx.fill();
+
+    ctx.textAlign = "right";
+    ctx.font = `800 32px "${FONT_DISPLAY}", sans-serif`;
+    ctx.fillStyle = CREAM;
+    ctx.fillText(round.letter, CARD_W - PAD_X - 24, rowY - 4);
+
+    ctx.textAlign = "left";
+    ctx.font = "30px sans-serif";
+    let dotX = PAD_X + 24;
+    for (const correct of round.correctByCategory) {
+      ctx.fillText(correct ? "🟢" : "🔴", dotX, rowY - 2);
+      dotX += 42;
+    }
+    ctx.textAlign = "center";
+    y += rowH;
+  }
+
+  // ---- footer branding, identical to the multiplayer card ----
+  ctx.direction = "ltr";
+  ctx.font = `800 42px "${FONT_DISPLAY}", sans-serif`;
+  ctx.fillStyle = CREAM;
+  ctx.fillText(BRAND_URL, CARD_W / 2, CARD_H - 110);
+  ctx.direction = "rtl";
+  ctx.font = `700 28px "${FONT_UI}", sans-serif`;
+  ctx.fillStyle = "rgba(255,255,255,0.75)";
+  ctx.fillText("🎉 جرب إنسان حيوان جماد", CARD_W / 2, CARD_H - 62);
+
+  return canvas;
+}
+
+export async function shareIhjSoloResultCard(data: IhjSoloCardData): Promise<ShareResult> {
+  try {
+    const canvas = await renderIhjSoloCardToCanvas(data);
+    const blob = await canvasToBlob(canvas);
+    const file = new File([blob], "bagdoonis-ihj-solo-result.png", { type: "image/png" });
+
+    if (typeof navigator !== "undefined" && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file] });
+        return "shared";
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") return "cancelled";
+      }
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "bagdoonis-ihj-solo-result.png";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    return "downloaded";
+  } catch {
+    return "failed";
+  }
+}

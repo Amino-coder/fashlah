@@ -14,9 +14,17 @@ import { supabase } from "@/lib/supabase";
  * actually finished" for the exact same playthrough — see
  * page_views_migration_001_completion.sql.
  */
-export function trackPageView(page: string, sessionKey?: string) {
+/**
+ * Generic version of the pattern below — view/complete are the two
+ * events every existing solo/demo page already logs, but a page can log
+ * any other custom event string the same way (e.g. ihj/solo's fuller
+ * funnel: 'started', 'replay', 'share' — see app/ihj/solo/page.tsx).
+ * `event` has no CHECK constraint in page_views, so this needs no schema
+ * change to use.
+ */
+export function trackPageEvent(page: string, event: string, sessionKey?: string) {
   try {
-    supabase.from("page_views").insert({ page, event: "view", session_key: sessionKey ?? null }).then(
+    supabase.from("page_views").insert({ page, event, session_key: sessionKey ?? null }).then(
       () => {},
       () => {}
     );
@@ -25,15 +33,12 @@ export function trackPageView(page: string, sessionKey?: string) {
   }
 }
 
+export function trackPageView(page: string, sessionKey?: string) {
+  trackPageEvent(page, "view", sessionKey);
+}
+
 export function trackPageComplete(page: string, sessionKey?: string) {
-  try {
-    supabase.from("page_views").insert({ page, event: "complete", session_key: sessionKey ?? null }).then(
-      () => {},
-      () => {}
-    );
-  } catch {
-    // Never let tracking be the reason a page fails.
-  }
+  trackPageEvent(page, "complete", sessionKey);
 }
 
 /** One random id per page load, to correlate a view with its (maybe
