@@ -211,3 +211,28 @@ export function IhjArt({ size = 120 }: P) {
     </Tile>
   );
 }
+
+/* ─── مريض نفسي — a dizzy, cross-eyed head with racing thoughts above it ─── */
+export function MareedArt({ size = 120 }: P) {
+  const ROSE = "#FF2E93";
+  const WINE = "#7C3AED";
+  return (
+    <Tile bg={WINE}>
+      <Confetti a={ROSE} b={CREAM} />
+      {/* dizzy head, off-axis like the other tiles' motifs */}
+      <g transform="translate(100 112) rotate(-4)">
+        <circle cx="0" cy="0" r="46" fill={CREAM} stroke={INK} strokeWidth="6" />
+        {/* dizzy spiral eyes */}
+        <path d="M -22 -6 q 5 -9 11 -1 q 5 8 -3 9 q -8 1 -8 -8" fill="none" stroke={INK} strokeWidth="4.5" strokeLinecap="round" />
+        <path d="M 11 -6 q 5 -9 11 -1 q 5 8 -3 9 q -8 1 -8 -8" fill="none" stroke={INK} strokeWidth="4.5" strokeLinecap="round" />
+        {/* wavy confused mouth */}
+        <path d="M -16 22 q 8 10 16 0 q 8 -10 16 0" fill="none" stroke={INK} strokeWidth="5" strokeLinecap="round" />
+      </g>
+      {/* racing-thoughts swirl above the head, echoing "scrambled brain" */}
+      <g transform="translate(102 42)">
+        <path d="M -28 8 q 8 -20 28 -12 q 20 8 10 22 q -10 12 -24 4" fill="none" stroke={ROSE} strokeWidth="7" strokeLinecap="round" />
+      </g>
+    </Tile>
+  );
+}
+

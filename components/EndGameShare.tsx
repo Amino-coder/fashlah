@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { Lang } from "@/lib/i18n";
-import { FashlahArt, ShofahArt, JobArt, QaseedaArt, QissaArt, LifooArt, BidalArt, WadakArt, IhjArt } from "@/components/art/GameArt";
+import { FashlahArt, ShofahArt, JobArt, QaseedaArt, QissaArt, LifooArt, BidalArt, WadakArt, IhjArt, MareedArt } from "@/components/art/GameArt";
 import SaveResult from "@/components/auth/SaveResult";
 
 /**
@@ -34,9 +34,10 @@ const NOTE = "\u{1F3B6}";      // 🎶
 const LETTERS = "\u{1F524}";   // 🔤
 const MASK = "\u{1F3AD}";      // 🎭
 const BRAIN = "\u{1F9E9}";     // 🧩
+const HEAD = "\u{1F92F}";      // 🤯
 const SEND = "\u{1F4E4}";      // 📤
 
-export type EndGameKey = "fashlah" | "shofah" | "job" | "qaseeda" | "qissa" | "lifoo" | "bidal" | "wadak" | "ihj";
+export type EndGameKey = "fashlah" | "shofah" | "job" | "qaseeda" | "qissa" | "lifoo" | "bidal" | "wadak" | "ihj" | "mareed";
 
 const GAME_META: Record<
   EndGameKey,
@@ -51,6 +52,7 @@ const GAME_META: Record<
   bidal: { emoji: LETTERS, nameAr: "بدل الكلمة", nameEn: "Word Swap", href: "/bidal", Art: BidalArt, accent: "linear-gradient(135deg, #14B8A6, #FF5A5F)" },
   wadak: { emoji: MASK, nameAr: "وش شخصيتك", nameEn: "What's Your Personality", href: "/wadak", Art: WadakArt, accent: "linear-gradient(135deg, #7C3AED, #FF2E93)" },
   ihj: { emoji: BRAIN, nameAr: "إنسان حيوان جماد", nameEn: "Categories", href: "/ihj", Art: IhjArt, accent: "linear-gradient(135deg, #7C3AED, #FF2E93)" },
+  mareed: { emoji: HEAD, nameAr: "مريض نفسي", nameEn: "Psych Patient", href: "/mareed", Art: MareedArt, accent: "linear-gradient(135deg, #FF2E93, #7C3AED)" },
 };
 
 function buildShareText(lang: Lang, game: EndGameKey, resultLine: string): string {

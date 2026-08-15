@@ -15,7 +15,7 @@ import type { Lang } from "@/lib/i18n";
  * from memory.
  */
 
-export type GameKey = "fashlah" | "shofah" | "job" | "qaseeda" | "qissa" | "lifoo";
+export type GameKey = "fashlah" | "shofah" | "job" | "qaseeda" | "qissa" | "lifoo" | "mareed";
 
 type Step = { icon: string; title: string; body: string };
 type Content = { title: string; tagline: string; steps: Step[]; footer: string };
@@ -187,6 +187,34 @@ const CONTENT: Record<GameKey, Record<Lang, Content>> = {
       footer: "The sillier it gets, the better the song 😂",
     },
   },
+  mareed: {
+    ar: {
+      title: "كيف تلعبون مريض نفسي؟",
+      tagline: "جولة تسخين، ٥ أسئلة، وبعدها التشخيص 🧠",
+      steps: [
+        { icon: "🧠", title: "اختاروا المريض", body: "نوف ولا تركي؟ اختاروا مريض الليلة." },
+        { icon: "📱", title: "جهاز لكل شخص", body: "المضيف ينشئ غرفة ويشارك الكود مع الشلة." },
+        { icon: "🔥", title: "جولة التسخين", body: "٥ أسئلة سريعة، صوّتوا على بعض. للضحك بس — ما تحسب في النتيجة." },
+        { icon: "✍️", title: "٥ جولات", body: "يجيكم سؤال غريب، وكل واحد يكتب رده بأغرب طريقة." },
+        { icon: "🗳️", title: "صوّتوا", body: "بعدها صوّتوا على أغرب رد — وبتشوفون مين كتب وش." },
+        { icon: "🧠", title: "التشخيص", body: "بالنهاية تشوفون المحادثة كاملة، ومين المريض النفسي رسمياً." },
+      ],
+      footer: "الردود الأغرب عادة هي اللي تفوز 👀",
+    },
+    en: {
+      title: "How to play Psych Patient",
+      tagline: "A warm-up, 5 questions, then the diagnosis 🧠",
+      steps: [
+        { icon: "🧠", title: "Pick tonight's patient", body: "Nouf or Turki? Pick who tonight's session is about." },
+        { icon: "📱", title: "One phone each", body: "The host creates a room and shares the code with the group." },
+        { icon: "🔥", title: "Warm-up round", body: "5 quick questions voting on each other. Just for laughs — it doesn't affect scoring." },
+        { icon: "✍️", title: "5 rounds", body: "You'll get a weird prompt, and everyone writes the strangest answer they can." },
+        { icon: "🗳️", title: "Vote", body: "Then vote on the strangest answer — and see who wrote what." },
+        { icon: "🧠", title: "The diagnosis", body: "At the end you'll see the whole conversation, and who's officially the psych patient." },
+      ],
+      footer: "The weirdest answers usually win 👀",
+    },
+  },
 };
 
 const ACCENTS: Record<GameKey, { from: string; to: string }> = {
@@ -196,6 +224,7 @@ const ACCENTS: Record<GameKey, { from: string; to: string }> = {
   qaseeda: { from: "#D9A441", to: "#1B3A55" },
   qissa: { from: "#FF8A3D", to: "#E0409A" },
   lifoo: { from: "#FF5A5F", to: "#1B1030" },
+  mareed: { from: "#FF2E93", to: "#7C3AED" },
 };
 
 function storageKey(game: GameKey) {

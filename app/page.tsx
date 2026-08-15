@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Instagram, Mail } from "lucide-react";
 import { STR } from "@/lib/i18n";
 import { SHOFAH_STR } from "@/lib/shofah-i18n";
+import { MAREED_STR } from "@/lib/mareed-i18n";
 import { JOB_STR } from "@/lib/job-i18n";
 import { QASEEDA_STR } from "@/lib/qaseeda-i18n";
 import { QISSA_STR } from "@/lib/qissa-i18n";
@@ -11,7 +12,7 @@ import { LIFOO_STR } from "@/lib/lifoo-i18n";
 import { usePrefs } from "@/lib/usePrefs";
 import Blobs from "@/components/Blobs";
 import Mascot from "@/components/Mascot";
-import { FashlahArt, ShofahArt, JobArt, IbaratArt, QaseedaArt, QissaArt, WadakArt, BidalArt, IhjArt, LifooArt } from "@/components/art/GameArt";
+import { FashlahArt, ShofahArt, JobArt, IbaratArt, QaseedaArt, QissaArt, WadakArt, BidalArt, IhjArt, LifooArt, MareedArt } from "@/components/art/GameArt";
 import InstallBagdoonisButton from "@/components/pwa/InstallBagdoonisButton";
 import LoginButton from "@/components/auth/LoginButton";
 import HamburgerMenu from "@/components/HamburgerMenu";
@@ -51,6 +52,7 @@ export default function Home() {
   const entries = [
     { href: "/bidal", title: "بدل الكلمة", sub: ar ? "بدّل حرف، واصنع كلمات جديدة 🔤" : "Swap a letter, beat the rest 🔤", Art: BidalArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
     { href: "/shofah", title: SHOFAH_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين بيتزوج أول" : "Who gets married first?", Art: ShofahArt, badge: ar ? "مجاناً" : "Free", badgeColor: ALWAYS_FREE },
+    { href: "/mareed", title: MAREED_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين المريض النفسي فينا 🧠" : "Who's the psych patient among us? 🧠", Art: MareedArt, badge: ar ? "جديد" : "New", badgeColor: LIMITED_FREE },
     { href: "/ihj", title: "إنسان حيوان جماد", sub: ar ? "لعبة الطيبين - مين أسرعكم بالكتابة 🧠" : "Find the answer nobody else thinks of 🧠", Art: IhjArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
     { href: "/wadak", title: "وش شخصيتك", sub: ar ? "جاوب وشوف شخصيتك الحقيقية 🧠" : "Answer and find your real personality 🧠", Art: WadakArt, badge: ar ? "مجاناً" : "Free", badgeColor: ALWAYS_FREE },
     { href: "/fashlah", title: t.gameName, sub: ar ? "اكتشفوا أسرار شلتكم 😂" : "Uncover your group's secrets 😂", Art: FashlahArt, badge: ar ? "مجاناً" : "Free", badgeColor: ALWAYS_FREE },
