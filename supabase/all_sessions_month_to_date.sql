@@ -1,8 +1,8 @@
 -- All sessions created this calendar month, any status, across every
 -- game, with player count and nicknames, plus وش شخصيتك / شوفة solo /
--- بدل الكلمة solo / الِّفوا أغنية solo visits this month — each shown as
--- 'completed' or 'in_progress/left' based on whether a matching
--- 'complete' event exists for that visit.
+-- بدل الكلمة solo / الِّفوا أغنية solo / إنسان حيوان جماد solo visits
+-- this month — each shown as 'completed' or 'in_progress/left' based on
+-- whether a matching 'complete' event exists for that visit.
 -- Requires supabase/page_views_schema.sql AND
 -- supabase/page_views_migration_001_completion.sql to have been run.
 -- Run in the Supabase SQL editor.
@@ -83,4 +83,14 @@ select 'lifoo_solo', v.id, null::text,
   (v.created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh, null::bigint, null::text
 from page_views v
 where v.page = 'lifoo_solo' and v.event = 'view' and v.created_at >= (date_trunc('month', now() AT TIME ZONE 'Asia/Riyadh') AT TIME ZONE 'Asia/Riyadh')
+union all
+select 'ihj_solo', v.id, null::text,
+  case when exists (
+    select 1 from page_views c
+    where c.page = 'ihj_solo' and c.event = 'complete'
+      and c.session_key = v.session_key and v.session_key is not null
+  ) then 'completed' else 'in_progress_or_left' end,
+  (v.created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh, null::bigint, null::text
+from page_views v
+where v.page = 'ihj_solo' and v.event = 'view' and v.created_at >= (date_trunc('month', now() AT TIME ZONE 'Asia/Riyadh') AT TIME ZONE 'Asia/Riyadh')
 order by created_at_riyadh desc;

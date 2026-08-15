@@ -73,11 +73,14 @@ order by total_sessions desc;
 
 -- ---------------------------------------------------------------------------
 -- 3) Every solo/demo page tracked via page_views — includes بدل الكلمة
---    solo (bidal_solo) and الِّفوا أغنية solo (lifoo_solo) alongside
---    وش شخصيتك and شوفة solo. "completed" here means a matching
---    'complete' event exists for that same visit's session_key — this is
---    the one place solo-only games' actual completion rate shows up,
---    since they have no session row to carry a status.
+--    solo (bidal_solo), الِّفوا أغنية solo (lifoo_solo), and إنسان حيوان
+--    جماد solo (ihj_solo) alongside وش شخصيتك and شوفة solo. "completed"
+--    here means a matching 'complete' event exists for that same visit's
+--    session_key — this is the one place solo-only games' actual
+--    completion rate shows up, since they have no session row to carry a
+--    status. Grouped generically by `page`, so any future solo page
+--    shows up here automatically the moment it starts calling
+--    trackPageView — nothing to add here when that happens.
 -- ---------------------------------------------------------------------------
 select
   page,

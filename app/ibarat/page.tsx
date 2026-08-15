@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 import QuoteCard from "@/components/ibarat/QuoteCard";
 import CardDeck from "@/components/ibarat/CardDeck";
 import { shareCard } from "@/components/ibarat/exportCard";
+import { trackPageView, trackPageComplete, newSessionKey } from "@/lib/trackPageView";
 import { CARD_W, CARD_H, FRONT_IMAGES } from "@/lib/ibarat-card";
 import type { Quote } from "@/lib/ibarat-quotes-types";
 import QUOTES_DATA from "@/lib/ibarat-quotes.json";
@@ -30,6 +31,18 @@ export default function IbaratPage() {
   const [shuffling, setShuffling] = useState(false);
   const [scale, setScale] = useState(0.28);
   const [shareState, setShareState] = useState<"idle" | "working" | "downloaded" | "failed">("idle");
+  const [sessionKey] = useState(() => newSessionKey());
+
+  // No other page on this platform was calling any tracking at all for
+  // عبارات before this — "view" is the page loading (before anyone's
+  // necessarily drawn a card), "complete" is an actual card being
+  // revealed, since drawing a card is the entire interaction this page
+  // offers. Fired once per draw, same sessionKey — if someone draws
+  // several cards in one visit, that's several 'complete' rows against
+  // one 'view', which is honest (more engagement, not a bug) rather than
+  // something the admin queries need special-casing for: they only ever
+  // check whether ANY complete row exists for a session_key, not how many.
+  useEffect(() => { trackPageView("ibarat", sessionKey); }, [sessionKey]);
 
   const stageRef = useRef<HTMLDivElement | null>(null);
   const lastIdRef = useRef<number | null>(null);
@@ -82,8 +95,9 @@ export default function IbaratPage() {
       setQuote(pickQuote());
       setFrontIndex(Math.floor(Math.random() * FRONT_IMAGES.length));
       setShuffling(false);
+      trackPageComplete("ibarat", sessionKey);
     }, reduced ? 0 : SHUFFLE_MS);
-  }, [shuffling, pickQuote]);
+  }, [shuffling, pickQuote, sessionKey]);
 
   async function onShare() {
     if (!quote || shareState === "working") return;
