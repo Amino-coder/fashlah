@@ -215,9 +215,9 @@ export function IhjArt({ size = 120 }: P) {
 /* ─── مريض نفسي — a dizzy, cross-eyed head with racing thoughts above it ─── */
 export function MareedArt({ size = 120 }: P) {
   const ROSE = "#FF2E93";
-  const WINE = "#7C3AED";
+  const ORANGE = "#FF8A3D";
   return (
-    <Tile bg={WINE}>
+    <Tile bg={ORANGE}>
       <Confetti a={ROSE} b={CREAM} />
       {/* dizzy head, off-axis like the other tiles' motifs */}
       <g transform="translate(100 112) rotate(-4)">
