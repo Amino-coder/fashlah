@@ -23,7 +23,6 @@ create table mareed_sessions (
   id            uuid primary key default gen_random_uuid(),
   code          text unique not null,
   host_user_id  uuid references users(id),
-  character     text check (character in ('girl', 'guy')),   -- which patient persona this session is themed around
   lang          text default 'ar' check (lang in ('ar', 'en')),
   status        text default 'waiting' check (status in ('waiting', 'in_progress', 'completed', 'cancelled')),
   current_round int default 0,   -- 0 = lobby/prewarm, 1-5 = answer/vote rounds, 6 = final conversation, 7 = final reveal

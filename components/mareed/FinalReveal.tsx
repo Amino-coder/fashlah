@@ -6,8 +6,7 @@ import { MareedLang } from "@/lib/mareed-i18n";
 import { playCelebration } from "@/lib/sound-engine";
 import { useSoundPref } from "@/lib/useSoundPref";
 import HomeButton from "@/components/HomeButton";
-import PatientGirl from "./PatientGirl";
-import PatientGuy from "./PatientGuy";
+import Character from "./PatientMascot";
 import type { MareedSessionRow, MareedPlayerRow } from "@/lib/mareed-types";
 import EndGameShare from "@/components/EndGameShare";
 
@@ -122,7 +121,7 @@ export default function FinalReveal({
     });
   }, [winner?.id, session.id]);
 
-  const Character = session.character === "girl" ? PatientGirl : PatientGuy;
+
   const others = players.filter((p) => p.id !== winner?.id);
 
   return (

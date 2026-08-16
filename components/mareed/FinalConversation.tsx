@@ -4,8 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { MAREED_STR, MareedLang } from "@/lib/mareed-i18n";
 import HomeButton from "@/components/HomeButton";
-import PatientGirl from "./PatientGirl";
-import PatientGuy from "./PatientGuy";
+import Character from "./PatientMascot";
 import type { MareedSessionRow } from "@/lib/mareed-types";
 
 const ROSE = "#E63946";
@@ -144,7 +143,7 @@ export default function FinalConversation({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countdown]);
 
-  const Character = session.character === "girl" ? PatientGirl : PatientGuy;
+
 
   if (beats && beats.length === 0) {
     // Nobody answered ANY round — nothing to build a conversation from.

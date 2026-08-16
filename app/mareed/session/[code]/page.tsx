@@ -10,8 +10,7 @@ import { MAREED_STR, MareedLang } from "@/lib/mareed-i18n";
 import { usePrefs } from "@/lib/usePrefs";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
-import PatientGirl from "@/components/mareed/PatientGirl";
-import PatientGuy from "@/components/mareed/PatientGuy";
+import Character from "@/components/mareed/PatientMascot";
 import RoundScreen from "@/components/mareed/RoundScreen";
 import PrewarmRound from "@/components/mareed/PrewarmRound";
 import { HelpButton } from "@/components/HowToPlay";
@@ -110,12 +109,11 @@ export default function MareedWaitingRoom() {
       if (!existingRounds || existingRounds.length === 0) {
         const { data: allPrompts, error: promptsErr } = await supabase
           .from("mareed_prompts").select("id")
-          .eq("active", true)
-          .or(`audience.is.null,audience.eq.${session.character}`);
+          .eq("active", true);
         if (promptsErr) throw promptsErr;
         if (!allPrompts || allPrompts.length < 5) {
           throw new Error(
-            `Only ${allPrompts?.length ?? 0} prompts available for character "${session.character}" — need at least 5. Did the prompt bank migration get run?`
+            `Only ${allPrompts?.length ?? 0} prompts available — need at least 5. Did mareed_schema.sql get run?`
           );
         }
 
@@ -126,7 +124,7 @@ export default function MareedWaitingRoom() {
       }
 
       // Same draw-and-persist pattern for the prewarm warm-up round's 5
-      // (of 8) prompts — done once at game start so a reload mid-round
+      // (of 16) prompts — done once at game start so a reload mid-round
       // shows the same 5 questions instead of reshuffling.
       const { data: existingPrewarmRounds } = await supabase
         .from("mareed_prewarm_round_prompts").select("id").eq("session_id", session.id).limit(1);
@@ -138,7 +136,7 @@ export default function MareedWaitingRoom() {
         if (prewarmPromptsErr) throw prewarmPromptsErr;
         if (!allPrewarmPrompts || allPrewarmPrompts.length < 5) {
           throw new Error(
-            `Only ${allPrewarmPrompts?.length ?? 0} prewarm prompts available — need at least 5. Did mareed_migration_007 get run?`
+            `Only ${allPrewarmPrompts?.length ?? 0} prewarm prompts available — need at least 5. Did mareed_schema.sql get run?`
           );
         }
         const shuffledPrewarm = [...allPrewarmPrompts].sort(() => Math.random() - 0.5).slice(0, 5);
@@ -204,7 +202,7 @@ export default function MareedWaitingRoom() {
         {session && session.status === "waiting" && (
           <>
             <div style={{ textAlign: "center", marginBottom: 20, marginTop: 40 }}>
-              {session.character === "girl" ? <PatientGirl size={90} /> : <PatientGuy size={90} />}
+              <Character size={90} />
             </div>
 
             <ShareInvite

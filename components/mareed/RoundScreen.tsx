@@ -7,8 +7,7 @@ import { MAREED_STR, MareedLang } from "@/lib/mareed-i18n";
 import { playCountdownTick, playCountdownGo, playUrgentTick, unlockAudio } from "@/lib/sound-engine";
 import { useSoundPref } from "@/lib/useSoundPref";
 import LeaveGameButton from "@/components/LeaveGameButton";
-import PatientGirl from "./PatientGirl";
-import PatientGuy from "./PatientGuy";
+import Character from "./PatientMascot";
 import FinalConversation from "./FinalConversation";
 import FinalReveal from "./FinalReveal";
 import type {
@@ -417,7 +416,7 @@ export default function RoundScreen({
     });
   }
 
-  const Character = session.character === "girl" ? PatientGirl : PatientGuy;
+
   const promptText = prompt ? (lang === "ar" ? prompt.text_ar : prompt.text_en) : "";
 
   // Stable across re-renders (only changes if session.id ever does, which

@@ -1,7 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Share2, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { usePrefs } from "@/lib/usePrefs";
@@ -10,11 +9,9 @@ import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import EndGameShare from "@/components/EndGameShare";
 import SaveResult from "@/components/auth/SaveResult";
-import PatientGirl from "@/components/mareed/PatientGirl";
-import PatientGuy from "@/components/mareed/PatientGuy";
+import Character from "@/components/mareed/PatientMascot";
 import { MAREED_WARMUP_QUESTIONS, LUCKY_OPTIONS_BY_QUESTION, MAX_LUCKY, DIAGNOSED_THRESHOLD } from "@/lib/mareed-solo-warmup";
 import { shareMareedSoloCard } from "@/components/mareed-solo/exportSoloCard";
-import type { MareedCharacter } from "@/lib/mareed-types";
 
 const ROSE = "#E63946";
 const WINE = "#C2185B";
@@ -26,19 +23,13 @@ type WarmupAnswer = { questionId: string; optionId: string };
 type Stage = "loading" | "warmup" | "writing" | "conversation" | "drumroll" | "verdict";
 
 export default function MareedSoloPage() {
-  return (
-    <Suspense fallback={null}>
-      <MareedSolo />
-    </Suspense>
-  );
+  return <MareedSolo />;
 }
 
 function MareedSolo() {
   const [sessionKey] = useState(() => newSessionKey());
   useEffect(() => { trackPageView("mareed_solo", sessionKey); }, [sessionKey]);
   const { lang, dark, ready } = usePrefs();
-  const searchParams = useSearchParams();
-  const character = (searchParams.get("character") as MareedCharacter) || "guy";
 
   const [stage, setStage] = useState<Stage>("loading");
   const [prompts, setPrompts] = useState<PromptRow[]>([]);
@@ -59,8 +50,7 @@ function MareedSolo() {
       const { data, error: err } = await supabase
         .from("mareed_prompts")
         .select("text_ar, category")
-        .eq("active", true)
-        .or(`audience.is.null,audience.eq.${character}`);
+        .eq("active", true);
       if (err || !data || data.length < TOTAL_ROUNDS) throw err || new Error("not enough prompts");
       const shuffled = [...data].sort(() => Math.random() - 0.5).slice(0, TOTAL_ROUNDS);
       setPrompts(shuffled);
@@ -76,7 +66,7 @@ function MareedSolo() {
     if (!ready) return;
     fetchPrompts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, character, lang]);
+  }, [ready, lang]);
 
   function answerWarmup(optionId: string) {
     setWarmupAnswers((a) => [...a, { questionId: warmupQuestions[wIdx].id, optionId }]);
@@ -95,7 +85,6 @@ function MareedSolo() {
   const diagnosed = luckyCount >= DIAGNOSED_THRESHOLD;
 
   if (!ready) return null;
-  const Character = character === "girl" ? PatientGirl : PatientGuy;
 
   return (
     <div dir={lang === "ar" ? "rtl" : "ltr"} className={dark ? "dark" : ""} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
@@ -185,34 +174,33 @@ function MareedSolo() {
 
         {!error && stage === "conversation" && (
           <ConversationReveal
-            character={character} answers={answers} prompts={prompts} lang={lang}
+            answers={answers} prompts={prompts} lang={lang}
             onDone={() => setStage("drumroll")}
           />
         )}
 
         {!error && stage === "drumroll" && (
-          <DrumrollVerdict diagnosed={diagnosed} character={character} lang={lang} onDone={() => { trackPageComplete("mareed_solo", sessionKey); setStage("verdict"); }} />
+          <DrumrollVerdict diagnosed={diagnosed} lang={lang} onDone={() => { trackPageComplete("mareed_solo", sessionKey); setStage("verdict"); }} />
         )}
 
         {!error && stage === "verdict" && (
-          <SoloVerdict character={character} answers={answers} prompts={prompts} luckyCount={luckyCount} diagnosed={diagnosed} lang={lang} />
+          <SoloVerdict answers={answers} prompts={prompts} luckyCount={luckyCount} diagnosed={diagnosed} lang={lang} />
         )}
       </div>
     </div>
   );
 }
 
-/** Mirrors FinalConversation.tsx's visual language — character avatar +
+/** Mirrors FinalConversation.tsx's visual language — mascot +
  *  chat bubbles — but replaying the SOLO player's own 5 answers as a
  *  conversation with themselves, one prompt/answer pair at a time, since
  *  there's no round "winner" to reveal without other players. */
 function ConversationReveal({
-  character, answers, prompts, lang, onDone,
+  answers, prompts, lang, onDone,
 }: {
-  character: MareedCharacter; answers: string[]; prompts: PromptRow[]; lang: string; onDone: () => void;
+  answers: string[]; prompts: PromptRow[]; lang: string; onDone: () => void;
 }) {
   const ar = lang === "ar";
-  const Character = character === "girl" ? PatientGirl : PatientGuy;
   const totalMessages = prompts.length * 2; // prompt + answer, per round
   const [visibleCount, setVisibleCount] = useState(0);
 
@@ -271,12 +259,11 @@ function ConversationReveal({
 /** Mirrors FinalReveal.tsx's staged drumroll beats and timing exactly:
  *  emoji pulse → "بعد التفكير..." → "الحكم..." → big reveal. */
 function DrumrollVerdict({
-  diagnosed, character, lang, onDone,
+  diagnosed, lang, onDone,
 }: {
-  diagnosed: boolean; character: MareedCharacter; lang: string; onDone: () => void;
+  diagnosed: boolean; lang: string; onDone: () => void;
 }) {
   const ar = lang === "ar";
-  const Character = character === "girl" ? PatientGirl : PatientGuy;
   const [stage, setStage] = useState(0);
 
   useEffect(() => {
@@ -308,7 +295,7 @@ function DrumrollVerdict({
           <div className="pop" style={{ fontSize: 50 }}>🎆</div>
           <div className="pop"><Character size={90} /></div>
           <p className="font-display pop" style={{ fontSize: 30, fontWeight: 800, color: "#FFD400" }}>
-            {diagnosed ? (ar ? "🧠 رسمي!" : "🧠 Official!") : (ar ? "😅 ما طلع شي" : "😅 Nothing found")}
+            {diagnosed ? (ar ? "🧠 رسمياً مجنون!" : "🧠 Officially crazy!") : (ar ? "😅 مو مجنون" : "😅 Not crazy")}
           </p>
         </>
       )}
@@ -322,12 +309,11 @@ function DrumrollVerdict({
 }
 
 function SoloVerdict({
-  character, answers, prompts, luckyCount, diagnosed, lang,
+  answers, prompts, luckyCount, diagnosed, lang,
 }: {
-  character: MareedCharacter; answers: string[]; prompts: PromptRow[]; luckyCount: number; diagnosed: boolean; lang: string;
+  answers: string[]; prompts: PromptRow[]; luckyCount: number; diagnosed: boolean; lang: string;
 }) {
   const ar = lang === "ar";
-  const Character = character === "girl" ? PatientGirl : PatientGuy;
   const [shareState, setShareState] = useState<"idle" | "working" | "shared" | "downloaded" | "failed">("idle");
 
   async function handleShare() {

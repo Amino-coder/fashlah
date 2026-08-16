@@ -1,5 +1,4 @@
 export type MareedSessionStatus = "waiting" | "in_progress" | "completed";
-export type MareedCharacter = "girl" | "guy";
 
 export type MareedRoundPhase = "countdown" | "prewarm" | "prewarm_teaser" | "answering" | "voting" | "reveal";
 
@@ -7,7 +6,6 @@ export interface MareedSessionRow {
   id: string;
   code: string;
   host_user_id: string;
-  character: MareedCharacter;
   lang: "ar" | "en";
   status: MareedSessionStatus;
   current_round: number;

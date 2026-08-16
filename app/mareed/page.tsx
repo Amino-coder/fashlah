@@ -6,9 +6,7 @@ import { Moon, Sun } from "lucide-react";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import { HelpButton } from "@/components/HowToPlay";
-import PatientGirl from "@/components/mareed/PatientGirl";
 import { MareedArt } from "@/components/art/GameArt";
-import PatientGuy from "@/components/mareed/PatientGuy";
 import { MAREED_STR, mareedSubtitles, MareedLang } from "@/lib/mareed-i18n";
 import { usePrefs } from "@/lib/usePrefs";
 
@@ -22,7 +20,6 @@ export default function MareedLanding() {
   const { lang, setLang, dark, setDark, ready } = usePrefs();
   const t = MAREED_STR[lang as MareedLang];
   const [subtitle, setSubtitle] = useState("");
-  const [choice, setChoice] = useState<"girl" | "guy" | null>(null);
 
   useEffect(() => {
     if (!ready) return;
@@ -81,44 +78,14 @@ export default function MareedLanding() {
           </p>
         </div>
 
-        <p className="font-display" style={{ fontSize: 15, fontWeight: 800, textAlign: "center", margin: "0 0 12px" }}>
-          {t.charSelectTitle}
-        </p>
-        <div style={{ display: "flex", gap: 14, marginBottom: 16 }}>
-          {(["girl", "guy"] as const).map((c) => {
-            const active = choice === c;
-            return (
-              <button
-                key={c}
-                onClick={() => setChoice(c)}
-                style={{
-                  flex: 1, padding: "18px 10px", borderRadius: 24, background: "var(--card)",
-                  border: active ? "3px solid #FF2E93" : "3px solid transparent",
-                  boxShadow: active ? "0 10px 24px #FF2E9333" : "0 8px 22px var(--ring)",
-                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
-                  transform: active ? "translateY(-3px)" : "none", transition: "transform 0.15s ease",
-                }}
-              >
-                {c === "girl" ? <PatientGirl size={78} /> : <PatientGuy size={78} />}
-                <span className="font-display" style={{ fontSize: 14, fontWeight: 800 }}>
-                  {c === "girl" ? `🤪 ${t.girlLabel}` : `🥴 ${t.guyLabel}`}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
         <Link
-          href={choice ? `/mareed/create?character=${choice}` : "#"}
-          aria-disabled={!choice}
+          href="/mareed/create"
           className="font-display btn-bag"
-          onClick={(e) => { if (!choice) e.preventDefault(); }}
           style={{
             display: "block", textAlign: "center", padding: 18, fontSize: 18,
             borderRadius: 999, color: "#fff", textDecoration: "none",
-            background: choice ? `linear-gradient(135deg, ${ROSE}, ${WINE})` : "var(--ring)",
-            boxShadow: choice ? `0 10px 30px ${ROSE}55` : "none",
-            opacity: choice ? 1 : 0.6, cursor: choice ? "pointer" : "not-allowed",
+            background: `linear-gradient(135deg, ${ROSE}, ${WINE})`,
+            boxShadow: `0 10px 30px ${ROSE}55`,
           }}
         >
           {t.startGame}

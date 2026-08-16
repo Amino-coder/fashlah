@@ -1,34 +1,23 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { supabase, ensureUser, generateRoomCode } from "@/lib/supabase";
 import { unlockAudio } from "@/lib/sound-engine";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import { MAREED_STR, MAREED_AVATARS, MareedLang } from "@/lib/mareed-i18n";
 import { usePrefs } from "@/lib/usePrefs";
-import type { MareedCharacter } from "@/lib/mareed-types";
 
 const ROSE = "#E63946";
 const WINE = "#C2185B";
 
 export default function MareedCreatePage() {
-  return (
-    <Suspense fallback={null}>
-      <MareedCreate />
-    </Suspense>
-  );
-}
-
-function MareedCreate() {
   const { lang, dark, ready } = usePrefs();
   const t = MAREED_STR[lang as MareedLang];
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const [character, setCharacter] = useState<MareedCharacter | null>(null);
   const [nickname, setNickname] = useState("");
   const [emoji, setEmoji] = useState(() =>
     // Randomised per visit — not persisted, not synced — so two people
@@ -39,18 +28,7 @@ function MareedCreate() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const c = searchParams.get("character");
-    if (c === "girl" || c === "guy") {
-      setCharacter(c);
-    } else {
-      // No character chosen — send them back to pick one rather than
-      // creating a session with an undefined character.
-      router.replace("/mareed/select");
-    }
-  }, [searchParams, router]);
-
-  if (!ready || !character) return null;
+  if (!ready) return null;
 
   async function handleCreate() {
     unlockAudio(); // a real tap — carries the unlock through client-side nav into the session page
@@ -65,7 +43,7 @@ function MareedCreate() {
         const code = generateRoomCode();
         const { data, error: sessErr } = await supabase
           .from("mareed_sessions")
-          .insert({ code, host_user_id: userId, character, lang, status: "waiting" })
+          .insert({ code, host_user_id: userId, lang, status: "waiting" })
           .select()
           .single();
         if (sessErr) { lastErr = sessErr; continue; }
@@ -110,9 +88,9 @@ function MareedCreate() {
         </div>
 
         <p className="font-body" style={{ fontWeight: 700, fontSize: 13, color: "var(--ink-soft)", marginBottom: 8 }}>
-          {lang === "ar" ? "اختر شخصيتك" : "Pick your avatar"}
+          {lang === "ar" ? "اختر رمزك" : "Pick your avatar"}
         </p>
-        <div role="radiogroup" aria-label={lang === "ar" ? "اختر شخصيتك" : "Pick your avatar"} style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+        <div role="radiogroup" aria-label={lang === "ar" ? "اختر رمزك" : "Pick your avatar"} style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
           {MAREED_AVATARS.map((em) => (
             <button
               key={em} onClick={() => setEmoji(em)}
@@ -140,7 +118,7 @@ function MareedCreate() {
         </button>
 
         <Link
-          href={`/mareed/solo?character=${character}`}
+          href="/mareed/solo"
           className="font-display"
           style={{
             display: "block", textAlign: "center", width: "100%", padding: 16, fontSize: 15, fontWeight: 800,
