@@ -188,6 +188,7 @@ export default function FinalReveal({
               game="shofah"
               lang={lang}
               nextGame="bidal"
+              playAgainHref="/shofah/create"
               sessionCode={session.code}
               resultLine={
                 myPlayerId && winner?.id === myPlayerId

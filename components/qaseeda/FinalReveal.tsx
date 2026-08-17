@@ -264,7 +264,7 @@ export default function FinalReveal({
           </p>
 
           <div style={{ marginTop: 6, opacity: 0.9 }}>
-            <EndGameShare game="qaseeda" lang={lang} nextGame="bidal" />
+            <EndGameShare game="qaseeda" lang={lang} nextGame="bidal" playAgainHref="/qaseeda/create" />
           </div>
         </div>
       )}

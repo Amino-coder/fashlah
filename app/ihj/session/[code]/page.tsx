@@ -548,7 +548,7 @@ function FinalResults({ players, myPlayerId, sessionCode, t, ar }: { players: Ih
         {shareState === "working" ? "..." : shareState === "shared" ? "تم!" : shareState === "downloaded" ? "انحفظت الصورة!" : (ar ? "شارك نتيجتك" : "Share Results")}
       </button>
 
-      <EndGameShare game="ihj" lang={ar ? "ar" : "en"} nextGame="wadak" />
+      <EndGameShare game="ihj" lang={ar ? "ar" : "en"} nextGame="wadak" playAgainHref="/ihj/create" />
     </div>
   );
 }

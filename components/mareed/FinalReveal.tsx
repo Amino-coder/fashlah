@@ -186,6 +186,7 @@ export default function FinalReveal({
               game="mareed"
               lang={lang}
               nextGame="bidal"
+              playAgainHref="/mareed/create"
               sessionCode={session.code}
               resultLine={
                 myPlayerId && winner?.id === myPlayerId

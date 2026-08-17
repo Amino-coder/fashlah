@@ -78,7 +78,14 @@ export default function LoginButton({ lang }: { lang: "ar" | "en" }) {
               <div
                 className="card pop"
                 style={{
-                  position: "absolute", top: "calc(100% + 8px)", insetInlineEnd: 0, zIndex: 40,
+                  // insetInlineStart (not End) is deliberate: this button
+                  // now sits at the header's true RIGHT edge (see
+                  // app/page.tsx's DOM ordering), and under RTL "start"
+                  // resolves to physical right — so this aligns the
+                  // dropdown's RIGHT edge with the button's RIGHT edge,
+                  // extending leftward/inward toward the rest of the
+                  // header instead of pushing further right, off-screen.
+                  position: "absolute", top: "calc(100% + 8px)", insetInlineStart: 0, zIndex: 40,
                   minWidth: 160, padding: 8,
                 }}
               >

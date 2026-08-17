@@ -154,6 +154,7 @@ export default function FinalReveal({
               game="job"
               lang={lang}
               nextGame="wadak"
+              playAgainHref="/job/create"
               sessionCode={session.code}
               resultLine={
                 myPlayerId && winner?.id === myPlayerId

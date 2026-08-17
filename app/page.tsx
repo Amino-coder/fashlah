@@ -16,6 +16,9 @@ import { FashlahArt, ShofahArt, JobArt, IbaratArt, QaseedaArt, QissaArt, WadakAr
 import InstallBagdoonisButton from "@/components/pwa/InstallBagdoonisButton";
 import LoginButton from "@/components/auth/LoginButton";
 import HamburgerMenu from "@/components/HamburgerMenu";
+import FavoriteButton from "@/components/FavoriteButton";
+import { getFavoriteGames, addFavorite, removeFavorite } from "@/lib/favorites";
+import { useEffect, useState } from "react";
 
 /**
  * lucide-react (used for every other icon on this page) deliberately
@@ -44,24 +47,103 @@ export default function Home() {
   const t = STR[lang];
   const ar = lang === "ar";
 
-  if (!ready) return null;
-
-  const ALWAYS_FREE = "#22C55E";
-  const LIMITED_FREE = "#FF7A1A";
-
   const entries = [
-    { href: "/bidal", title: "بدل الكلمة", sub: ar ? "بدّل حرف، واصنع كلمات جديدة 🔤" : "Swap a letter, beat the rest 🔤", Art: BidalArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
-    { href: "/shofah", title: SHOFAH_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين بيتزوج أول" : "Who gets married first?", Art: ShofahArt, badge: ar ? "مجاناً" : "Free", badgeColor: ALWAYS_FREE },
-    { href: "/ihj", title: "إنسان حيوان جماد", sub: ar ? "لعبة الطيبين - مين أسرعكم بالكتابة 🧠" : "Find the answer nobody else thinks of 🧠", Art: IhjArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
-    { href: "/wadak", title: "وش شخصيتك", sub: ar ? "جاوب وشوف شخصيتك الحقيقية 🧠" : "Answer and find your real personality 🧠", Art: WadakArt, badge: ar ? "مجاناً" : "Free", badgeColor: ALWAYS_FREE },
-    { href: "/fashlah", title: t.gameName, sub: ar ? "اكتشفوا أسرار شلتكم 😂" : "Uncover your group's secrets 😂", Art: FashlahArt, badge: ar ? "مجاناً" : "Free", badgeColor: ALWAYS_FREE },
-    { href: "/mareed", title: MAREED_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين المريض النفسي فينا 🧠" : "Who's the psych patient among us? 🧠", Art: MareedArt, badge: ar ? "جديد" : "New", badgeColor: LIMITED_FREE },
-    { href: "/qissa", title: QISSA_STR[lang].gameNameArabic, sub: ar ? "قصة توها تبدأ... وتضيع بين الكل 😂" : "A story that gets lost along the way 😂", Art: QissaArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
-    { href: "/job", title: JOB_STR[lang].gameNameArabic, sub: ar ? "لعبة للعاطلين 👀" : "A game for the unemployed 👀", Art: JobArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
-    { href: "/qaseeda", title: QASEEDA_STR[lang].gameNameArabic, sub: ar ? "اكتبوا قصيدة سوا، بيت بيت 🪶" : "Write a poem together, line by line 🪶", Art: QaseedaArt, badge: ar ? "مجاناً لفترة محدودة" : "Free for a limited time", badgeColor: LIMITED_FREE },
-    { href: "/lifoo", title: LIFOO_STR[lang].gameNameArabic, sub: ar ? "الِّفوا أغنية سوا، سطر سطر 🎶" : "Build a song together, line by line 🎶", Art: LifooArt, badge: ar ? "جديد" : "New", badgeColor: LIMITED_FREE },
-    { href: "/ibarat", title: "عبارات", sub: ar ? "بطاقة إلهام يومية" : "A daily card of inspiration", Art: IbaratArt, badge: ar ? "مجاناً" : "Free", badgeColor: ALWAYS_FREE },
+    { href: "/bidal", title: "بدل الكلمة", sub: ar ? "بدّل حرف، واصنع كلمات جديدة 🔤" : "Swap a letter, beat the rest 🔤", Art: BidalArt, modes: ["solo"] },
+    { href: "/shofah", title: SHOFAH_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين بيتزوج أول" : "Who gets married first?", Art: ShofahArt, modes: ["group", "solo"] },
+    { href: "/ihj", title: "إنسان حيوان جماد", sub: ar ? "لعبة الطيبين - مين أسرعكم بالكتابة 🧠" : "Find the answer nobody else thinks of 🧠", Art: IhjArt, modes: ["group", "solo"] },
+    { href: "/wadak", title: "وش شخصيتك", sub: ar ? "جاوب وشوف شخصيتك الحقيقية 🧠" : "Answer and find your real personality 🧠", Art: WadakArt, modes: ["solo"] },
+    { href: "/fashlah", title: t.gameName, sub: ar ? "اكتشفوا أسرار شلتكم 😂" : "Uncover your group's secrets 😂", Art: FashlahArt, modes: ["group"] },
+    { href: "/mareed", title: MAREED_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين المريض النفسي فينا 🧠" : "Who's the psych patient among us? 🧠", Art: MareedArt, modes: ["group", "solo"] },
+    { href: "/qissa", title: QISSA_STR[lang].gameNameArabic, sub: ar ? "قصة توها تبدأ... وتضيع بين الكل 😂" : "A story that gets lost along the way 😂", Art: QissaArt, modes: ["group"] },
+    { href: "/job", title: JOB_STR[lang].gameNameArabic, sub: ar ? "لعبة للعاطلين 👀" : "A game for the unemployed 👀", Art: JobArt, modes: ["group"] },
+    { href: "/qaseeda", title: QASEEDA_STR[lang].gameNameArabic, sub: ar ? "اكتبوا قصيدة سوا، بيت بيت 🪶" : "Write a poem together, line by line 🪶", Art: QaseedaArt, modes: ["group"] },
+    { href: "/lifoo", title: LIFOO_STR[lang].gameNameArabic, sub: ar ? "الِّفوا أغنية سوا، سطر سطر 🎶" : "Build a song together, line by line 🎶", Art: LifooArt, modes: ["group", "solo"] },
+    { href: "/ibarat", title: "عبارات", sub: ar ? "بطاقة إلهام يومية" : "A daily card of inspiration", Art: IbaratArt, modes: ["solo"] },
   ];
+
+  // مع أصحابك is the default: most of the library (فشلة، قصة، مين
+  // بيتوظف، قصيدة — 4 games that are group-only, versus بدل/وش/عبارات's
+  // 3 that are solo-only) is built around playing together, and the
+  // page's own tagline right above this already says "party games for
+  // your group" — defaulting to solo would contradict what the page
+  // tells you it is one line earlier.
+  const [mode, setMode] = useState<"group" | "solo">("group");
+
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [pendingGame, setPendingGame] = useState<string | null>(null);
+
+  useEffect(() => {
+    getFavoriteGames().then(setFavorites);
+  }, []);
+
+  async function refreshFavorites() {
+    const fresh = await getFavoriteGames();
+    setFavorites(fresh);
+    return fresh;
+  }
+
+  // The one place a toggle can actually originate — pendingGame being
+  // set for the game in question is what FavoriteButton disables on,
+  // which is the actual guard against a rapid double-tap firing two
+  // overlapping requests for the same game.
+  async function handleToggle(game: string) {
+    if (pendingGame) return;
+    setPendingGame(game);
+    const wasFavorited = favorites.has(game);
+    setFavorites((prev) => {
+      const next = new Set(prev);
+      wasFavorited ? next.delete(game) : next.add(game);
+      return next;
+    });
+    try {
+      await (wasFavorited ? removeFavorite(game) : addFavorite(game));
+    } catch {
+      // Revert the optimistic update — a failed write shouldn't leave
+      // the UI claiming a state the database doesn't actually have.
+      setFavorites((prev) => {
+        const next = new Set(prev);
+        wasFavorited ? next.add(game) : next.delete(game);
+        return next;
+      });
+    } finally {
+      setPendingGame(null);
+    }
+  }
+
+  // Fires once, right after someone signs in from the favorite-prompt
+  // modal — re-fetches for real first (they might be an existing
+  // account with existing favorites we've never loaded, not just a
+  // brand-new one), then makes sure the game they originally tapped
+  // ends up favorited, without ever un-favoriting something already
+  // favorited from a previous session/device.
+  async function handleSignedInFavorite(game: string) {
+    const fresh = await refreshFavorites();
+    if (fresh.has(game)) return;
+    setFavorites((prev) => new Set(prev).add(game));
+    try {
+      await addFavorite(game);
+    } catch {
+      setFavorites((prev) => {
+        const next = new Set(prev);
+        next.delete(game);
+        return next;
+      });
+    }
+  }
+
+  // Filter by the active mode, then favorites first — within each of
+  // those two groups, the original hand-authored order above is left
+  // untouched (no secondary sort key invented that wasn't asked for).
+  const visibleEntries = entries
+    .filter((e) => e.modes.includes(mode))
+    .slice()
+    .sort((a, b) => {
+      const aFav = favorites.has(a.href.slice(1)) ? 0 : 1;
+      const bFav = favorites.has(b.href.slice(1)) ? 0 : 1;
+      return aFav - bFav;
+    });
+
+  if (!ready) return null;
 
   return (
     <div
@@ -72,22 +154,19 @@ export default function Home() {
       <Blobs />
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "22px 20px 48px", position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-          {/* Install stays in its original position/side, unchanged from
-              before — still the single most prominent header action, per
-              the new hierarchy (primary: install, secondary: profile,
-              utility: hamburger). */}
-          <div>
-            <InstallBagdoonisButton lang={lang} />
-          </div>
-
-          {/* Hamburger (theme + language, now tucked into its popover
-              instead of two permanently-visible buttons) sits with the
-              compact profile chip as a single utility+secondary group on
-              the opposite side. */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <HamburgerMenu lang={lang} setLang={setLang} dark={dark} setDark={setDark} />
-            <LoginButton lang={lang} />
-          </div>
+          {/* DOM order here is deliberately [username, install, hamburger] —
+              under the page's natural RTL flow, a plain (non-reversed)
+              flex row places the FIRST DOM child at the physical RIGHT
+              and the LAST at the physical LEFT (RTL's "start"/"end" are
+              swapped from LTR's). So this order alone is what actually
+              produces username-right / install-center / hamburger-left
+              on screen — no forced dir="ltr" trick needed, which matters
+              because forcing ltr on an ancestor would also flip the
+              default text-alignment of any plain Arabic text rendered
+              inside either dropdown, not just the intended layout order. */}
+          <LoginButton lang={lang} />
+          <InstallBagdoonisButton lang={lang} />
+          <HamburgerMenu lang={lang} setLang={setLang} dark={dark} setDark={setDark} />
         </div>
 
         <div style={{ textAlign: "center", marginTop: 64 }}>
@@ -121,49 +200,106 @@ export default function Home() {
           </p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 34 }}>
-          {entries.map(({ href, title, sub, Art, badge, badgeColor }) => (
+        {/* Segmented-control style, not generic tabs — same rounded-pill
+            + hard drop-shadow language every button on this page already
+            uses, so it reads as "part of Bagdoonis" rather than a bolted-
+            on filter widget. One compact row, no extra vertical weight. */}
+        <div
+          role="tablist"
+          aria-label={ar ? "فلترة الألعاب" : "Filter games"}
+          style={{
+            display: "flex", gap: 8, marginTop: 26, padding: 5,
+            background: "var(--card)", borderRadius: 999,
+            border: "2.5px solid var(--icon-outline)", boxShadow: "3px 3px 0 var(--icon-outline)",
+          }}
+        >
+          {([["group", ar ? "مع أصحابك" : "With Friends"], ["solo", ar ? "لحالك" : "Solo"]] as const).map(([key, label]) => {
+            const active = mode === key;
+            return (
+              <button
+                key={key}
+                role="tab"
+                aria-selected={active}
+                onClick={() => setMode(key)}
+                className="font-display"
+                style={{
+                  flex: 1, padding: "11px 8px", borderRadius: 999, border: "none",
+                  fontSize: 14, fontWeight: 800, transition: "background .15s, color .15s",
+                  background: active ? "var(--purple)" : "transparent",
+                  color: active ? "#fff" : "var(--ink-soft)",
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 26 }}>
+          {visibleEntries.map(({ href, title, sub, Art, modes }, i) => {
+            const game = href.slice(1);
+            const favorited = favorites.has(game);
+            return (
             <Link
               key={href}
               href={href}
               style={{ textDecoration: "none", color: "var(--ink)", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}
             >
-              {/* Outer wrapper stays overflow-visible so the badge can hang
-                  off the corner; the inner tile keeps overflow-hidden so
-                  the artwork's corners stay clipped to the rounded frame. */}
+              {/* Outer wrapper stays overflow-visible so the favorite
+                  button can hang off the corner; the inner tile keeps
+                  overflow-hidden so the artwork's corners stay clipped
+                  to the rounded frame. */}
               <div style={{ position: "relative", width: "100%" }}>
                 <div
                   className="tile-tap"
                   style={{
-                    width: "100%", aspectRatio: "1 / 1", borderRadius: 30, overflow: "hidden",
+                    position: "relative", width: "100%", aspectRatio: "1 / 1", borderRadius: 30, overflow: "hidden",
                     border: "3px solid var(--icon-outline)", boxShadow: "5px 5px 0 var(--icon-outline)",
                   }}
                 >
-                  <Art size={400} />
+                  {/* Deliberately sized to slightly overflow its parent
+                      (inset: -1px instead of 0) rather than exactly 100%.
+                      At certain grid-cell widths this square's computed
+                      pixel size doesn't land on a whole number, and an
+                      SVG child sized via width/height:100% rounds
+                      independently from its container — the mismatch
+                      shows up as a hairline gap at one edge (usually the
+                      top) where the container's own background peeks
+                      through before the artwork starts. Overflowing by a
+                      pixel and letting the parent's overflow:hidden clip
+                      the excess means any such rounding error gets
+                      trimmed away instead of exposed, regardless of
+                      which exact width this card renders at. */}
+                  {/* شوفة specifically (not by index — favorites/filter
+                      state can reorder this grid, an index-based check
+                      would go stale) is the one uploaded photo reliably
+                      visible without scrolling on a typical phone —
+                      everything else (both the SVG icons, which don't
+                      use this prop at all, and the other uploaded photos
+                      further down the grid) loads lazily as normal,
+                      which is correct: eagerly fetching photos nobody's
+                      scrolled to yet would waste bandwidth, the opposite
+                      of what this was meant to fix. */}
+                  <div style={{ position: "absolute", inset: -1 }}>
+                    <Art size={400} priority={href === "/shofah"} />
+                  </div>
                 </div>
-                {badge && (
-                  <span
-                    className="font-body"
-                    style={{
-                      position: "absolute", top: -10, right: -8, zIndex: 2,
-                      maxWidth: 92, textAlign: "center",
-                      background: badgeColor, color: "#fff",
-                      fontSize: 8.5, fontWeight: 800, lineHeight: 1.3,
-                      padding: "5px 8px", borderRadius: 10,
-                      border: "2px solid var(--icon-outline)", boxShadow: "2px 2px 0 var(--icon-outline)",
-                      transform: "rotate(-8deg)",
-                    }}
-                  >
-                    {badge}
-                  </span>
-                )}
+                <FavoriteButton
+                  game={game}
+                  favorited={favorited}
+                  pending={pendingGame === game}
+                  lang={lang}
+                  onToggle={() => handleToggle(game)}
+                  onSignedInFavorite={() => handleSignedInFavorite(game)}
+                />
               </div>
               <div style={{ textAlign: "center" }}>
                 <div className="font-display" style={{ fontSize: 17, fontWeight: 800, lineHeight: 1.15 }}>{title}</div>
                 <div className="font-body" style={{ fontSize: 10.5, fontWeight: 700, color: "var(--ink-soft)", marginTop: 2 }}>{sub}</div>
               </div>
             </Link>
-          ))}
+            );
+          })}
         </div>
 
         <div style={{ display: "flex", justifyContent: "center", gap: 10, marginTop: 30 }}>

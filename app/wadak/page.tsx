@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { Share2, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
@@ -327,7 +326,7 @@ function StoryResults({ result, nickname }: { result: ScoreResult; nickname: str
         <>
           <p className="font-body" style={{ fontSize: 15, fontWeight: 700, opacity: 0.85 }}>وش شخصيتك</p>
           <h2 className="font-display" style={{ fontSize: 28, fontWeight: 800, margin: "10px 0" }}>
-            {nickname.trim() ? `طيب يا ${nickname.trim()}...` : "طيب..."} جاهزين نطلعلك وضعك؟ 👀
+            {nickname.trim() ? `طيب يا ${nickname.trim()}...` : "طيب..."} جاهزين نطلع لك شخصيتك؟ 👀
           </h2>
         </>
       ),
@@ -401,40 +400,66 @@ function StoryResults({ result, nickname }: { result: ScoreResult; nickname: str
           <span style={{ fontSize: 50, display: "block", marginBottom: 12 }}>🌿</span>
           <h2 className="font-display" style={{ fontSize: 22, fontWeight: 800, marginBottom: 20 }}>خلصنا! شارك وضعك</h2>
 
-          <SaveResult
-            game="wadak"
-            lang="ar"
-            resultSummary={`${archetype.emoji} شخصيتي: ${archetype.name}`}
-          />
-
+          {/* Line 1 — شارك النتيجة, primary */}
           <button
             onClick={handleShare}
             disabled={shareState === "working"}
             className="font-display"
             style={{
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%",
-              padding: 16, fontSize: 15, borderRadius: 999, border: "none", color: INDIGO, background: CREAM_HEX, margin: "18px 0 20px",
+              padding: 16, fontSize: 15, borderRadius: 999, border: "none", color: INDIGO, background: CREAM_HEX, marginBottom: 14,
             }}
           >
             {shareState === "shared" || shareState === "downloaded" ? <Check size={18} /> : <Share2 size={18} />}
-            {shareState === "working" ? "جاري التجهيز..." : shareState === "shared" ? "تم!" : shareState === "downloaded" ? "انحفظت الصورة!" : "شارك نتيجتك"}
+            {shareState === "working" ? "جاري التجهيز..." : shareState === "shared" ? "تم!" : shareState === "downloaded" ? "انحفظت الصورة!" : "شارك النتيجة"}
           </button>
 
-          <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 18, padding: 20, textAlign: "center" }}>
-            <p className="font-display" style={{ fontSize: 15, fontWeight: 800, margin: "0 0 6px" }}>
-              طيب… هل أصحابك يشوفونك بنفس الطريقة؟ 👀
-            </p>
-            <p className="font-body" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.7, margin: "0 0 14px", opacity: 0.9 }}>
-              تبي تقيم اصحابك؟ العب معاهم فشلة واكتشف شخصياتهم، مين الرئيس، مين الدافور، ومين الفشلة الرسمية 😂
-            </p>
-            <Link
-              href="/fashlah"
-              className="font-display"
-              style={{ display: "inline-block", padding: "13px 30px", fontSize: 14, borderRadius: 999, border: "none", color: "#fff", background: "linear-gradient(135deg, #FF2E93, #7C3AED)" }}
+          {/* Line 2 — العب مرة ثانية + العب فشلة, equal pair. Both real
+              <a> tags, not next/link's <Link> — العب مرة ثانية's target
+              is this exact page, and Next's client router doesn't remount
+              a page navigating to its own current route, so nothing would
+              actually restart or re-count as a new play with Link/router
+              here; a real anchor forces a genuine browser navigation,
+              guaranteed correct. فشلة uses the same tag for the same
+              reliability guarantee, even though a different-route Link
+              would likely already work. */}
+          <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
+            <a
+              href="/wadak"
+              className="font-body"
+              style={{
+                flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                padding: "11px 8px", borderRadius: 999, textDecoration: "none",
+                border: "2px solid rgba(255,255,255,0.4)", color: "#fff", background: "transparent",
+                fontWeight: 800, fontSize: 12.5, textAlign: "center",
+              }}
             >
-              العب مع أصحابك
-            </Link>
+              🔁 العب مرة ثانية
+            </a>
+            <a
+              href="/fashlah"
+              className="font-body"
+              style={{
+                flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                padding: "11px 8px", borderRadius: 999, textDecoration: "none",
+                border: "none", color: "#fff", background: "linear-gradient(135deg, #FF2E93, #7C3AED)",
+                fontWeight: 800, fontSize: 12.5, textAlign: "center",
+              }}
+            >
+              🌿 العب فشلة
+            </a>
           </div>
+
+          <p className="font-body" style={{ fontSize: 11.5, fontWeight: 600, lineHeight: 1.7, margin: "0 0 14px", opacity: 0.75, textAlign: "center" }}>
+            تبي تقيم اصحابك؟ العب فشلة معاهم واكتشف شخصياتهم 😂
+          </p>
+
+          {/* Line 3 — احفظ النتيجة, quiet */}
+          <SaveResult
+            game="wadak"
+            lang="ar"
+            resultSummary={`${archetype.emoji} شخصيتي: ${archetype.name}`}
+          />
         </div>
       ),
     },

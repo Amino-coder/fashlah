@@ -217,6 +217,7 @@ export default function FinalReveal({
               game="qissa"
               lang={lang}
               nextGame="wadak"
+              playAgainHref="/qissa/create"
               sessionCode={session.code}
               resultLine={
                 lang === "ar"

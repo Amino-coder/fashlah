@@ -1,22 +1,38 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import type { Lang } from "@/lib/i18n";
 import { FashlahArt, ShofahArt, JobArt, QaseedaArt, QissaArt, LifooArt, BidalArt, WadakArt, IhjArt, MareedArt } from "@/components/art/GameArt";
 import SaveResult from "@/components/auth/SaveResult";
 
 /**
  * THE unified end-of-game block — every game's results screen mounts
- * this and nothing else for its actions. Exactly three, always in this
- * order:
- *   1. احفظ نتيجتك (SaveResult — email+code inline, or a straight save
- *      button if already logged in)
- *   2. Share your result
- *   3. One specific next game to try (never a menu of options)
+ * this and nothing else for its actions. Four, always in this order:
+ *   1. شارك النتيجة — primary
+ *   2. 🔁 العب مرة ثانية  |  العب "Game Name" — equal secondary pair
+ *   3. احفظ نتيجتك — quiet (SaveResult — email+code inline, or a
+ *      straight save button if already logged in)
  *
  * Getting back to the site home is the top-right HomeButton's job, not
  * this component's — every results screen needs that mounted separately.
+ *
+ * PLAY AGAIN IS A REAL <a>, NOT next/link's <Link> — this is the actual
+ * fix for "Play Again didn't register as a new play." Play Again's
+ * target is, by definition, the SAME route the player is already on
+ * (their own solo page, or this game's /create page reached from its
+ * own multiplayer results screen). Next's client-side router does not
+ * remount a page for a navigation to its own current route — no
+ * mount-time effects re-fire, no fresh session/sessionKey gets created,
+ * which is exactly why a previous version of this looked like clicking
+ * Play Again simply didn't count as a new play: the page never actually
+ * restarted, it just sat there. A plain <a href> forces a real browser
+ * navigation — full remount, guaranteed — which is the same mechanism
+ * already used every time someone reaches this URL normally (a fresh
+ * tab, a shared link, tapping the game tile from home). Recommended-game
+ * uses a real <a> too, for the same guarantee, even though a different-
+ * route Link would likely also remount correctly on its own — this way
+ * both buttons share one guaranteed-correct mechanism instead of two
+ * different ones with different edge cases.
  *
  * Emoji are written as \u{...} escapes rather than literal characters —
  * costs nothing visually, but keeps this file pure ASCII outside the
@@ -36,6 +52,7 @@ const MASK = "\u{1F3AD}";      // 🎭
 const BRAIN = "\u{1F9E9}";     // 🧩
 const HEAD = "\u{1F92F}";      // 🤯
 const SEND = "\u{1F4E4}";      // 📤
+const REPLAY = "\u{1F501}";    // 🔁
 
 export type EndGameKey = "fashlah" | "shofah" | "job" | "qaseeda" | "qissa" | "lifoo" | "bidal" | "wadak" | "ihj" | "mareed";
 
@@ -66,7 +83,7 @@ function buildShareText(lang: Lang, game: EndGameKey, resultLine: string): strin
 }
 
 export default function EndGameShare({
-  game, lang, nextGame, resultLine, sessionCode,
+  game, lang, nextGame, playAgainHref, resultLine, sessionCode,
 }: {
   /** The game this result came from — used for the share headline/branding
    *  AND as the `game` key saved via SaveResult. */
@@ -84,6 +101,17 @@ export default function EndGameShare({
    */
   nextGame: EndGameKey;
   /**
+   * Where "🔁 العب مرة ثانية" navigates — always this exact game's own
+   * fresh-start URL (its /solo page if this result came from solo, or
+   * its /create page if this came from a multiplayer session), never
+   * derived automatically from `game` here: the same game key is used
+   * from both a solo results screen AND a multiplayer one for several
+   * games (شوفة، إنسان حيوان جماد، لفوا، مريض نفسي), so only the actual
+   * call site knows which restart URL is correct for what's currently
+   * on screen.
+   */
+  playAgainHref: string;
+  /**
    * A single pre-composed, already-localized line describing this
    * player's actual result (e.g. "\u{1F451} حصلت على لقب: الرئيس التنفيذي").
    * Used for BOTH the share text and as SaveResult's result_summary — one
@@ -99,6 +127,7 @@ export default function EndGameShare({
 }) {
   const next = GAME_META[nextGame];
   const [shared, setShared] = useState(false);
+  const ar = lang === "ar";
 
   async function shareResult() {
     if (!resultLine) return;
@@ -117,7 +146,52 @@ export default function EndGameShare({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 22, width: "100%", maxWidth: 300, margin: "0 auto" }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, width: "100%", maxWidth: 340, margin: "0 auto" }}>
+      {/* Line 1 — شارك النتيجة, the primary action */}
+      {resultLine && (
+        <button
+          onClick={shareResult}
+          className="font-display"
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%",
+            padding: "14px 20px", borderRadius: 999, border: "none", cursor: "pointer",
+            background: next.accent, color: "#fff", fontWeight: 800, fontSize: 15,
+            boxShadow: "0 10px 26px rgba(0,0,0,0.2)",
+          }}
+        >
+          {SEND} {shared ? (ar ? "تم! شارك مرة ثانية؟" : "Done! Share again?") : (ar ? "شارك النتيجة" : "Share your results")}
+        </button>
+      )}
+
+      {/* Line 2 — العب مرة ثانية + العب "Game Name", equal secondary pair */}
+      <div style={{ display: "flex", gap: 10, width: "100%" }}>
+        <a
+          href={playAgainHref}
+          className="font-body"
+          style={{
+            flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            padding: "11px 10px", borderRadius: 999, textDecoration: "none",
+            border: "2px solid var(--ring)", color: "var(--ink)", background: "var(--card)",
+            fontWeight: 800, fontSize: 13, textAlign: "center",
+          }}
+        >
+          {REPLAY} {ar ? "العب مرة ثانية" : "Play Again"}
+        </a>
+        <a
+          href={next.href}
+          className="font-body"
+          style={{
+            flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            padding: "11px 10px", borderRadius: 999, textDecoration: "none",
+            border: "2px solid transparent", color: "#fff", background: next.accent,
+            fontWeight: 800, fontSize: 13, textAlign: "center",
+          }}
+        >
+          {next.emoji} {ar ? next.nameAr : next.nameEn}
+        </a>
+      </div>
+
+      {/* Line 3 — احفظ النتيجة / التسجيل, quiet */}
       {resultLine && (
         <SaveResult
           game={game}
@@ -126,43 +200,6 @@ export default function EndGameShare({
           sessionCode={sessionCode}
         />
       )}
-
-      {resultLine && (
-        <button
-          onClick={shareResult}
-          className="font-body"
-          style={{
-            background: "none", border: "none", cursor: "pointer",
-            textDecoration: "underline", fontWeight: 700, fontSize: 13,
-            color: "inherit", opacity: 0.85, padding: 0,
-          }}
-        >
-          {SEND} {shared ? (lang === "ar" ? "تم! شارك مرة ثانية؟" : "Done! Share again?") : (lang === "ar" ? "شارك نتيجتك" : "Share your results")}
-        </button>
-      )}
-
-      <Link
-        href={next.href}
-        className="font-display"
-        style={{
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
-          padding: "10px 24px 10px 10px", borderRadius: 999, width: "100%",
-          background: next.accent, color: "#fff", textDecoration: "none",
-          fontWeight: 800, fontSize: 15,
-          boxShadow: "0 10px 26px rgba(0,0,0,0.2)",
-        }}
-      >
-        <span
-          aria-hidden="true"
-          style={{
-            width: 44, height: 44, borderRadius: 999, overflow: "hidden", flexShrink: 0,
-            border: "2px solid rgba(255,255,255,0.55)",
-          }}
-        >
-          <next.Art size={88} />
-        </span>
-        <span>{lang === "ar" ? `العب ${next.nameAr}` : `Play ${next.nameEn}`}</span>
-      </Link>
     </div>
   );
 }

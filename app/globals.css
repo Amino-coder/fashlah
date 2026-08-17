@@ -33,7 +33,19 @@
   --purple: #7C3AED;
 }
 
-.blob { position: absolute; border-radius: 50%; filter: blur(50px); opacity: 0.35; z-index: 0; animation: drift 14s ease-in-out infinite; pointer-events: none; }
+.blob-wrap {
+  position: absolute; z-index: 0; pointer-events: none;
+  animation: drift 14s ease-in-out infinite;
+  /* Promotes this to its own compositing layer up front, so the browser
+     isn't deciding whether to do that mid-animation — part of the same
+     Safari blur/transform bug this split structure exists to avoid. */
+  will-change: transform;
+  transform: translateZ(0);
+}
+.blob {
+  width: 100%; height: 100%; border-radius: 50%;
+  filter: blur(50px); opacity: 0.35;
+}
 @keyframes drift { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(20px,-24px) scale(1.08); } }
 
 .dark {
@@ -200,7 +212,7 @@ button:disabled { cursor: not-allowed; }
   }
 
   /* Purely decorative loops — no final state worth showing, so just stop. */
-  .blob,
+  .blob-wrap,
   .bounce,
   .shofah-float,
   .shofah-blink,

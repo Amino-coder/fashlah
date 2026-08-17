@@ -318,7 +318,7 @@ export default function LifooSoloPage() {
               <p className="font-body" style={{ fontSize: 12, color: "#E63946", marginBottom: 10 }}>{t.shareFailed}</p>
             )}
 
-            <EndGameShare game="lifoo" lang={ar ? "ar" : "en"} nextGame="wadak" />
+            <EndGameShare game="lifoo" lang={ar ? "ar" : "en"} nextGame="wadak" playAgainHref="/lifoo/solo" />
           </div>
         )}
       </div>

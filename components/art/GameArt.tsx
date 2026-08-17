@@ -5,6 +5,8 @@
  * motif sitting slightly off-axis, plus a little confetti behind it.
  */
 
+import Image from "next/image";
+
 const PINK = "#FF2E93";
 const PURPLE = "#7C3AED";
 const MINT = "#2EE6A6";
@@ -13,16 +15,34 @@ const INK = "#17122B";
 const CREAM = "#FFFDF7";
 const GOLD = "#F2B705";
 
-type P = { size?: number };
+type P = { size?: number; priority?: boolean };
 
-/** Tile backed by a supplied image file, filling the square edge to edge. */
-function ImageTile({ src, alt }: { src: string; alt: string }) {
+/**
+ * Tile backed by a supplied image file, filling the square edge to edge.
+ *
+ * Was a plain <img> before — meaning every visitor downloaded the full,
+ * un-resized original (some of these source files are 200-350KB) no
+ * matter how small the tile actually renders on screen, with no format
+ * negotiation (WebP/AVIF where supported), no priority hint for the
+ * ones visible without scrolling, and no lazy-loading for the ones
+ * below the fold — every icon competed for bandwidth immediately on
+ * load, all at once. next/image fixes all of that automatically: it
+ * serves a properly-sized, modern-format variant for the actual
+ * rendered size (see `sizes` below, matched to this grid's real cell
+ * width), applies caching headers, and — via the `priority` prop
+ * threaded through from each *Art component's caller — lets the
+ * above-the-fold tiles skip lazy-loading and start fetching immediately
+ * instead of waiting for an IntersectionObserver to notice them.
+ */
+function ImageTile({ src, alt, priority = false }: { src: string; alt: string; priority?: boolean }) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
+    <Image
       src={src}
       alt={alt}
-      style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }}
+      fill
+      sizes="(max-width: 480px) calc(50vw - 30px), 210px"
+      style={{ objectFit: "cover" }}
+      priority={priority}
     />
   );
 }
@@ -60,13 +80,13 @@ function Tile({ bg, children }: { bg: string; children: React.ReactNode }) {
 }
 
 /* ─── فشلة — three laughing parsley buddies, middle one in front ─── */
-export function FashlahArt({ size = 120 }: P) {
-  return <ImageTile src="/game-icons/fashlah.jpg" alt="" />;
+export function FashlahArt({ size = 120, priority = false }: P) {
+  return <ImageTile src="/game-icons/fashlah.jpg" alt="" priority={priority} />;
 }
 
 /* ─── أبي أتزوج — ring overlapping a heart ─── */
-export function ShofahArt({ size = 120 }: P) {
-  return <ImageTile src="/game-icons/shofah.jpg" alt="" />;
+export function ShofahArt({ size = 120, priority = false }: P) {
+  return <ImageTile src="/game-icons/shofah.jpg" alt="" priority={priority} />;
 }
 
 /* ─── مين بيتوظف — briefcase overlapping papers ─── */
@@ -95,13 +115,13 @@ export function JobArt({ size = 120 }: P) {
 }
 
 /* ─── كمل القصيدة — scroll and quill ─── */
-export function QaseedaArt({ size = 120 }: P) {
-  return <ImageTile src="/game-icons/qaseeda.jpg" alt="" />;
+export function QaseedaArt({ size = 120, priority = false }: P) {
+  return <ImageTile src="/game-icons/qaseeda.jpg" alt="" priority={priority} />;
 }
 
 /* ─── كمل القصة — open book with a relay arrow ─── */
-export function QissaArt({ size = 120 }: P) {
-  return <ImageTile src="/game-icons/qissa.jpg" alt="" />;
+export function QissaArt({ size = 120, priority = false }: P) {
+  return <ImageTile src="/game-icons/qissa.jpg" alt="" priority={priority} />;
 }
 
 /* ─── عبارات — the fanned cards (unchanged) ─── */

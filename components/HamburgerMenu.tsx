@@ -47,7 +47,17 @@ export default function HamburgerMenu({
             className="card pop"
             role="menu"
             style={{
-              position: "absolute", top: "calc(100% + 8px)", insetInlineStart: 0, zIndex: 40,
+              // insetInlineEnd (not Start) is deliberate: this button now
+              // sits at the header's true LEFT edge (see app/page.tsx's
+              // DOM ordering), and under RTL "end" resolves to physical
+              // left — so this aligns the dropdown's LEFT edge with the
+              // button's LEFT edge, extending rightward/inward toward
+              // the rest of the header. The previous insetInlineStart
+              // did the opposite (extended further left, off-edge) —
+              // that mismatch was the actual cause of the "menu appears
+              // partially outside the screen" bug, not the menu's width
+              // or content.
+              position: "absolute", top: "calc(100% + 8px)", insetInlineEnd: 0, zIndex: 40,
               minWidth: 190, padding: 8,
             }}
           >

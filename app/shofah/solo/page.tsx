@@ -405,7 +405,7 @@ function SoloVerdict({
         {shareState === "working" ? "..." : shareState === "shared" ? "تم!" : shareState === "downloaded" ? "انحفظت الصورة!" : (ar ? "شارك نتيجتك" : "Share Results")}
       </button>
 
-      <EndGameShare game="shofah" lang={ar ? "ar" : "en"} nextGame="wadak" />
+      <EndGameShare game="shofah" lang={ar ? "ar" : "en"} nextGame="wadak" playAgainHref="/shofah/solo" />
     </div>
   );
 }

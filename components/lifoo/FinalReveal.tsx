@@ -250,7 +250,7 @@ export default function FinalReveal({
           </p>
 
           <div style={{ marginTop: 6, opacity: 0.9 }}>
-            <EndGameShare game="lifoo" lang={lang} nextGame="bidal" />
+            <EndGameShare game="lifoo" lang={lang} nextGame="bidal" playAgainHref="/lifoo/create" />
           </div>
         </div>
       )}

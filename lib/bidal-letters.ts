@@ -1,9 +1,8 @@
 /**
- * Content + generation logic for بدل الكلمة. No dictionary anywhere in
- * here, deliberately — see the game's own spec: mechanical validation
- * only (does the new word differ from the old one by exactly one letter
- * at the claimed position, and does the player own that letter). Whether
- * the resulting word is a *real* word is left entirely to the players.
+ * Content + generation logic for بدل الكلمة. Word LEGITIMACY is
+ * validated separately (lib/bidal-words.ts) — this file only covers
+ * what letters exist to draw from and which 3-letter word a game
+ * starts on.
  */
 
 // Single source of truth for the solo timer — change this one value, not

@@ -12,6 +12,7 @@ import Honeycomb, { type BidalSlot } from "@/components/bidal/Honeycomb";
 import { BIDAL_STR, BidalLang } from "@/lib/bidal-i18n";
 import { usePrefs } from "@/lib/usePrefs";
 import { drawLetters, pickStartingWord, SOLO_TIME_LIMIT_SECONDS } from "@/lib/bidal-letters";
+import { isValidBidalWord } from "@/lib/bidal-words";
 import { formatDuration, type BidalResult } from "@/lib/bidal-results";
 import { shareBidalResultCard } from "@/components/bidal/exportResultCard";
 import { trackPageView, trackPageComplete, newSessionKey } from "@/lib/trackPageView";
@@ -23,15 +24,15 @@ const TOTAL_LETTERS = 15;
 /**
  * بدل الكلمة — fully local now. Everything that makes a "move" (does the
  * new word differ from the old one by exactly one letter, is the letter
- * actually in hand — see lib/bidal-letters.ts's header on why there's no
- * dictionary check at all) used to be re-verified server-side by
- * bidal_attempt_move because a winning move could come from ANY of
- * several concurrent players racing each other. With exactly one player
- * and no shared state to race over, that whole reason for a server round
- * trip is gone — the mechanics are simple enough that the browser is
- * just as authoritative as a server would be, so every move applies
- * directly to React state with no network call, no optimistic-then-
- * reconcile dance, and therefore nothing to flicker between old and new.
+ * actually in hand, and — since lib/bidal-words.ts — is the result an
+ * actual word) used to be re-verified server-side by bidal_attempt_move
+ * because a winning move could come from ANY of several concurrent
+ * players racing each other. With exactly one player and no shared state
+ * to race over, that whole reason for a server round trip is gone — the
+ * mechanics are simple enough that the browser is just as authoritative
+ * as a server would be, so every move applies directly to React state
+ * with no network call, no optimistic-then-reconcile dance, and
+ * therefore nothing to flicker between old and new.
  *
  * The ONLY thing that still reaches Supabase is trackPageView/
  * trackPageComplete (lib/trackPageView.ts) — the same fire-and-forget,
@@ -74,7 +75,11 @@ export default function BidalSoloPage() {
   const [shareState, setShareState] = useState<"idle" | "working" | "shared" | "downloaded" | "failed">("idle");
   const completedRef = useRef(false);
 
-  useEffect(() => { trackPageView("bidal_solo", sessionKey); }, [sessionKey]);
+  const [invalidFlash, setInvalidFlash] = useState(false);
+  const invalidTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => trackPageView("bidal_solo", sessionKey), [sessionKey]);
+  useEffect(() => () => { if (invalidTimer.current) clearTimeout(invalidTimer.current); }, []);
 
   // Selection (tap-to-select) and drag state for the honeycomb — both
   // reference letters by their fixed slot index now, not by letter value.
@@ -104,6 +109,19 @@ export default function BidalSoloPage() {
     const chars = game.currentWord.split("");
     chars[position] = slot.letter;
     const newWord = chars.join("");
+
+    // Rejects the move entirely rather than accepting any 3-letter
+    // combination — see lib/bidal-words.ts. The letter stays in the
+    // player's hand (not marked used) and the word stays as it was, so
+    // a rejected guess costs nothing but the attempt itself; only a
+    // move that actually forms a real word consumes the tile.
+    if (!isValidBidalWord(newWord)) {
+      setInvalidFlash(true);
+      if (invalidTimer.current) clearTimeout(invalidTimer.current);
+      invalidTimer.current = setTimeout(() => setInvalidFlash(false), 500);
+      return;
+    }
+
     const newSlots = game.slots.map((s, i) => (i === slotIndex ? { ...s, used: true } : s));
 
     setGame((g) => ({ ...g, currentWord: newWord, slots: newSlots, wordFlow: [...g.wordFlow, newWord] }));
@@ -238,18 +256,27 @@ export default function BidalSoloPage() {
                   key={pos}
                   ref={wordRefs[pos]}
                   onClick={() => handleWordTap(pos)}
-                  className="pop"
+                  className={invalidFlash ? "tile-tap" : "pop"}
                   style={{
                     width: 78, height: 90, borderRadius: 18, display: "flex", alignItems: "center", justifyContent: "center",
                     background: selected !== null ? `linear-gradient(135deg, ${TEAL}22, ${CORAL}22)` : "var(--card)",
-                    border: selected !== null ? `3px solid ${TEAL}` : "3px solid var(--ring)",
+                    border: invalidFlash ? "3px solid #E63946" : selected !== null ? `3px solid ${TEAL}` : "3px solid var(--ring)",
                     cursor: "pointer", transition: "border .12s, background .12s",
+                    animation: invalidFlash ? "tileShake .42s cubic-bezier(.36,.07,.19,.97)" : undefined,
                   }}
                 >
                   <span className="font-display" style={{ fontSize: 40, fontWeight: 800 }}>{game.currentWord[pos]}</span>
                 </div>
               ))}
             </div>
+
+            <p
+              aria-live="polite"
+              className="font-body"
+              style={{ textAlign: "center", fontSize: 12.5, fontWeight: 700, color: "#E63946", minHeight: 18, marginBottom: 4, opacity: invalidFlash ? 1 : 0, transition: "opacity .15s" }}
+            >
+              {ar ? "مو كلمة عربية 🤔" : "Not a real word 🤔"}
+            </p>
 
             <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 22 }}>
               <button
@@ -335,13 +362,13 @@ function ResultsView({
           </p>
         ) : (
           <>
-            <p className="font-body" style={{ fontSize: 15, fontWeight: 700, margin: "0 0 8px" }}>
+            <p className="font-body" style={{ fontSize: 15, fontWeight: 700, margin: "0 0 14px" }}>
               {`استخدمت ${result.lettersUsed}/${result.totalLetters} حرف`}
             </p>
             {result.remainingLetters.length > 0 && (
-              <p className="font-display" style={{ fontSize: 17, fontWeight: 800, margin: 0 }}>
-                {`باقي لي: ${result.remainingLetters.join(" ")}`}
-              </p>
+              <div style={{ display: "flex", justifyContent: "center", margin: "4px 0" }}>
+                <Honeycomb slots={result.slots} tileSize={44} selectedIndex={null} dragIndex={null} onPointerDown={() => {}} />
+              </div>
             )}
           </>
         )}
@@ -371,7 +398,7 @@ function ResultsView({
       </button>
 
       <div style={{ marginTop: 18 }}>
-        <EndGameShare game="bidal" lang={ar ? "ar" : "en"} nextGame="shofah" />
+        <EndGameShare game="bidal" lang={ar ? "ar" : "en"} nextGame="shofah" playAgainHref="/bidal/solo" />
       </div>
     </div>
   );

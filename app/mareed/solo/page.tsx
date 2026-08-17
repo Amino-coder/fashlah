@@ -391,7 +391,7 @@ function SoloVerdict({
         {shareState === "working" ? "..." : shareState === "shared" ? "تم!" : shareState === "downloaded" ? "انحفظت الصورة!" : (ar ? "شارك نتيجتك" : "Share Results")}
       </button>
 
-      <EndGameShare game="mareed" lang={ar ? "ar" : "en"} nextGame="bidal" />
+      <EndGameShare game="mareed" lang={ar ? "ar" : "en"} nextGame="bidal" playAgainHref="/mareed/solo" />
     </div>
   );
 }

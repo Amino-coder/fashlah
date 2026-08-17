@@ -112,7 +112,7 @@ export const ROUND2_QUESTIONS: Question[] = [
   },
   {
     id: "q3",
-    prompt: "صديقك سألك رايك بلبس جديد، وأنت شايفه مو حلو أبد. وش تقول؟",
+    prompt: "صديقك سألك رايك بلبس جديد، وأنت شايفه مو حلو. وش تقول؟",
     options: [
       { id: "a", text: "أقول الحق بصراحة تامة، حتى لو زعل", weights: { recklessness: 2, control: 1 } },
       { id: "b", text: "أفكر كثير كيف أقولها بطريقة لطيفة", weights: { overthinking: 2 } },
@@ -122,7 +122,7 @@ export const ROUND2_QUESTIONS: Question[] = [
   },
   {
     id: "q6",
-    prompt: "شفت شخص يتكلم عنك بالسوء وهو ما يدري إنك سامعه. وش تسوي؟",
+    prompt: "شفت شخص يسبك وهو ما يدري إنك سامعه. وش تسوي؟",
     options: [
       { id: "a", text: "أتجاهل الموضوع، مب مستاهل طاقتي", weights: { comfort: 2 } },
       { id: "b", text: "أواجهه على طول قدام الكل", weights: { recklessness: 2, drama: 1 } },
@@ -196,10 +196,10 @@ export const ROUND3_POOL: (Question & { emoji: string })[] = [
 export const ROUND4_POOL: Question[] = [
   {
     id: "r4_powers",
-    prompt: "وش تختار؟",
+    prompt: "لو عندك قوة خارقة وش تختار؟",
     options: [
-      { id: "a", emoji: "✈️", text: "تطير", weights: { recklessness: 1, spontaneity: 1 } },
-      { id: "b", emoji: "👻", text: "تختفي عن العيون", weights: { overthinking: 2 } },
+      { id: "a", emoji: "✈️", text: "قوة الطيران", weights: { recklessness: 1, spontaneity: 1 } },
+      { id: "b", emoji: "👻", text: "قوة الاختفاء", weights: { overthinking: 2 } },
     ],
   },
   {
@@ -298,7 +298,7 @@ export const ARCHETYPES: Archetype[] = [
     strengths: ["ثقتك تنقل للي حولك", "ما تضيع وقت بالتردد"],
     flaw: "الثقة بدون تفكير اسمها مخاطرة، مو شجاعة.",
     truth: "مرة بالعمر، فكر ثانية وحدة زيادة قبل لا تقرر.",
-    cardLine: "يقفز أول، يسأل \"وش صار\" بعدين",
+    cardLine: "يتدخل أول، ويسأل وش صار بعدين",
   },
   {
     key: "comfort_king", name: "راعي الراحة", emoji: "🛋️", primary: "comfort", secondary: "overthinking",

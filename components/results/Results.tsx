@@ -89,7 +89,7 @@ function ShareSlide({ lang, award }: { lang: Lang; award: { emoji: string; name_
           element — don't get click-intercepted by the full-screen tap
           layer sitting above it. */}
       <div style={{ position: "relative", zIndex: 3, width: "100%" }} onClick={(e) => e.stopPropagation()}>
-        <EndGameShare game="fashlah" lang={lang} nextGame="bidal" resultLine={resultLine} />
+        <EndGameShare game="fashlah" lang={lang} nextGame="bidal" playAgainHref="/fashlah/create" resultLine={resultLine} />
       </div>
     </>
   );
