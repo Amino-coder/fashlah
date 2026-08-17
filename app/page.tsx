@@ -61,13 +61,11 @@ export default function Home() {
     { href: "/ibarat", title: "عبارات", sub: ar ? "بطاقة إلهام يومية" : "A daily card of inspiration", Art: IbaratArt, modes: ["solo"] },
   ];
 
-  // مع أصحابك is the default: most of the library (فشلة، قصة، مين
-  // بيتوظف، قصيدة — 4 games that are group-only, versus بدل/وش/عبارات's
-  // 3 that are solo-only) is built around playing together, and the
-  // page's own tagline right above this already says "party games for
-  // your group" — defaulting to solo would contradict what the page
-  // tells you it is one line earlier.
-  const [mode, setMode] = useState<"group" | "solo">("group");
+  // الكل is the default — a new visitor should see everything the site
+  // has before being asked to narrow it down. مع أصحابك / لحالك stay
+  // available as an explicit choice for anyone who already knows what
+  // kind of session they want.
+  const [mode, setMode] = useState<"group" | "all" | "solo">("all");
 
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [pendingGame, setPendingGame] = useState<string | null>(null);
@@ -135,7 +133,7 @@ export default function Home() {
   // those two groups, the original hand-authored order above is left
   // untouched (no secondary sort key invented that wasn't asked for).
   const visibleEntries = entries
-    .filter((e) => e.modes.includes(mode))
+    .filter((e) => mode === "all" || e.modes.includes(mode))
     .slice()
     .sort((a, b) => {
       const aFav = favorites.has(a.href.slice(1)) ? 0 : 1;
@@ -213,7 +211,7 @@ export default function Home() {
             border: "2.5px solid var(--icon-outline)", boxShadow: "3px 3px 0 var(--icon-outline)",
           }}
         >
-          {([["group", ar ? "مع أصحابك" : "With Friends"], ["solo", ar ? "لحالك" : "Solo"]] as const).map(([key, label]) => {
+          {([["group", ar ? "مع أصحابك" : "With Friends"], ["all", ar ? "الكل" : "All"], ["solo", ar ? "لحالك" : "Solo"]] as const).map(([key, label]) => {
             const active = mode === key;
             return (
               <button
