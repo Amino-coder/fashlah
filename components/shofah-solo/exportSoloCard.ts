@@ -170,8 +170,30 @@ export async function renderShofahSoloCard(
   );
 
   const footerReserve = 220;
-  const totalH = emojiH + titleH + subH + dividerH + labelH + conversationH;
-  const topMargin = Math.max(130, (CARD_H - footerReserve - totalH) / 2);
+  const topMarginMin = 130;
+  // ---- Scale-to-fit: everything ABOVE the conversation (emoji, title,
+  // subtitle, divider, label) is short and fixed regardless of how many
+  // rounds were played, so it always keeps its normal size. The
+  // conversation itself is the one part whose height genuinely varies —
+  // a 3-round game and an 8-round game produce wildly different amounts
+  // of it. Previously this block was drawn at a fixed size no matter
+  // what, and topMargin's Math.max(130, ...) floor meant a long enough
+  // conversation would simply run past the canvas's fixed 1920px height
+  // — invisible below the edge, and liable to collide with the
+  // "bagdoonis.app" footer text, which is always drawn at a fixed
+  // position regardless of how much content came before it. Scaling the
+  // conversation block down by whatever factor makes it actually fit
+  // the remaining space (never below 0.55, so it never becomes
+  // illegibly tiny for an extreme number of rounds) means every game
+  // length renders completely inside the frame instead of only the
+  // shorter ones happening to fit by luck.
+  const fixedH = emojiH + titleH + subH + dividerH + labelH;
+  const availableForConversation = Math.max(0, CARD_H - footerReserve - topMarginMin * 2 - fixedH);
+  const conversationScale = conversationH > 0 ? Math.min(1, Math.max(0.55, availableForConversation / conversationH)) : 1;
+  const scaledConversationH = conversationH * conversationScale;
+
+  const totalH = fixedH + scaledConversationH;
+  const topMargin = Math.max(topMarginMin, (CARD_H - footerReserve - totalH) / 2);
 
   // ---- Pass 2: draw ----
   let y = topMargin;
@@ -205,10 +227,19 @@ export async function renderShofahSoloCard(
     y += labelH;
 
     for (const { q, a } of measured) {
+      // Scaling around the card's own horizontal center (not the origin)
+      // so shrunk bubbles stay centered under the title/emoji above them
+      // instead of drifting toward the left edge — translate to center,
+      // scale, translate back, exactly like scaling any element around
+      // its own midpoint rather than the canvas's top-left corner.
+      ctx.save();
+      ctx.translate(CARD_W / 2, y);
+      ctx.scale(conversationScale, conversationScale);
+      ctx.translate(-CARD_W / 2, -y);
       drawBubble(ctx, q, "left", y);
-      y += q.height + BUBBLE_GAP;
-      drawBubble(ctx, a, "right", y);
-      y += a.height + PAIR_GAP;
+      drawBubble(ctx, a, "right", y + (q.height + BUBBLE_GAP));
+      ctx.restore();
+      y += (q.height + BUBBLE_GAP + a.height + PAIR_GAP) * conversationScale;
     }
   }
 
