@@ -15,7 +15,7 @@ import { drawLetters, pickStartingWord, SOLO_TIME_LIMIT_SECONDS } from "@/lib/bi
 import { isValidBidalWord } from "@/lib/bidal-words";
 import { formatDuration, type BidalResult } from "@/lib/bidal-results";
 import { shareBidalResultCard } from "@/components/bidal/exportResultCard";
-import { trackPageView, trackPageComplete, newSessionKey } from "@/lib/trackPageView";
+import { trackPageView, trackPageComplete, trackPageEvent, newSessionKey } from "@/lib/trackPageView";
 
 const TEAL = "#14B8A6";
 const CORAL = "#FF5A5F";
@@ -217,6 +217,7 @@ export default function BidalSoloPage() {
   async function handleShare(result: BidalResult) {
     setShareState("working");
     const res = await shareBidalResultCard(result);
+    if (res === "shared" || res === "downloaded") trackPageEvent("bidal_solo", `share_result_${res}`, sessionKey);
     setShareState(res === "failed" ? "failed" : res === "cancelled" ? "idle" : res);
   }
 

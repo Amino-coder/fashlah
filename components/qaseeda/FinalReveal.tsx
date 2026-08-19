@@ -13,6 +13,7 @@ import { CARD_W, CARD_H } from "@/lib/qaseeda-card";
 import EndGameShare from "@/components/EndGameShare";
 import SaveResult from "@/components/auth/SaveResult";
 import HomeButton from "@/components/HomeButton";
+import { trackPageEvent } from "@/lib/trackPageView";
 import type { QaseedaSessionRow, QaseedaPlayerRow } from "@/lib/qaseeda-types";
 
 const GOLD = "#D9A441";
@@ -135,6 +136,7 @@ export default function FinalReveal({
       poem, session.code, t.finalCheer, t.poemTitle, t.shareCardTitle,
       players.map((p) => p.nickname)
     );
+    if (result === "shared" || result === "downloaded") trackPageEvent("qaseeda", `share_result_${result}`);
     if (result === "downloaded") setShareState("downloaded");
     else if (result === "failed") setShareState("failed");
     else setShareState("idle");

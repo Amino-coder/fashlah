@@ -13,6 +13,7 @@ import { CARD_W, CARD_H } from "@/lib/lifoo-card";
 import EndGameShare from "@/components/EndGameShare";
 import SaveResult from "@/components/auth/SaveResult";
 import HomeButton from "@/components/HomeButton";
+import { trackPageEvent } from "@/lib/trackPageView";
 import type { LifooSessionRow, LifooPlayerRow } from "@/lib/lifoo-types";
 
 const CORAL = "#FF5A5F";
@@ -121,6 +122,7 @@ export default function FinalReveal({
       song, session.code, t.finalCheer, t.poemTitle, t.shareCardTitle,
       players.map((p) => p.nickname)
     );
+    if (result === "shared" || result === "downloaded") trackPageEvent("lifoo", `share_result_${result}`);
     if (result === "downloaded") setShareState("downloaded");
     else if (result === "failed") setShareState("failed");
     else setShareState("idle");

@@ -7,7 +7,7 @@ import HomeButton from "@/components/HomeButton";
 import SaveResult from "@/components/auth/SaveResult";
 import RadarChart from "@/components/wadak/RadarChart";
 import { shareResultCard } from "@/components/wadak/exportResultCard";
-import { trackPageView, trackPageComplete, newSessionKey } from "@/lib/trackPageView";
+import { trackPageView, trackPageComplete, trackPageEvent, newSessionKey } from "@/lib/trackPageView";
 import {
   ROUND1_POOL, ROUND2_QUESTIONS, ROUND3_POOL, ROUND4_POOL,
   REACTION_AFTER_QUESTION, DIMENSION_LABELS, type Question,
@@ -119,7 +119,7 @@ export default function WadakPage() {
       </div>
 
       {stage === "story" && result && (
-        <StoryResults result={result} nickname={nickname} />
+        <StoryResults result={result} nickname={nickname} sessionKey={sessionKey} />
       )}
     </div>
   );
@@ -308,7 +308,7 @@ function ReactionScreen({ text }: { text: string }) {
 
 const BG_COLORS = [TEAL, "#7C3AED", "#FF8A3D", INDIGO];
 
-function StoryResults({ result, nickname }: { result: ScoreResult; nickname: string }) {
+function StoryResults({ result, nickname, sessionKey }: { result: ScoreResult; nickname: string; sessionKey: string }) {
   const { archetype, ranked } = result;
   const [slide, setSlide] = useState(0);
   const [shareState, setShareState] = useState<"idle" | "working" | "shared" | "downloaded" | "failed">("idle");
@@ -316,6 +316,7 @@ function StoryResults({ result, nickname }: { result: ScoreResult; nickname: str
   async function handleShare() {
     setShareState("working");
     const res = await shareResultCard(archetype, result, nickname);
+    if (res === "shared" || res === "downloaded") trackPageEvent("wadak", `share_result_${res}`, sessionKey);
     setShareState(res === "failed" ? "failed" : res === "cancelled" ? "idle" : res);
   }
 

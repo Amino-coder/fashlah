@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Lang } from "@/lib/i18n";
+import { trackPageEvent } from "@/lib/trackPageView";
 
 // Written as an escape rather than a literal character for the same reason
 // as EndGameShare: this string gets assembled into a WhatsApp share link,
@@ -43,6 +44,10 @@ export default function ShareInvite({
   emoji?: string;
 }) {
   const inviteEmoji = emoji ?? "\u{1F44B}"; // 👋
+  // Derived from joinPath ("/shofah/join" → "shofah") rather than adding
+  // a whole new required prop that all 8 call sites would need updating
+  // for — joinPath already uniquely encodes which game this is.
+  const game = joinPath.split("/")[1] || "unknown";
   const [copied, setCopied] = useState<"code" | "link" | null>(null);
   const [canNativeShare, setCanNativeShare] = useState(false);
   const [origin, setOrigin] = useState("");
@@ -64,6 +69,7 @@ export default function ShareInvite({
     try {
       await navigator.clipboard.writeText(kind === "code" ? code : joinUrl);
       setCopied(kind);
+      trackPageEvent(game, "share_code_copy");
       setTimeout(() => setCopied(null), 1800);
     } catch {
       /* clipboard blocked (insecure context / permissions) — silently skip */
@@ -77,8 +83,9 @@ export default function ShareInvite({
         text: lang === "ar" ? `${inviteEmoji} انضم لجلستي!` : `${inviteEmoji} Join my game!`,
         url: joinUrl,
       });
+      trackPageEvent(game, "share_code_native");
     } catch {
-      /* user dismissed the sheet — not an error worth surfacing */
+      /* user dismissed the sheet — not an error worth surfacing, and not tracked as a share */
     }
   }
 
@@ -138,6 +145,7 @@ export default function ShareInvite({
           href={`https://wa.me/?text=${encodeURIComponent(message)}`}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => trackPageEvent(game, "share_code_whatsapp")}
           className="font-body"
           style={{
             flex: 1, padding: "10px", fontSize: 13, borderRadius: 999, fontWeight: 700,

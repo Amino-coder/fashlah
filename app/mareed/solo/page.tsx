@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Share2, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { usePrefs } from "@/lib/usePrefs";
-import { trackPageView, trackPageComplete, newSessionKey } from "@/lib/trackPageView";
+import { trackPageView, trackPageComplete, trackPageEvent, newSessionKey } from "@/lib/trackPageView";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import EndGameShare from "@/components/EndGameShare";
@@ -184,7 +184,7 @@ function MareedSolo() {
         )}
 
         {!error && stage === "verdict" && (
-          <SoloVerdict answers={answers} prompts={prompts} luckyCount={luckyCount} diagnosed={diagnosed} lang={lang} />
+          <SoloVerdict answers={answers} prompts={prompts} luckyCount={luckyCount} diagnosed={diagnosed} lang={lang} sessionKey={sessionKey} />
         )}
       </div>
     </div>
@@ -309,9 +309,9 @@ function DrumrollVerdict({
 }
 
 function SoloVerdict({
-  answers, prompts, luckyCount, diagnosed, lang,
+  answers, prompts, luckyCount, diagnosed, lang, sessionKey,
 }: {
-  answers: string[]; prompts: PromptRow[]; luckyCount: number; diagnosed: boolean; lang: string;
+  answers: string[]; prompts: PromptRow[]; luckyCount: number; diagnosed: boolean; lang: string; sessionKey: string;
 }) {
   const ar = lang === "ar";
   const [shareState, setShareState] = useState<"idle" | "working" | "shared" | "downloaded" | "failed">("idle");
@@ -323,6 +323,7 @@ function SoloVerdict({
       answer: answers[i] || (ar ? "(فاضي)" : "(blank)"),
     }));
     const res = await shareMareedSoloCard(diagnosed, luckyCount, MAX_LUCKY, conversation);
+    if (res === "shared" || res === "downloaded") trackPageEvent("mareed_solo", `share_result_${res}`, sessionKey);
     setShareState(res === "failed" ? "failed" : res === "cancelled" ? "idle" : res);
   }
 

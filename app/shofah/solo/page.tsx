@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Share2, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { usePrefs } from "@/lib/usePrefs";
-import { trackPageView, trackPageComplete, newSessionKey } from "@/lib/trackPageView";
+import { trackPageView, trackPageComplete, trackPageEvent, newSessionKey } from "@/lib/trackPageView";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import EndGameShare from "@/components/EndGameShare";
@@ -195,7 +195,7 @@ function ShofahSolo() {
         )}
 
         {!error && stage === "verdict" && (
-          <SoloVerdict character={character} answers={answers} prompts={prompts} luckyCount={luckyCount} married={married} lang={lang} />
+          <SoloVerdict character={character} answers={answers} prompts={prompts} luckyCount={luckyCount} married={married} lang={lang} sessionKey={sessionKey} />
         )}
       </div>
     </div>
@@ -322,9 +322,9 @@ function DrumrollVerdict({
 }
 
 function SoloVerdict({
-  character, answers, prompts, luckyCount, married, lang,
+  character, answers, prompts, luckyCount, married, lang, sessionKey,
 }: {
-  character: ShofahCharacter; answers: string[]; prompts: PromptRow[]; luckyCount: number; married: boolean; lang: string;
+  character: ShofahCharacter; answers: string[]; prompts: PromptRow[]; luckyCount: number; married: boolean; lang: string; sessionKey: string;
 }) {
   const ar = lang === "ar";
   const Character = character === "girl" ? NiqabGirl : ShemaghGuy;
@@ -337,6 +337,7 @@ function SoloVerdict({
       answer: answers[i] || (ar ? "(فاضي)" : "(blank)"),
     }));
     const res = await shareShofahSoloCard(married, luckyCount, MAX_LUCKY, conversation);
+    if (res === "shared" || res === "downloaded") trackPageEvent("shofah_solo", `share_result_${res}`, sessionKey);
     setShareState(res === "failed" ? "failed" : res === "cancelled" ? "idle" : res);
   }
 

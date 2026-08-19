@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Lang } from "@/lib/i18n";
 import { FashlahArt, ShofahArt, JobArt, QaseedaArt, QissaArt, LifooArt, BidalArt, WadakArt, IhjArt, MareedArt } from "@/components/art/GameArt";
 import SaveResult from "@/components/auth/SaveResult";
+import { trackPageEvent } from "@/lib/trackPageView";
 
 /**
  * THE unified end-of-game block — every game's results screen mounts
@@ -136,13 +137,15 @@ export default function EndGameShare({
       try {
         await navigator.share({ text });
         setShared(true);
+        trackPageEvent(game, "share_result_native");
         return;
       } catch {
-        return; // user dismissed the sheet — not an error worth surfacing
+        return; // user dismissed the sheet — not an error worth surfacing, and not tracked as a share
       }
     }
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
     setShared(true);
+    trackPageEvent(game, "share_result_whatsapp");
   }
 
   return (

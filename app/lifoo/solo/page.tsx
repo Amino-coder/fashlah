@@ -12,7 +12,7 @@ import type { SongLine as SongLineType } from "@/lib/lifoo-song";
 import { MAX_LINE_CHARS } from "@/lib/lifoo-song";
 import { LIFOO_STR, LIFOO_STATIC_OPENINGS, LifooLang, LifooOpeningOption } from "@/lib/lifoo-i18n";
 import { usePrefs } from "@/lib/usePrefs";
-import { trackPageView, trackPageComplete, newSessionKey } from "@/lib/trackPageView";
+import { trackPageView, trackPageComplete, trackPageEvent, newSessionKey } from "@/lib/trackPageView";
 
 const CORAL = "#FF5A5F";
 const NAVY = "#1B1030";
@@ -88,6 +88,7 @@ export default function LifooSoloPage() {
   async function handleShare() {
     setShareState("working");
     const res = await shareSongCard(song, cardCode, t.finalCheer, t.poemTitle, t.shareCardTitle, []);
+    if (res === "shared" || res === "downloaded") trackPageEvent("lifoo_solo", `share_result_${res}`, sessionKey);
     setShareState(res === "failed" ? "failed" : res === "cancelled" ? "idle" : res);
   }
 

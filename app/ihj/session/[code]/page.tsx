@@ -18,6 +18,7 @@ import { pickNextLetter } from "@/lib/ihj-letters";
 import { ihjNormalize } from "@/lib/ihj-normalize";
 import type { IhjSessionRow, IhjPlayerRow, IhjAnswerRow, IhjCategory } from "@/lib/ihj-types";
 import { shareIhjResultCard } from "@/components/ihj/exportResultCard";
+import { trackPageEvent } from "@/lib/trackPageView";
 
 const PURPLE = "#7C3AED";
 const PINK = "#FF2E93";
@@ -483,6 +484,7 @@ function FinalResults({ players, myPlayerId, sessionCode, t, ar }: { players: Ih
   async function handleShare() {
     setShareState("working");
     const res = await shareIhjResultCard(players, myPlayerId);
+    if (res === "shared" || res === "downloaded") trackPageEvent("ihj", `share_result_${res}`);
     setShareState(res === "failed" ? "failed" : res === "cancelled" ? "idle" : res);
   }
 

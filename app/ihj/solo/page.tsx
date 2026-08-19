@@ -166,7 +166,6 @@ export default function IhjSoloPage() {
   async function handleShare() {
     if (!title) return;
     setShareState("working");
-    trackPageEvent("ihj_solo", "share", sessionKey);
     const res = await shareIhjSoloResultCard({
       score: finalScore,
       title: { emoji: title.emoji, ar: title.ar },
@@ -176,6 +175,7 @@ export default function IhjSoloPage() {
         correctByCategory: IHJ_CATEGORIES.map((c) => r.answers[c.key].points > 0),
       })),
     });
+    if (res === "shared" || res === "downloaded") trackPageEvent("ihj_solo", `share_result_${res}`, sessionKey);
     setShareState(res === "failed" ? "failed" : res === "cancelled" ? "idle" : res);
   }
 

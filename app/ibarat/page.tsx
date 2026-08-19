@@ -6,7 +6,7 @@ import { ArrowRight } from "lucide-react";
 import QuoteCard from "@/components/ibarat/QuoteCard";
 import CardDeck from "@/components/ibarat/CardDeck";
 import { shareCard } from "@/components/ibarat/exportCard";
-import { trackPageView, trackPageComplete, newSessionKey } from "@/lib/trackPageView";
+import { trackPageView, trackPageComplete, trackPageEvent, newSessionKey } from "@/lib/trackPageView";
 import { CARD_W, CARD_H, FRONT_IMAGES } from "@/lib/ibarat-card";
 import type { Quote } from "@/lib/ibarat-quotes-types";
 import QUOTES_DATA from "@/lib/ibarat-quotes.json";
@@ -103,6 +103,7 @@ export default function IbaratPage() {
     if (!quote || shareState === "working") return;
     setShareState("working");
     const result = await shareCard(quote, frontIndex);
+    if (result === "shared" || result === "downloaded") trackPageEvent("ibarat", `share_result_${result}`, sessionKey);
     // "shared" and "cancelled" both end silently — the sheet already gave
     // the user feedback, and a toast after they deliberately backed out
     // would be nagging.
