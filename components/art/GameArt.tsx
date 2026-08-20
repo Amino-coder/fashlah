@@ -269,3 +269,17 @@ export function ImposterArt({ size = 120 }: P) {
   );
 }
 
+/* ─── خرب السالفة — a joker card on deep crimson, chaotic party-card energy ─── */
+export function RuinStoryArt({ size = 120 }: P) {
+  const CRIMSON = "#9B1C2E";
+  const GOLD = "#FFD400";
+  return (
+    <Tile bg={CRIMSON}>
+      <Confetti a={GOLD} b={CREAM} />
+      <text x="100" y="100" textAnchor="middle" dominantBaseline="central" fontSize="92">
+        {"\u{1F0CF}"}
+      </text>
+    </Tile>
+  );
+}
+
