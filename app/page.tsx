@@ -5,6 +5,7 @@ import { Instagram, Mail } from "lucide-react";
 import { STR } from "@/lib/i18n";
 import { SHOFAH_STR } from "@/lib/shofah-i18n";
 import { MAREED_STR } from "@/lib/mareed-i18n";
+import { IMPOSTER_STR } from "@/lib/imposter-i18n";
 import { JOB_STR } from "@/lib/job-i18n";
 import { QASEEDA_STR } from "@/lib/qaseeda-i18n";
 import { QISSA_STR } from "@/lib/qissa-i18n";
@@ -12,7 +13,7 @@ import { LIFOO_STR } from "@/lib/lifoo-i18n";
 import { usePrefs } from "@/lib/usePrefs";
 import Blobs from "@/components/Blobs";
 import Mascot from "@/components/Mascot";
-import { FashlahArt, ShofahArt, JobArt, IbaratArt, QaseedaArt, QissaArt, WadakArt, BidalArt, IhjArt, LifooArt, MareedArt } from "@/components/art/GameArt";
+import { FashlahArt, ShofahArt, JobArt, IbaratArt, QaseedaArt, QissaArt, WadakArt, BidalArt, IhjArt, LifooArt, MareedArt, ImposterArt } from "@/components/art/GameArt";
 import InstallBagdoonisButton from "@/components/pwa/InstallBagdoonisButton";
 import LoginButton from "@/components/auth/LoginButton";
 import HamburgerMenu from "@/components/HamburgerMenu";
@@ -54,6 +55,7 @@ export default function Home() {
     { href: "/wadak", title: "وش شخصيتك", sub: ar ? "جاوب وشوف شخصيتك الحقيقية 🧠" : "Answer and find your real personality 🧠", Art: WadakArt, modes: ["solo"] },
     { href: "/fashlah", title: t.gameName, sub: ar ? "اكتشفوا أسرار شلتكم 😂" : "Uncover your group's secrets 😂", Art: FashlahArt, modes: ["group"] },
     { href: "/mareed", title: MAREED_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين المريض النفسي فينا 🧠" : "Who's the psych patient among us? 🧠", Art: MareedArt, modes: ["group", "solo"] },
+    { href: "/imposter", title: IMPOSTER_STR[lang].gameName, sub: ar ? "وحد فيكم محتال... من بيكتشفه؟ 😈" : "One of you is an imposter... who'll catch them? 😈", Art: ImposterArt, modes: ["group"] },
     { href: "/qissa", title: QISSA_STR[lang].gameNameArabic, sub: ar ? "قصة توها تبدأ... وتضيع بين الكل 😂" : "A story that gets lost along the way 😂", Art: QissaArt, modes: ["group"] },
     { href: "/job", title: JOB_STR[lang].gameNameArabic, sub: ar ? "لعبة للعاطلين 👀" : "A game for the unemployed 👀", Art: JobArt, modes: ["group"] },
     { href: "/qaseeda", title: QASEEDA_STR[lang].gameNameArabic, sub: ar ? "اكتبوا قصيدة سوا، بيت بيت 🪶" : "Write a poem together, line by line 🪶", Art: QaseedaArt, modes: ["group"] },

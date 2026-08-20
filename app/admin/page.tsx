@@ -14,6 +14,7 @@ const GAME_LABELS: Record<string, string> = {
   bidal: "بدل الكلمة",
   wadak: "وش شخصيتك",
   ibarat: "عبارات",
+  imposter: "المحتال",
 };
 
 type GameRow = { game: string; requires_plus: boolean; updated_at: string };

@@ -21,6 +21,7 @@ const ALLOWED_TABLES = new Set([
   "sessions",
   "shofah_sessions",
   "mareed_sessions",
+  "imposter_sessions",
   "job_sessions",
   "qaseeda_sessions",
   "qissa_sessions",

@@ -256,3 +256,16 @@ export function MareedArt({ size = 120 }: P) {
   );
 }
 
+/* ─── المحتال — 😈 on magenta, per the explicit spec for this icon ─── */
+export function ImposterArt({ size = 120 }: P) {
+  const MAGENTA = "#D6006E";
+  return (
+    <Tile bg={MAGENTA}>
+      <Confetti a="#FF2E93" b={CREAM} />
+      <text x="100" y="100" textAnchor="middle" dominantBaseline="central" fontSize="92">
+        😈
+      </text>
+    </Tile>
+  );
+}
+
