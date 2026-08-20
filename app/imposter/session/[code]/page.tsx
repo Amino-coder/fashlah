@@ -7,7 +7,6 @@ import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import LeaveGameButton from "@/components/LeaveGameButton";
 import ShareInvite from "@/components/ShareInvite";
-import EndGameShare from "@/components/EndGameShare";
 import SaveResult from "@/components/auth/SaveResult";
 import { IMPOSTER_STR, ImposterLang } from "@/lib/imposter-i18n";
 import { usePrefs } from "@/lib/usePrefs";
@@ -16,18 +15,20 @@ import type { ImposterSessionRow, ImposterPlayerRow, ImposterWordRow } from "@/l
 const MAGENTA = "#D6006E";
 const PINK = "#FF2E93";
 const TURN_SECONDS = 20;
+const REVEAL_WORD_SECONDS = 10;
 
 /**
  * المحتال — the one Bagdoonis game built around sequential turn-taking
  * (one active player at a time, everyone else watches) rather than
- * simultaneous answers. Everything else — room creation, ShareInvite,
- * realtime subscription shape, HomeButton/LeaveGameButton, EndGameShare
- * for the results screen — reuses the exact same pieces every other
- * multiplayer game already uses. See supabase/imposter_schema.sql for
- * the RLS reasoning behind why turn-advancement is any-player, not
- * host-only, and why "Play Again" here works differently from every
- * other game (same room, not a new session — the spec explicitly
- * requires this).
+ * simultaneous answers. Room creation, ShareInvite, the realtime
+ * subscription shape, HomeButton/LeaveGameButton all reuse the exact
+ * same pieces every other multiplayer game already uses — the results
+ * screen's actions are custom-built here rather than through
+ * EndGameShare (see RevealAndResults below for why: EndGameShare's own
+ * "Play Again" is a hard navigation to a fresh session, which doesn't
+ * fit this game's spec-mandated "same room" replay). See
+ * supabase/imposter_schema.sql for the RLS reasoning behind why
+ * turn-advancement is any-player, not host-only.
  */
 export default function ImposterSessionPage() {
   const params = useParams();
@@ -96,16 +97,19 @@ export default function ImposterSessionPage() {
     return () => { supabase.removeChannel(channel); };
   }, [code, session?.id, loadAll]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ---- clue-phase timer tick ----
+  // ---- reveal_word (10s) AND clue (20s) both tick the same clock —
+  // one shared timestamp column (turn_started_at), two different
+  // durations read client-side depending on which phase is active. ----
   useEffect(() => {
-    if (session?.status !== "in_progress" || session?.phase !== "clue") return;
+    if (session?.status !== "in_progress" || (session?.phase !== "reveal_word" && session?.phase !== "clue")) return;
     const id = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(id);
   }, [session?.status, session?.phase]);
 
+  const phaseDuration = session?.phase === "reveal_word" ? REVEAL_WORD_SECONDS : TURN_SECONDS;
   const remaining = session?.turn_started_at
-    ? Math.max(0, Math.ceil(TURN_SECONDS - (now - new Date(session.turn_started_at).getTime()) / 1000))
-    : TURN_SECONDS;
+    ? Math.max(0, Math.ceil(phaseDuration - (now - new Date(session.turn_started_at).getTime()) / 1000))
+    : phaseDuration;
 
   // ---- turn advance (تم button OR timeout) — any connected client can
   // call this, per the RLS reasoning in imposter_schema.sql. The WHERE
@@ -139,6 +143,24 @@ export default function ImposterSessionPage() {
       advancingRef.current = false;
     }
   }, [session, sortedPlayers]);
+
+  // reveal_word → clue, once the 10s is up. Same any-client-can-advance,
+  // same idempotent WHERE-clause guard against a double transition as
+  // advanceTurn above — matching phase='reveal_word' specifically means
+  // once one client's update lands and flips it to 'clue', every other
+  // client's racing attempt at the same transition matches zero rows.
+  const revealAdvancingRef = useRef(false);
+  useEffect(() => {
+    if (session?.status === "in_progress" && session?.phase === "reveal_word" && remaining <= 0 && !revealAdvancingRef.current) {
+      revealAdvancingRef.current = true;
+      supabase
+        .from("imposter_sessions")
+        .update({ turn_started_at: new Date().toISOString(), phase: "clue" })
+        .eq("id", session.id)
+        .eq("phase", "reveal_word")
+        .then(() => { revealAdvancingRef.current = false; });
+    }
+  }, [remaining, session?.status, session?.phase, session?.id]);
 
   useEffect(() => {
     if (session?.status === "in_progress" && session?.phase === "clue" && remaining <= 0) {
@@ -292,6 +314,32 @@ export default function ImposterSessionPage() {
           </div>
         )}
 
+        {/* ---------------- REVEAL WORD (10s, before any turns) ----------------
+             Every player sees this at once — their own word, or "أنت
+             المحتال" for the imposter — before turn-taking starts, per
+             the explicit request that this happen upfront rather than
+             only during someone's own turn. */}
+        {session.status === "in_progress" && session.phase === "reveal_word" && (
+          <div className="screen-enter" style={{ marginTop: 40, textAlign: "center" }}>
+            <span className="font-display" style={{ display: "block", fontSize: 40, fontWeight: 800, color: remaining <= 3 ? "#E63946" : MAGENTA, marginBottom: 20 }}>
+              {remaining}
+            </span>
+            <div className="card pop" style={{ padding: 30, background: isImposter ? `linear-gradient(135deg, #17122B, ${MAGENTA})` : `linear-gradient(135deg, ${MAGENTA}, ${PINK})` }}>
+              {isImposter ? (
+                <p className="font-display" style={{ fontSize: 24, fontWeight: 800, color: "#fff", margin: 0 }}>{t.imposterTitle}</p>
+              ) : (
+                <>
+                  <p className="font-body" style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.85)", margin: "0 0 8px" }}>{t.theWord}</p>
+                  <p className="font-display" style={{ fontSize: 34, fontWeight: 800, color: "#fff", margin: 0 }}>{word?.text}</p>
+                </>
+              )}
+            </div>
+            <p className="font-body" style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ink-soft)", marginTop: 16 }}>
+              {ar ? "تذكروها زين... بعد شوي تبدأ الأدوار 👀" : "Remember it well... turns start in a moment 👀"}
+            </p>
+          </div>
+        )}
+
         {/* ---------------- CLUE PHASE ---------------- */}
         {session.status === "in_progress" && session.phase === "clue" && (
           <div className="screen-enter" style={{ marginTop: 30 }}>
@@ -301,17 +349,30 @@ export default function ImposterSessionPage() {
               </span>
             </div>
 
+            {/* Persistent — shown to every player throughout the whole
+                clue phase, regardless of whose turn it currently is, not
+                just during the active player's own turn. This is what
+                everyone uses to give (or fake) a good clue and to judge
+                everyone else's. */}
+            <div
+              className="card"
+              style={{
+                padding: "14px 18px", marginBottom: 14, textAlign: "center",
+                background: isImposter ? `linear-gradient(135deg, #17122B, ${MAGENTA})` : "var(--card)",
+                border: isImposter ? "none" : `2px solid ${MAGENTA}44`,
+              }}
+            >
+              {isImposter ? (
+                <p className="font-display" style={{ fontSize: 16, fontWeight: 800, color: "#fff", margin: 0 }}>{t.imposterTitle}</p>
+              ) : (
+                <p className="font-display" style={{ fontSize: 18, fontWeight: 800, color: MAGENTA, margin: 0 }}>{t.theWord} {word?.text}</p>
+              )}
+            </div>
+
             {isMyTurn ? (
-              <div className="card pop" style={{ padding: 26, textAlign: "center", background: isImposter ? `linear-gradient(135deg, #17122B, ${MAGENTA})` : "var(--card)" }}>
-                <p className="font-display" style={{ fontSize: 20, fontWeight: 800, color: isImposter ? "#fff" : "var(--ink)", marginBottom: 10 }}>
-                  {isImposter ? t.imposterTitle : t.yourTurn}
-                </p>
-                {!isImposter && (
-                  <p className="font-display" style={{ fontSize: 30, fontWeight: 800, color: MAGENTA, marginBottom: 14 }}>
-                    {t.theWord} {word?.text}
-                  </p>
-                )}
-                <p className="font-body" style={{ fontSize: 13, fontWeight: 600, color: isImposter ? "rgba(255,255,255,0.85)" : "var(--ink-soft)", marginBottom: 22 }}>
+              <div className="card pop" style={{ padding: 26, textAlign: "center" }}>
+                <p className="font-display" style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", marginBottom: 10 }}>{t.yourTurn}</p>
+                <p className="font-body" style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-soft)", marginBottom: 22 }}>
                   {isImposter ? t.imposterHint : t.giveClueHint}
                 </p>
                 <button
@@ -319,7 +380,7 @@ export default function ImposterSessionPage() {
                   className="font-display"
                   style={{
                     width: "100%", padding: 16, fontSize: 16, borderRadius: 999, border: "none",
-                    color: isImposter ? MAGENTA : "#fff", background: isImposter ? "#fff" : `linear-gradient(135deg, ${MAGENTA}, ${PINK})`,
+                    color: "#fff", background: `linear-gradient(135deg, ${MAGENTA}, ${PINK})`,
                   }}
                 >
                   {t.done}
@@ -456,31 +517,62 @@ function RevealAndResults({
         </div>
       </div>
 
-      <SaveResult game="imposter" lang={ar ? "ar" : "en"} resultSummary={resultLine} sessionCode={session.code} />
-
+      {/* Line 1 — شارك النتيجة, primary. Built directly here rather than
+          via EndGameShare: that component's own "Play Again" is a hard
+          navigation to a fresh session, which doesn't apply to this game
+          at all (the spec requires reusing the SAME room) — mounting it
+          anyway is exactly what produced two different "play again"
+          buttons on screen, one correct and one not. Simpler and
+          correct to just own this game's own 3-action layout directly. */}
       <button
-        onClick={onPlayAgainSameRoom}
+        onClick={async () => {
+          const text = [resultLine, "\u25AC".repeat(10), ar ? "جربوها مع شلتكم \u{1F447}" : "Try it with your friends \u{1F447}", window.location.origin].join("\n");
+          if (typeof navigator !== "undefined" && navigator.share) {
+            try { await navigator.share({ text }); return; } catch { return; }
+          }
+          window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+        }}
         className="font-display"
         style={{
-          display: "block", width: "100%", marginTop: 16, marginBottom: 16, padding: 16, fontSize: 15, borderRadius: 999,
-          border: "none", color: "#fff", background: `linear-gradient(135deg, ${MAGENTA}, ${PINK})`,
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%",
+          padding: "14px 20px", borderRadius: 999, border: "none", cursor: "pointer",
+          background: `linear-gradient(135deg, ${MAGENTA}, ${PINK})`, color: "#fff", fontWeight: 800, fontSize: 15,
+          boxShadow: "0 10px 26px rgba(0,0,0,0.2)", marginBottom: 12,
         }}
       >
-        {t.playAgainRoom}
+        {"\u{1F4E4}"} {ar ? "شارك النتيجة" : "Share your results"}
       </button>
 
-      {/* EndGameShare here is deliberately mounted WITHOUT a playAgainHref
-          pointing anywhere real — its own "Play Again" concept (a hard
-          navigation to a NEW session) doesn't apply to this game at all,
-          since the spec explicitly requires reusing the SAME room
-          instead (the button above this one, calling
-          imposter_start_round directly, is what actually does that).
-          resultLine is omitted too, so this renders share+save... but
-          SaveResult is already mounted above, and share needs
-          resultLine — so this call exists purely for its "play a
-          different game" suggestion, same pattern already used by
-          قصيدة/لفوا/بدل/etc. for games with their own custom share UI. */}
-      <EndGameShare game="imposter" lang={ar ? "ar" : "en"} nextGame="wadak" playAgainHref={`/imposter/session/${session.code}`} />
+      {/* Line 2 — العب مرة ثانية (same room, the button that actually
+          restarts) + العب وش شخصيتك (a different game entirely), equal
+          pair, matching the site-wide results-screen convention. */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+        <button
+          onClick={onPlayAgainSameRoom}
+          className="font-body"
+          style={{
+            flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            padding: "11px 10px", borderRadius: 999, border: "none", cursor: "pointer",
+            color: "#fff", background: `linear-gradient(135deg, ${MAGENTA}, ${PINK})`, fontWeight: 800, fontSize: 13,
+          }}
+        >
+          {t.playAgainRoom}
+        </button>
+        <a
+          href="/wadak"
+          className="font-body"
+          style={{
+            flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            padding: "11px 10px", borderRadius: 999, textDecoration: "none",
+            border: "2px solid var(--ring)", color: "var(--ink)", background: "var(--card)", fontWeight: 800, fontSize: 13, textAlign: "center",
+          }}
+        >
+          {"\u{1F3AD}"} {ar ? "وش شخصيتك" : "What's Your Personality"}
+        </a>
+      </div>
+
+      {/* Line 3 — احفظ النتيجة, quiet */}
+      <SaveResult game="imposter" lang={ar ? "ar" : "en"} resultSummary={resultLine} sessionCode={session.code} />
     </div>
   );
 }

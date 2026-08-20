@@ -1,5 +1,5 @@
 export type ImposterSessionStatus = "waiting" | "in_progress" | "completed" | "cancelled";
-export type ImposterPhase = "clue" | "voting" | "reveal";
+export type ImposterPhase = "reveal_word" | "clue" | "voting" | "reveal";
 
 export interface ImposterSessionRow {
   id: string;

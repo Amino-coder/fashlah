@@ -22,7 +22,7 @@ create table imposter_sessions (
   lang              text default 'ar' check (lang in ('ar', 'en')),
   status            text default 'waiting' check (status in ('waiting', 'in_progress', 'completed', 'cancelled')),
   round_number      int default 1,   -- increments each "play again" within the same room
-  phase             text default 'clue' check (phase in ('clue', 'voting', 'reveal')),
+  phase             text default 'reveal_word' check (phase in ('reveal_word', 'clue', 'voting', 'reveal')),
   word_id           uuid,  -- FK to imposter_words added below, once that table exists
   imposter_player_id uuid, -- references imposter_players(id), added as a real FK once that table exists below
   turn_player_id    uuid,  -- whose turn it currently is during the clue phase
@@ -264,7 +264,7 @@ begin
       turn_player_id = v_first_player_id,
       turn_started_at = now(),
       used_word_ids = array_append(v_used_words, v_word_id),
-      phase = 'clue',
+      phase = 'reveal_word',
       status = 'in_progress',
       round_number = v_round,
       started_at = coalesce(started_at, now())
