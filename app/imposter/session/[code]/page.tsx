@@ -45,8 +45,16 @@ export default function ImposterSessionPage() {
   const [myVote, setMyVote] = useState<string | null>(null);
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [clickPending, setClickPending] = useState(false);
   const [starting, setStarting] = useState(false);
   const [now, setNow] = useState(() => Date.now());
+
+  // Resets whenever the active turn changes to a different player — so
+  // if this player gets another turn later in a future game, the
+  // button isn't stuck showing its previous pending state.
+  useEffect(() => {
+    setClickPending(false);
+  }, [session?.turn_player_id]);
 
   const myPlayer = players.find((p) => p.user_id === myUserId) || null;
   const isHost = !!session && !!myUserId && session.host_user_id === myUserId;
@@ -59,15 +67,21 @@ export default function ImposterSessionPage() {
     if (!s) { setError(t.errorGeneric); return; }
     setSession(s);
 
-    const { data: p } = await supabase.from("imposter_players").select("*").eq("session_id", s.id);
+    // players and word both only depend on `s` (already in hand), not
+    // on each other — fetched together instead of one after the other.
+    // This runs on EVERY realtime update (including the one a تم click
+    // triggers), so this is the real lever for "make تم feel faster":
+    // the server-side update was already quick, what determines how
+    // soon everyone actually SEES the change is how long this reload
+    // takes to finish and re-render.
+    const [{ data: p }, wordResult] = await Promise.all([
+      supabase.from("imposter_players").select("*").eq("session_id", s.id),
+      s.word_id
+        ? supabase.from("imposter_words").select("*").eq("id", s.word_id).maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
     setPlayers(p || []);
-
-    if (s.word_id) {
-      const { data: w } = await supabase.from("imposter_words").select("*").eq("id", s.word_id).maybeSingle();
-      setWord(w || null);
-    } else {
-      setWord(null);
-    }
+    setWord(wordResult.data || null);
 
     if (s.phase === "voting" || s.phase === "reveal") {
       const { count } = await supabase
@@ -367,14 +381,29 @@ export default function ImposterSessionPage() {
                   {isImposter ? t.imposterHint : t.giveClueHint}
                 </p>
                 <button
-                  onClick={() => advanceTurn(true)}
+                  onClick={async () => {
+                    if (clickPending) return;
+                    setClickPending(true);
+                    await advanceTurn(true);
+                  }}
+                  disabled={clickPending}
                   className="font-display"
                   style={{
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                     width: "100%", padding: 16, fontSize: 16, borderRadius: 999, border: "none",
                     color: "#fff", background: `linear-gradient(135deg, ${MAGENTA}, ${PINK})`,
+                    opacity: clickPending ? 0.75 : 1, cursor: clickPending ? "default" : "pointer",
                   }}
                 >
-                  {t.done}
+                  {clickPending && (
+                    <span
+                      style={{
+                        width: 16, height: 16, borderRadius: "50%", border: "2.5px solid rgba(255,255,255,0.4)",
+                        borderTopColor: "#fff", display: "inline-block", animation: "spin 0.7s linear infinite",
+                      }}
+                    />
+                  )}
+                  {clickPending ? (ar ? "جاري الإرسال..." : "Sending...") : t.done}
                 </button>
               </div>
             ) : (

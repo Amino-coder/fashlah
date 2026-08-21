@@ -21,12 +21,18 @@ export async function POST(req: NextRequest) {
 
     const admin = getSupabaseAdmin();
 
-    const { data: session, error: sessErr } = await admin
-      .from("imposter_sessions")
-      .select("turn_player_id, turn_started_at, status, phase")
-      .eq("id", sessionId)
-      .maybeSingle();
+    // Fetched together rather than one-after-the-other — players only
+    // depends on sessionId, not on anything the session row itself
+    // returns, so there's no real reason to wait for the first query to
+    // finish before starting the second. This is the actual speed-up:
+    // one network round-trip removed from the critical path for the
+    // common case (a normal manual click), not just the RLS change.
+    const [{ data: session, error: sessErr }, { data: players, error: playersErr }] = await Promise.all([
+      admin.from("imposter_sessions").select("turn_player_id, turn_started_at, status, phase").eq("id", sessionId).maybeSingle(),
+      admin.from("imposter_players").select("id, turn_order").eq("session_id", sessionId).order("turn_order", { ascending: true }),
+    ]);
     if (sessErr) throw sessErr;
+    if (playersErr) throw playersErr;
     if (!session) return NextResponse.json({ error: "Session not found" }, { status: 404 });
     if (session.status !== "in_progress" || session.phase !== "clue") {
       return NextResponse.json({ ok: true, skipped: "not in clue phase" });
@@ -45,13 +51,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true, skipped: "turn not actually expired yet" });
       }
     }
-
-    const { data: players, error: playersErr } = await admin
-      .from("imposter_players")
-      .select("id, turn_order")
-      .eq("session_id", sessionId)
-      .order("turn_order", { ascending: true });
-    if (playersErr) throw playersErr;
 
     const order = (players || []).map((p) => p.id);
     const idx = order.indexOf(session.turn_player_id || "");
