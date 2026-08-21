@@ -58,6 +58,8 @@ export default function RuinStorySessionPage() {
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   const [judging, setJudging] = useState(false);
+  const [showIntro, setShowIntro] = useState(false);
+  const introShownRef = useRef(false);
 
   const myPlayer = players.find((p) => p.user_id === myUserId) || null;
   const isHost = !!session && !!myUserId && session.host_user_id === myUserId;
@@ -157,6 +159,18 @@ export default function RuinStorySessionPage() {
     setSelectedCardId(null);
   }, [session?.round_number]);
 
+  // Every client shows this independently, once, the first time they
+  // see round 1 actually begin — not synced tightly across players
+  // (a few hundred ms of drift between phones doesn't matter for a
+  // flavor moment like this), just triggered once per client rather
+  // than re-showing on every subsequent realtime update.
+  useEffect(() => {
+    if (session?.status === "in_progress" && session?.round_number === 1 && !introShownRef.current) {
+      introShownRef.current = true;
+      setShowIntro(true);
+    }
+  }, [session?.status, session?.round_number]);
+
   async function handleStart() {
     if (!session) return;
     setStarting(true);
@@ -190,17 +204,41 @@ export default function RuinStorySessionPage() {
     // phase — same any-client-can-advance reasoning as everywhere else.
   }
 
-  // answering → judging, once the (now correctly realtime-synced)
-  // submitted count reaches everyone-but-the-judge. Guarded on
-  // phase='answering' so a race between multiple clients noticing this
-  // at once only actually flips it once.
-  useEffect(() => {
+  // answering → judging, once the submitted count reaches
+  // everyone-but-the-judge. Realtime-driven (reacts to
+  // session.answers_submitted_count changing) PLUS a polling fallback —
+  // belt and suspenders: if the realtime event for the final submission
+  // is ever delayed or dropped for any client, the poll below still
+  // catches it within a couple seconds instead of leaving that client
+  // stuck showing a stale count forever. Guarded on phase='answering'
+  // either way, so however many clients notice this at once, only one
+  // update actually lands.
+  const checkAnsweringDone = useCallback(async () => {
     if (!session || session.status !== "in_progress" || session.phase !== "answering") return;
     const nonJudgeCount = players.filter((p) => p.id !== session.judge_player_id).length;
     if (nonJudgeCount > 0 && session.answers_submitted_count >= nonJudgeCount) {
-      supabase.from("ruin_story_sessions").update({ phase: "judging" }).eq("id", session.id).eq("phase", "answering");
+      await supabase.from("ruin_story_sessions").update({ phase: "judging" }).eq("id", session.id).eq("phase", "answering");
     }
-  }, [session?.answers_submitted_count, session?.status, session?.phase, session?.id, session?.judge_player_id, players]);
+  }, [session, players]);
+
+  useEffect(() => { checkAnsweringDone(); }, [checkAnsweringDone]);
+
+  useEffect(() => {
+    if (session?.status !== "in_progress" || session?.phase !== "answering") return;
+    const id = setInterval(async () => {
+      // Re-fetch fresh rather than trusting local state for this one —
+      // the whole point of the fallback is to catch cases where local
+      // state itself might be the thing that's stale.
+      const { data: fresh } = await supabase.from("ruin_story_sessions").select("*").eq("id", session.id).maybeSingle();
+      if (!fresh || fresh.phase !== "answering") return;
+      const { count } = await supabase.from("ruin_story_players").select("id", { count: "exact", head: true }).eq("session_id", session.id);
+      const nonJudge = (count ?? 0) - (fresh.judge_player_id ? 1 : 0);
+      if (nonJudge > 0 && fresh.answers_submitted_count >= nonJudge) {
+        await supabase.from("ruin_story_sessions").update({ phase: "judging" }).eq("id", session.id).eq("phase", "answering");
+      }
+    }, 2500);
+    return () => clearInterval(id);
+  }, [session?.status, session?.phase, session?.id]);
 
   async function handleJudgePick(cardId: string) {
     if (!session || judging) return;
@@ -237,6 +275,7 @@ export default function RuinStorySessionPage() {
 
   async function handlePlayAgainSameRoom() {
     if (!session) return;
+    introShownRef.current = false;
     await supabase.from("ruin_story_players").update({ score: 0 }).eq("session_id", session.id);
     await supabase
       .from("ruin_story_sessions")
@@ -261,6 +300,7 @@ export default function RuinStorySessionPage() {
   return (
     <div dir={t.dir} className={dark ? "dark" : ""} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
       <Blobs />
+      {showIntro && <PreGameIntro ar={ar} onDone={() => setShowIntro(false)} />}
       {(session.status === "waiting" || session.status === "completed") && <HomeButton label={t.backHome} href="/ruin_story" />}
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
         {session.status === "in_progress" && <LeaveGameButton lang={lang} />}
@@ -550,6 +590,56 @@ function RevealScreen({
           {"\u{1F3AD}"} {ar ? "لعبة ثانية" : "Another game"}
         </a>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Rules explainer → جاهزين → 3 → 2 → 1 → يلا, then dismisses itself.
+ * A pure client-side overlay, not a session phase — no reason for this
+ * to be synced tightly across players or to touch the database at all;
+ * every client just runs the same fixed timeline independently.
+ */
+function PreGameIntro({ ar, onDone }: { ar: boolean; onDone: () => void }) {
+  const STAGES = [
+    { text: ar ? "بيكون عندك 6 كروت اجوبة غريبة. مهمتك تجاوب على السؤال بأكثر جواب مضحك \u{1F602}" : "You'll have 6 weird answer cards. Your job: answer the prompt with the funniest one \u{1F602}", ms: 3400 },
+    { text: ar ? "إذا صوتوا لجوابك تفوز بنقطة \u{1F389}" : "If your answer gets picked, you win a point \u{1F389}", ms: 2600 },
+    { text: ar ? "جاهزين" : "Ready", ms: 1000 },
+    { text: "3", ms: 700 },
+    { text: "2", ms: 700 },
+    { text: "1", ms: 700 },
+    { text: ar ? "يلا" : "Go!", ms: 900 },
+  ];
+  const [stageIndex, setStageIndex] = useState(0);
+
+  useEffect(() => {
+    if (stageIndex >= STAGES.length) { onDone(); return; }
+    const id = setTimeout(() => setStageIndex((i) => i + 1), STAGES[stageIndex].ms);
+    return () => clearTimeout(id);
+  }, [stageIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (stageIndex >= STAGES.length) return null;
+  const stage = STAGES[stageIndex];
+  const isCountdown = ["3", "2", "1"].includes(stage.text) || stage.text === (ar ? "يلا" : "Go!");
+
+  return (
+    <div
+      dir={ar ? "rtl" : "ltr"}
+      style={{
+        position: "fixed", inset: 0, zIndex: 80, background: "linear-gradient(135deg, #17122B, #9B1C2E)",
+        display: "flex", alignItems: "center", justifyContent: "center", padding: 32,
+      }}
+    >
+      <p
+        key={stageIndex}
+        className="font-display pop"
+        style={{
+          fontSize: isCountdown ? 64 : 22, fontWeight: 800, color: "#fff", textAlign: "center",
+          lineHeight: 1.6, maxWidth: 340, margin: 0,
+        }}
+      >
+        {stage.text}
+      </p>
     </div>
   );
 }
