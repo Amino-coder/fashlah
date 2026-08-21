@@ -14,6 +14,7 @@ const PINK = "#FF2E93";
 export default function ImposterCreatePage() {
   const { lang, dark, ready } = usePrefs();
   const t = IMPOSTER_STR[lang as ImposterLang];
+  const ar = lang === "ar";
   const router = useRouter();
 
   const [nickname, setNickname] = useState("");
@@ -50,7 +51,7 @@ export default function ImposterCreatePage() {
       const { error: playerErr } = await supabase.from("imposter_players").insert({
         session_id: session.id,
         user_id: userId,
-        nickname: nickname || t.gameName,
+        nickname: nickname || (ar ? "اللاعب 1" : "Player 1"),
         avatar_emoji: emoji,
         turn_order: 0,
       });

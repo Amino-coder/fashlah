@@ -22,6 +22,7 @@ export default function ImposterJoinPage() {
 function ImposterJoin() {
   const { lang, dark, ready } = usePrefs();
   const t = IMPOSTER_STR[lang as ImposterLang];
+  const ar = lang === "ar";
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -63,7 +64,7 @@ function ImposterJoin() {
         .eq("session_id", session.id);
 
       const { error: playerErr } = await supabase.from("imposter_players").upsert(
-        { session_id: session.id, user_id: userId, nickname: nickname || t.gameName, avatar_emoji: emoji, turn_order: count ?? 0 },
+        { session_id: session.id, user_id: userId, nickname: nickname || (ar ? `اللاعب ${(count ?? 0) + 1}` : `Player ${(count ?? 0) + 1}`), avatar_emoji: emoji, turn_order: count ?? 0 },
         { onConflict: "session_id,user_id" }
       );
       if (playerErr) throw playerErr;

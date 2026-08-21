@@ -229,6 +229,8 @@ declare
   v_imposter_id uuid;
   v_first_player_id uuid;
   v_round int;
+  v_player record;
+  v_i int := 0;
 begin
   select used_word_ids, round_number into v_used_words, v_round from imposter_sessions where id = p_session_id for update;
 
@@ -251,6 +253,15 @@ begin
   order by imposter_count asc, random()
   limit 1;
 
+  -- Reshuffle the speaking order for this game — a fresh random
+  -- turn_order every time this runs, not just at first join, so a
+  -- replay in the same room ("play again") doesn't always go in the
+  -- exact same sequence.
+  for v_player in select id from imposter_players where session_id = p_session_id order by random() loop
+    update imposter_players set turn_order = v_i where id = v_player.id;
+    v_i := v_i + 1;
+  end loop;
+
   select id into v_first_player_id from imposter_players
   where session_id = p_session_id
   order by turn_order asc
@@ -266,7 +277,7 @@ begin
       used_word_ids = array_append(v_used_words, v_word_id),
       phase = 'reveal_word',
       status = 'in_progress',
-      round_number = v_round,
+      round_number = v_round + 1,
       started_at = coalesce(started_at, now())
   where id = p_session_id;
 
@@ -274,9 +285,6 @@ begin
 end;
 $$;
 
-revoke execute on function imposter_start_round(uuid) from public;
-revoke execute on function imposter_start_round(uuid) from anon;
-revoke execute on function imposter_start_round(uuid) from authenticated;
 grant execute on function imposter_start_round(uuid) to service_role;
 
 -- ============================================================================

@@ -122,8 +122,19 @@ export default function ImposterSessionPage() {
     if (!session || advancingRef.current) return;
     advancingRef.current = true;
     try {
+      // Re-fetch the current turn_player_id fresh rather than trusting
+      // this closure's `session` state — if a tap happens right as a
+      // realtime update is still propagating to this client, the local
+      // `session.turn_player_id` could be one step behind the real
+      // database value, making the guard below silently match zero
+      // rows (no error, just no effect) — exactly the "تم does nothing,
+      // only the timer eventually works" symptom, since by the time the
+      // timer fires, local state has had time to catch up on its own.
+      const { data: fresh } = await supabase.from("imposter_sessions").select("turn_player_id").eq("id", session.id).maybeSingle();
+      const currentTurnPlayerId = fresh?.turn_player_id ?? session.turn_player_id;
+
       const order = sortedPlayers.map((p) => p.id);
-      const idx = order.indexOf(session.turn_player_id || "");
+      const idx = order.indexOf(currentTurnPlayerId || "");
       const nextId = idx >= 0 && idx < order.length - 1 ? order[idx + 1] : null;
 
       if (nextId) {
@@ -131,13 +142,13 @@ export default function ImposterSessionPage() {
           .from("imposter_sessions")
           .update({ turn_player_id: nextId, turn_started_at: new Date().toISOString() })
           .eq("id", session.id)
-          .eq("turn_player_id", session.turn_player_id);
+          .eq("turn_player_id", currentTurnPlayerId);
       } else {
         await supabase
           .from("imposter_sessions")
           .update({ phase: "voting" })
           .eq("id", session.id)
-          .eq("turn_player_id", session.turn_player_id);
+          .eq("turn_player_id", currentTurnPlayerId);
       }
     } finally {
       advancingRef.current = false;
