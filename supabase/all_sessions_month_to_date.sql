@@ -54,6 +54,21 @@ select 'ihj', s.id, s.code, s.status, (s.created_at AT TIME ZONE 'Asia/Riyadh') 
   (select string_agg(p.nickname, ', ') from ihj_players p where p.session_id = s.id)
 from ihj_sessions s where s.created_at >= (date_trunc('month', now() AT TIME ZONE 'Asia/Riyadh') AT TIME ZONE 'Asia/Riyadh')
 union all
+select 'mareed', s.id, s.code, s.status, (s.created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh,
+  (select count(*) from mareed_players p where p.session_id = s.id),
+  (select string_agg(p.nickname, ', ') from mareed_players p where p.session_id = s.id)
+from mareed_sessions s where s.created_at >= (date_trunc('month', now() AT TIME ZONE 'Asia/Riyadh') AT TIME ZONE 'Asia/Riyadh')
+union all
+select 'imposter', s.id, s.code, s.status, (s.created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh,
+  (select count(*) from imposter_players p where p.session_id = s.id),
+  (select string_agg(p.nickname, ', ') from imposter_players p where p.session_id = s.id)
+from imposter_sessions s where s.created_at >= (date_trunc('month', now() AT TIME ZONE 'Asia/Riyadh') AT TIME ZONE 'Asia/Riyadh')
+union all
+select 'ruin_story', s.id, s.code, s.status, (s.created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh,
+  (select count(*) from ruin_story_players p where p.session_id = s.id),
+  (select string_agg(p.nickname, ', ') from ruin_story_players p where p.session_id = s.id)
+from ruin_story_sessions s where s.created_at >= (date_trunc('month', now() AT TIME ZONE 'Asia/Riyadh') AT TIME ZONE 'Asia/Riyadh')
+union all
 select 'wadak', v.id, null::text,
   case when exists (
     select 1 from page_views c
@@ -93,4 +108,24 @@ select 'ihj_solo', v.id, null::text,
   (v.created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh, null::bigint, null::text
 from page_views v
 where v.page = 'ihj_solo' and v.event = 'view' and v.created_at >= (date_trunc('month', now() AT TIME ZONE 'Asia/Riyadh') AT TIME ZONE 'Asia/Riyadh')
+union all
+select 'mareed_solo', v.id, null::text,
+  case when exists (
+    select 1 from page_views c
+    where c.page = 'mareed_solo' and c.event = 'complete'
+      and c.session_key = v.session_key and v.session_key is not null
+  ) then 'completed' else 'in_progress_or_left' end,
+  (v.created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh, null::bigint, null::text
+from page_views v
+where v.page = 'mareed_solo' and v.event = 'view' and v.created_at >= (date_trunc('month', now() AT TIME ZONE 'Asia/Riyadh') AT TIME ZONE 'Asia/Riyadh')
+union all
+select 'ibarat', v.id, null::text,
+  case when exists (
+    select 1 from page_views c
+    where c.page = 'ibarat' and c.event = 'complete'
+      and c.session_key = v.session_key and v.session_key is not null
+  ) then 'completed' else 'in_progress_or_left' end,
+  (v.created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh, null::bigint, null::text
+from page_views v
+where v.page = 'ibarat' and v.event = 'view' and v.created_at >= (date_trunc('month', now() AT TIME ZONE 'Asia/Riyadh') AT TIME ZONE 'Asia/Riyadh')
 order by created_at_riyadh desc;

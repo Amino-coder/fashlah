@@ -3,14 +3,15 @@
 -- calendar month. Run in the Supabase SQL editor.
 --
 -- Multiplayer games (real session rows, one row per session created):
---   فشلة، شوفة، مين بيتوظف، قصيدة، قصة، الِّفوا أغنية، إنسان حيوان جماد
+--   فشلة، شوفة، مين بيتوظف، قصيدة، قصة، الِّفوا أغنية، إنسان حيوان جماد،
+--   مريض نفسي، المحتال، خرب السالفة
 --
 -- Solo games (no session table — page_views 'view'/'complete' pairs,
 -- one row per visit; 'completed' means that visit's session_key has a
 -- matching 'complete' event, 'in_progress_or_left' means it doesn't —
 -- same logic as all_sessions_month_to_date.sql's page_views branches):
---   بدل الكلمة، شوفة solo، الِّفوا أغنية solo، وش شخصيتك، إنسان حيوان
---   جماد solo
+--   بدل الكلمة، شوفة solo، الِّفوا أغنية solo، مريض نفسي solo، وش
+--   شخصيتك، إنسان حيوان جماد solo
 --
 -- Demo pages (same page_views pattern):
 --   فشلة، شوفة، مين بيتوظف، قصيدة، قصة demo modes
@@ -77,6 +78,27 @@ with multiplayer as (
     (select string_agg(p.nickname, ', ') from ihj_players p where p.session_id = s.id)
   from ihj_sessions s
   where s.created_at >= (date_trunc('month', now() AT TIME ZONE 'Asia/Riyadh') AT TIME ZONE 'Asia/Riyadh')
+
+  union all
+  select 'مريض نفسي', 'multiplayer', s.status, (s.created_at AT TIME ZONE 'Asia/Riyadh'),
+    (select count(*) from mareed_players p where p.session_id = s.id),
+    (select string_agg(p.nickname, ', ') from mareed_players p where p.session_id = s.id)
+  from mareed_sessions s
+  where s.created_at >= (date_trunc('month', now() AT TIME ZONE 'Asia/Riyadh') AT TIME ZONE 'Asia/Riyadh')
+
+  union all
+  select 'المحتال', 'multiplayer', s.status, (s.created_at AT TIME ZONE 'Asia/Riyadh'),
+    (select count(*) from imposter_players p where p.session_id = s.id),
+    (select string_agg(p.nickname, ', ') from imposter_players p where p.session_id = s.id)
+  from imposter_sessions s
+  where s.created_at >= (date_trunc('month', now() AT TIME ZONE 'Asia/Riyadh') AT TIME ZONE 'Asia/Riyadh')
+
+  union all
+  select 'خرب السالفة', 'multiplayer', s.status, (s.created_at AT TIME ZONE 'Asia/Riyadh'),
+    (select count(*) from ruin_story_players p where p.session_id = s.id),
+    (select string_agg(p.nickname, ', ') from ruin_story_players p where p.session_id = s.id)
+  from ruin_story_sessions s
+  where s.created_at >= (date_trunc('month', now() AT TIME ZONE 'Asia/Riyadh') AT TIME ZONE 'Asia/Riyadh')
 ),
 
 -- One row per 'view' event for every solo/demo/عبارات page — status is
@@ -84,7 +106,7 @@ with multiplayer as (
 -- always null since none of these have named players.
 page_view_pages as (
   select unnest(array[
-    'bidal_solo', 'shofah_solo', 'lifoo_solo', 'wadak', 'ihj_solo', 'ibarat',
+    'bidal_solo', 'shofah_solo', 'lifoo_solo', 'mareed_solo', 'wadak', 'ihj_solo', 'ibarat',
     'fashlah_demo', 'shofah_demo', 'job_demo', 'qaseeda_demo', 'qissa_demo'
   ]) as page
 ),

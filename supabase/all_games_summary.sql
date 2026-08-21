@@ -29,6 +29,12 @@ with multiplayer_totals as (
   select 'الِّفوا أغنية', created_at, status = 'completed' from lifoo_sessions
   union all
   select 'إنسان حيوان جماد', created_at, status = 'completed' from ihj_sessions
+  union all
+  select 'مريض نفسي', created_at, status = 'completed' from mareed_sessions
+  union all
+  select 'المحتال', created_at, status = 'completed' from imposter_sessions
+  union all
+  select 'خرب السالفة', created_at, status = 'completed' from ruin_story_sessions
 ),
 multiplayer_summary as (
   select

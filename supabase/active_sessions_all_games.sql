@@ -38,6 +38,21 @@ select 'qissa', s.id, s.code, s.status, (s.created_at AT TIME ZONE 'Asia/Riyadh'
   (select string_agg(p.nickname, ', ') from qissa_players p where p.session_id = s.id)
 from qissa_sessions s where s.status in ('waiting','in_progress')
 union all
+select 'mareed', s.id, s.code, s.status, (s.created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh,
+  (select count(*) from mareed_players p where p.session_id = s.id),
+  (select string_agg(p.nickname, ', ') from mareed_players p where p.session_id = s.id)
+from mareed_sessions s where s.status in ('waiting','in_progress')
+union all
+select 'imposter', s.id, s.code, s.status, (s.created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh,
+  (select count(*) from imposter_players p where p.session_id = s.id),
+  (select string_agg(p.nickname, ', ') from imposter_players p where p.session_id = s.id)
+from imposter_sessions s where s.status in ('waiting','in_progress')
+union all
+select 'ruin_story', s.id, s.code, s.status, (s.created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh,
+  (select count(*) from ruin_story_players p where p.session_id = s.id),
+  (select string_agg(p.nickname, ', ') from ruin_story_players p where p.session_id = s.id)
+from ruin_story_sessions s where s.status in ('waiting','in_progress')
+union all
 -- بدل الكلمة is fully local now (no session/player rows at all — see
 -- app/bidal/solo/page.tsx) so, same as وش شخصيتك and شوفة solo below,
 -- "active" here means opened in the last hour with no matching
@@ -89,6 +104,24 @@ where v.page = 'ihj_solo' and v.event = 'view' and v.created_at > now() - interv
   and not exists (
     select 1 from page_views c
     where c.page = 'ihj_solo' and c.event = 'complete'
+      and c.session_key = v.session_key and v.session_key is not null
+  )
+union all
+select 'mareed_solo', v.id, null::text, 'view', (v.created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh, null::bigint, null::text
+from page_views v
+where v.page = 'mareed_solo' and v.event = 'view' and v.created_at > now() - interval '1 hour'
+  and not exists (
+    select 1 from page_views c
+    where c.page = 'mareed_solo' and c.event = 'complete'
+      and c.session_key = v.session_key and v.session_key is not null
+  )
+union all
+select 'ibarat', v.id, null::text, 'view', (v.created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh, null::bigint, null::text
+from page_views v
+where v.page = 'ibarat' and v.event = 'view' and v.created_at > now() - interval '1 hour'
+  and not exists (
+    select 1 from page_views c
+    where c.page = 'ibarat' and c.event = 'complete'
       and c.session_key = v.session_key and v.session_key is not null
   )
 order by created_at_riyadh desc;

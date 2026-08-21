@@ -52,7 +52,7 @@ export default function IhjLandingPage() {
 
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <Link
-              href="/ihj/solo"
+              href="/ihj/create"
               className="font-display"
               style={{
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
@@ -60,10 +60,10 @@ export default function IhjLandingPage() {
                 background: `linear-gradient(135deg, ${PURPLE}, ${PINK})`, boxShadow: `0 10px 24px ${PINK}33`,
               }}
             >
-              <Zap size={18} /> {t.playSolo}
+              <Users size={18} /> {t.playMultiplayer}
             </Link>
             <Link
-              href="/ihj/create"
+              href="/ihj/solo"
               className="font-body"
               style={{
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
@@ -71,7 +71,7 @@ export default function IhjLandingPage() {
                 border: "2px solid var(--ring)", color: "var(--ink)", background: "var(--card)", textDecoration: "none",
               }}
             >
-              <Users size={16} /> {t.playMultiplayer}
+              <Zap size={16} /> {t.playSolo}
             </Link>
             <Link
               href="/ihj/join"

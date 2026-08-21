@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase, ensureUser, generateRoomCode } from "@/lib/supabase";
 import Blobs from "@/components/Blobs";
@@ -135,6 +136,14 @@ export default function CreateSession() {
         <button onClick={handleCreate} disabled={loading} className="btn-primary font-display" style={{ padding: 18, fontSize: 17, width: "100%" }}>
           {loading ? t.loading : t.create}
         </button>
+
+        <Link
+          href="/bidal"
+          className="font-body"
+          style={{ display: "block", textAlign: "center", marginTop: 16, padding: 10, fontSize: 13, fontWeight: 700, color: "var(--ink-soft)", textDecoration: "underline" }}
+        >
+          {"\u{1F3B2}"} لحالك؟ العب بدل الكلمة
+        </Link>
       </div>
     </div>
   );

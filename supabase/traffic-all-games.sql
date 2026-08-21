@@ -4,7 +4,8 @@
 -- IMPORTANT — what this can see:
 --
 -- Real sessions (queries 1-2 below): every game's MULTIPLAYER sessions —
--- فشلة، شوفة، مين بيتوظف، قصيدة، قصة، الِّفوا أغنية، إنسان حيوان جماد.
+-- فشلة، شوفة، مين بيتوظف، قصيدة، قصة، الِّفوا أغنية، إنسان حيوان جماد،
+-- مريض نفسي، المحتال، خرب السالفة.
 --
 -- بدل الكلمة is NOT in queries 1-2 anymore. It used to be — this file
 -- originally documented a bidal_sessions.mode split between 'solo' and
@@ -39,6 +40,12 @@ with all_sessions as (
   select 'lifoo',    id, code, status, (created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh from lifoo_sessions
   union all
   select 'ihj',      id, code, status, (created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh from ihj_sessions
+  union all
+  select 'mareed',   id, code, status, (created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh from mareed_sessions
+  union all
+  select 'imposter', id, code, status, (created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh from imposter_sessions
+  union all
+  select 'ruin_story', id, code, status, (created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh from ruin_story_sessions
 )
 select * from all_sessions
 order by created_at_riyadh desc;
@@ -60,6 +67,12 @@ with all_sessions as (
   select 'lifoo',    created_at from lifoo_sessions
   union all
   select 'ihj',      created_at from ihj_sessions
+  union all
+  select 'mareed',   created_at from mareed_sessions
+  union all
+  select 'imposter', created_at from imposter_sessions
+  union all
+  select 'ruin_story', created_at from ruin_story_sessions
 )
 select
   game,

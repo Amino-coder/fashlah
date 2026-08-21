@@ -43,6 +43,12 @@ with multiplayer as (
   select 'الِّفوا أغنية', status, created_at from lifoo_sessions where created_at >= ('2026-08-05'::date AT TIME ZONE 'Asia/Riyadh')
   union all
   select 'إنسان حيوان جماد', status, created_at from ihj_sessions where created_at >= ('2026-08-05'::date AT TIME ZONE 'Asia/Riyadh')
+  union all
+  select 'مريض نفسي', status, created_at from mareed_sessions where created_at >= ('2026-08-05'::date AT TIME ZONE 'Asia/Riyadh')
+  union all
+  select 'المحتال', status, created_at from imposter_sessions where created_at >= ('2026-08-05'::date AT TIME ZONE 'Asia/Riyadh')
+  union all
+  select 'خرب السالفة', status, created_at from ruin_story_sessions where created_at >= ('2026-08-05'::date AT TIME ZONE 'Asia/Riyadh')
 ),
 multiplayer_summary as (
   select

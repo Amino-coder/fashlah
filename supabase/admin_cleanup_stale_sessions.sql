@@ -63,7 +63,8 @@ declare
 begin
   foreach tbl in array array[
     'sessions', 'shofah_sessions', 'job_sessions', 'qaseeda_sessions',
-    'qissa_sessions', 'bidal_sessions', 'lifoo_sessions', 'ihj_sessions'
+    'qissa_sessions', 'bidal_sessions', 'lifoo_sessions', 'ihj_sessions',
+    'mareed_sessions', 'imposter_sessions', 'ruin_story_sessions'
   ]
   loop
     select pg_get_constraintdef(oid) ilike '%''cancelled''%'
@@ -184,6 +185,37 @@ begin
   set status = 'cancelled', ended_at = now()
   where status = 'in_progress'
     and coalesce(phase_started_at, started_at, created_at) < now() - interval '2 hours';
+
+  -- مريض نفسي
+  update mareed_sessions
+  set status = 'cancelled', ended_at = now()
+  where status = 'waiting' and created_at < now() - interval '3 hours';
+
+  update mareed_sessions
+  set status = 'cancelled', ended_at = now()
+  where status = 'in_progress'
+    and coalesce(phase_started_at, started_at, created_at) < now() - interval '2 hours';
+
+  -- المحتال (turn_started_at, not phase_started_at — its own column name)
+  update imposter_sessions
+  set status = 'cancelled', ended_at = now()
+  where status = 'waiting' and created_at < now() - interval '3 hours';
+
+  update imposter_sessions
+  set status = 'cancelled', ended_at = now()
+  where status = 'in_progress'
+    and coalesce(turn_started_at, started_at, created_at) < now() - interval '2 hours';
+
+  -- خرب السالفة (no dedicated phase timer column at all — just
+  -- created_at/started_at, same as فشلة/بدل الكلمة)
+  update ruin_story_sessions
+  set status = 'cancelled', ended_at = now()
+  where status = 'waiting' and created_at < now() - interval '3 hours';
+
+  update ruin_story_sessions
+  set status = 'cancelled', ended_at = now()
+  where status = 'in_progress'
+    and coalesce(started_at, created_at) < now() - interval '2 hours';
 end;
 $$;
 

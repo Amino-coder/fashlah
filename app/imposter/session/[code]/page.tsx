@@ -8,6 +8,7 @@ import HomeButton from "@/components/HomeButton";
 import LeaveGameButton from "@/components/LeaveGameButton";
 import ShareInvite from "@/components/ShareInvite";
 import SaveResult from "@/components/auth/SaveResult";
+import { trackPageEvent } from "@/lib/trackPageView";
 import { IMPOSTER_STR, ImposterLang } from "@/lib/imposter-i18n";
 import { usePrefs } from "@/lib/usePrefs";
 import type { ImposterSessionRow, ImposterPlayerRow, ImposterWordRow } from "@/lib/imposter-types";
@@ -548,9 +549,10 @@ function RevealAndResults({
         onClick={async () => {
           const text = [resultLine, "\u25AC".repeat(10), ar ? "جربوها مع شلتكم \u{1F447}" : "Try it with your friends \u{1F447}", window.location.origin].join("\n");
           if (typeof navigator !== "undefined" && navigator.share) {
-            try { await navigator.share({ text }); return; } catch { return; }
+            try { await navigator.share({ text }); trackPageEvent("imposter", "share_result_native"); return; } catch { return; }
           }
           window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+          trackPageEvent("imposter", "share_result_whatsapp");
         }}
         className="font-display"
         style={{
