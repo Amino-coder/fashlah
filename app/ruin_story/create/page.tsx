@@ -49,7 +49,7 @@ export default function RuinStoryCreatePage() {
       const { error: playerErr } = await supabase.from("ruin_story_players").insert({
         session_id: session.id,
         user_id: userId,
-        nickname: nickname || t.gameName,
+        nickname: nickname || (ar ? "اللاعب 1" : "Player 1"),
         avatar_emoji: emoji,
       });
       if (playerErr) throw playerErr;

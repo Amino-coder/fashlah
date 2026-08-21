@@ -26,6 +26,7 @@ export interface RuinStoryPlayerRow {
   nickname: string;
   avatar_emoji: string;
   score: number;
+  reshuffles_used: number;
   joined_at: string;
 }
 

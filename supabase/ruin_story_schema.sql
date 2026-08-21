@@ -72,6 +72,7 @@ create table ruin_story_players (
   nickname     text not null,
   avatar_emoji text default '\u{1F0CF}',
   score        int default 0,
+  reshuffles_used int default 0, -- see ruin_story_reshuffle_hand — max 2 per game, not per round
   joined_at    timestamptz default now(),
   unique (session_id, user_id)
 );
@@ -652,3 +653,58 @@ $$;
 
 revoke execute on function ruin_story_submit_answer(uuid, int, uuid, uuid) from public;
 grant execute on function ruin_story_submit_answer(uuid, int, uuid, uuid) to authenticated, anon;
+
+-- ----------------------------------------------------------------------------
+-- RESHUFFLE HAND — discards the player's whole current hand and deals 6
+-- fresh cards via ruin_story_deal_to_player, up to 2 times per game
+-- (the limit lives on the player row, not per-round). Blocked once
+-- they've already submitted this round or the phase has moved on.
+-- ----------------------------------------------------------------------------
+create or replace function ruin_story_reshuffle_hand(p_player_id uuid)
+returns jsonb
+language plpgsql
+security definer
+as $$
+declare
+  v_session_id uuid;
+  v_adult boolean;
+  v_reshuffles int;
+  v_round int;
+  v_phase text;
+  v_already_answered boolean;
+begin
+  if not exists (select 1 from ruin_story_players where id = p_player_id and user_id = auth.uid()) then
+    return jsonb_build_object('error', 'Not your player');
+  end if;
+
+  select p.session_id, p.reshuffles_used, s.adult_mode, s.round_number, s.phase
+  into v_session_id, v_reshuffles, v_adult, v_round, v_phase
+  from ruin_story_players p join ruin_story_sessions s on s.id = p.session_id
+  where p.id = p_player_id
+  for update of p;
+
+  if v_phase <> 'answering' then
+    return jsonb_build_object('error', 'Can only reshuffle during the answering phase');
+  end if;
+  if v_reshuffles >= 2 then
+    return jsonb_build_object('error', 'No reshuffles left');
+  end if;
+
+  select exists (
+    select 1 from ruin_story_answers where session_id = v_session_id and round_number = v_round and player_id = p_player_id
+  ) into v_already_answered;
+  if v_already_answered then
+    return jsonb_build_object('error', 'Already submitted this round');
+  end if;
+
+  update ruin_story_hands set used = true where player_id = p_player_id and used = false;
+  update ruin_story_players set reshuffles_used = reshuffles_used + 1 where id = p_player_id;
+
+  perform ruin_story_deal_to_player(v_session_id, p_player_id, v_adult);
+
+  return jsonb_build_object('ok', true, 'reshuffles_left', 2 - (v_reshuffles + 1));
+end;
+$$;
+
+revoke execute on function ruin_story_reshuffle_hand(uuid) from public;
+grant execute on function ruin_story_reshuffle_hand(uuid) to authenticated, anon;

@@ -204,6 +204,23 @@ export default function RuinStorySessionPage() {
     // phase — same any-client-can-advance reasoning as everywhere else.
   }
 
+  const [reshuffling, setReshuffling] = useState(false);
+  async function handleReshuffle() {
+    if (!myPlayer || reshuffling || myAnswerCardId) return;
+    setReshuffling(true);
+    try {
+      const { data } = await supabase.rpc("ruin_story_reshuffle_hand", { p_player_id: myPlayer.id });
+      if (data?.ok) {
+        setSelectedCardId(null);
+        // Hand refreshes via the existing ruin_story_hands realtime
+        // subscription — nothing extra to fetch here. reshuffles_used
+        // itself comes back through the players-table subscription too.
+      }
+    } finally {
+      setReshuffling(false);
+    }
+  }
+
   // answering → judging, once the submitted count reaches
   // everyone-but-the-judge. Realtime-driven (reacts to
   // session.answers_submitted_count changing) PLUS a polling fallback —
@@ -404,6 +421,20 @@ export default function RuinStorySessionPage() {
                 >
                   {t.pickThis}
                 </button>
+                {myPlayer && myPlayer.reshuffles_used < 2 && (
+                  <button
+                    onClick={handleReshuffle}
+                    disabled={reshuffling}
+                    className="font-body"
+                    style={{
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%", marginTop: 10,
+                      padding: 12, fontSize: 12.5, fontWeight: 800, borderRadius: 999, border: "2px solid var(--ring)",
+                      color: "var(--ink-soft)", background: "transparent", opacity: reshuffling ? 0.6 : 1,
+                    }}
+                  >
+                    {"\u{1F500}"} {ar ? `بدل الأوراق (باقي ${2 - myPlayer.reshuffles_used})` : `Reshuffle (${2 - myPlayer.reshuffles_used} left)`}
+                  </button>
+                )}
               </>
             )}
 
@@ -435,11 +466,27 @@ export default function RuinStorySessionPage() {
                 </div>
               </>
             ) : (
-              <div className="card" style={{ padding: 24, textAlign: "center", marginTop: 16 }}>
-                <p className="font-display" style={{ fontSize: 17, fontWeight: 800 }}>
-                  {judgePlayer?.nickname || ""} {t.othersJudge}
-                </p>
-              </div>
+              <>
+                <div className="card" style={{ padding: 24, textAlign: "center", marginTop: 16, marginBottom: 16 }}>
+                  <p className="font-display" style={{ fontSize: 17, fontWeight: 800 }}>
+                    {judgePlayer?.nickname || ""} {t.othersJudge}
+                  </p>
+                </div>
+                {/* Same anonymous list the judge sees — no names here
+                    either, just for everyone else to follow along while
+                    they wait, not to pick from. */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {judgingAnswers.map((a) => (
+                    <div
+                      key={a.id}
+                      className="card"
+                      style={{ padding: 16, textAlign: "start", border: "2px solid var(--ring)", opacity: 0.75 }}
+                    >
+                      <span className="font-body" style={{ fontSize: 14, fontWeight: 700 }}>{a.card.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         )}

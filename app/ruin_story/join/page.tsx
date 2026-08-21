@@ -21,6 +21,7 @@ export default function RuinStoryJoinPage() {
 function RuinStoryJoin() {
   const { lang, dark, ready } = usePrefs();
   const t = RUIN_STORY_STR[lang as RuinStoryLang];
+  const ar = lang === "ar";
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -51,8 +52,14 @@ function RuinStoryJoin() {
         .single();
       if (sessErr || !session) throw new Error(t.errorGeneric);
 
+      const { count } = await supabase
+        .from("ruin_story_players")
+        .select("id", { count: "exact", head: true })
+        .eq("session_id", session.id);
+      const defaultNickname = ar ? `اللاعب ${(count ?? 0) + 1}` : `Player ${(count ?? 0) + 1}`;
+
       const { error: playerErr } = await supabase.from("ruin_story_players").upsert(
-        { session_id: session.id, user_id: userId, nickname: nickname || t.gameName, avatar_emoji: emoji },
+        { session_id: session.id, user_id: userId, nickname: nickname || defaultNickname, avatar_emoji: emoji },
         { onConflict: "session_id,user_id" }
       );
       if (playerErr) throw playerErr;
