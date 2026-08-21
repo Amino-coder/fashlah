@@ -13,6 +13,7 @@ export interface RuinStorySessionRow {
   black_card_id: string | null;
   used_black_card_ids: string[];
   adult_mode: boolean;
+  answers_submitted_count: number;
   created_at: string;
   started_at: string | null;
   ended_at: string | null;

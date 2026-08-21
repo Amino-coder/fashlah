@@ -51,7 +51,6 @@ export default function RuinStorySessionPage() {
   const [blackCard, setBlackCard] = useState<RuinStoryBlackCardRow | null>(null);
   const [myHand, setMyHand] = useState<(RuinStoryHandRow & { card: RuinStoryWhiteCardRow })[]>([]);
   const [myAnswerCardId, setMyAnswerCardId] = useState<string | null>(null);
-  const [submittedCount, setSubmittedCount] = useState(0);
   const [judgingAnswers, setJudgingAnswers] = useState<(RuinStoryAnswerPublicRow & { card: RuinStoryWhiteCardRow })[]>([]);
   const [roundResult, setRoundResult] = useState<RuinStoryRoundResultRow | null>(null);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
@@ -97,14 +96,6 @@ export default function RuinStorySessionPage() {
     setMyAnswerCardId(data?.card_id ?? null);
   }, []);
 
-  const loadSubmittedCount = useCallback(async (sessionId: string, roundNumber: number) => {
-    const { count } = await supabase
-      .from("ruin_story_answers_public")
-      .select("id", { count: "exact", head: true })
-      .eq("session_id", sessionId).eq("round_number", roundNumber);
-    setSubmittedCount(count ?? 0);
-  }, []);
-
   const loadJudgingAnswers = useCallback(async (sessionId: string, roundNumber: number) => {
     const { data } = await supabase
       .from("ruin_story_answers_public")
@@ -130,14 +121,14 @@ export default function RuinStorySessionPage() {
     if (!p) return;
 
     if (s.status === "in_progress" && s.phase === "answering") {
-      await Promise.all([loadMyHand(s.id, p.id), loadMyAnswer(s.id, p.id, s.round_number), loadSubmittedCount(s.id, s.round_number)]);
+      await Promise.all([loadMyHand(s.id, p.id), loadMyAnswer(s.id, p.id, s.round_number)]);
     } else if (s.phase === "judging") {
       await loadJudgingAnswers(s.id, s.round_number);
     } else if (s.phase === "reveal") {
       const resultRound = s.status === "completed" ? 6 : s.round_number - 1;
       await Promise.all([loadRoundResult(s.id, resultRound), loadMyHand(s.id, p.id)]);
     }
-  }, [myUserId, loadCore, loadMyHand, loadMyAnswer, loadSubmittedCount, loadJudgingAnswers, loadRoundResult]);
+  }, [myUserId, loadCore, loadMyHand, loadMyAnswer, loadJudgingAnswers, loadRoundResult]);
 
   useEffect(() => {
     (async () => {
@@ -186,23 +177,30 @@ export default function RuinStorySessionPage() {
   async function handleSubmit() {
     if (!session || !myPlayer || !selectedCardId || myAnswerCardId) return;
     setMyAnswerCardId(selectedCardId); // optimistic — reverted below on failure
-    const { error: insErr } = await supabase.from("ruin_story_answers").insert({
-      session_id: session.id, round_number: session.round_number, player_id: myPlayer.id, card_id: selectedCardId,
+    const { data, error: rpcErr } = await supabase.rpc("ruin_story_submit_answer", {
+      p_session_id: session.id, p_round_number: session.round_number, p_player_id: myPlayer.id, p_card_id: selectedCardId,
     });
-    if (insErr) { setMyAnswerCardId(null); return; }
-
-    // Any client, once everyone-but-the-judge has submitted, flips the
-    // phase — a guarded update so a race between multiple clients
-    // noticing this at once only actually flips it once.
-    const nonJudgeCount = players.filter((p) => p.id !== session.judge_player_id).length;
-    const { count } = await supabase
-      .from("ruin_story_answers_public")
-      .select("id", { count: "exact", head: true })
-      .eq("session_id", session.id).eq("round_number", session.round_number);
-    if ((count ?? 0) >= nonJudgeCount) {
-      await supabase.from("ruin_story_sessions").update({ phase: "judging" }).eq("id", session.id).eq("phase", "answering");
-    }
+    if (rpcErr || data?.error) setMyAnswerCardId(null);
+    // No manual re-count or phase-flip here — see the effect below,
+    // which reacts to session.answers_submitted_count once the RPC's
+    // own update to that column arrives back over this client's
+    // existing session-table realtime subscription. Every connected
+    // client runs the same effect, so whichever one's subscription
+    // delivers the update first is the one that actually flips the
+    // phase — same any-client-can-advance reasoning as everywhere else.
   }
+
+  // answering → judging, once the (now correctly realtime-synced)
+  // submitted count reaches everyone-but-the-judge. Guarded on
+  // phase='answering' so a race between multiple clients noticing this
+  // at once only actually flips it once.
+  useEffect(() => {
+    if (!session || session.status !== "in_progress" || session.phase !== "answering") return;
+    const nonJudgeCount = players.filter((p) => p.id !== session.judge_player_id).length;
+    if (nonJudgeCount > 0 && session.answers_submitted_count >= nonJudgeCount) {
+      supabase.from("ruin_story_sessions").update({ phase: "judging" }).eq("id", session.id).eq("phase", "answering");
+    }
+  }, [session?.answers_submitted_count, session?.status, session?.phase, session?.id, session?.judge_player_id, players]);
 
   async function handleJudgePick(cardId: string) {
     if (!session || judging) return;
@@ -314,7 +312,7 @@ export default function RuinStorySessionPage() {
               <div className="card" style={{ padding: 24, textAlign: "center", marginTop: 16 }}>
                 <p className="font-display" style={{ fontSize: 18, fontWeight: 800, color: GOLD, marginBottom: 8 }}>{t.youAreJudge}</p>
                 <p className="font-body" style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
-                  {submittedCount}/{players.length - 1} {ar ? "جاوبوا" : "answered"}
+                  {session.answers_submitted_count}/{players.length - 1} {ar ? "جاوبوا" : "answered"}
                 </p>
               </div>
             ) : myAnswerCardId ? (

@@ -36,6 +36,7 @@ create table ruin_story_sessions (
   black_card_id     uuid,  -- FK added below, once ruin_story_black_cards exists
   used_black_card_ids uuid[] default '{}',
   adult_mode        boolean default false, -- بدون فلتر, opt-in at creation
+  answers_submitted_count int default 0, -- see ruin_story_submit_answer — routes the "someone submitted" signal through this openly-readable table since ruin_story_answers' RLS blocks realtime delivery for other players' rows
   created_at        timestamptz default now(),
   started_at        timestamptz,
   ended_at          timestamptz
@@ -296,6 +297,7 @@ begin
       used_black_card_ids = array_append(v_used_black, v_black_id),
       phase = 'answering',
       status = 'in_progress',
+      answers_submitted_count = 0,
       started_at = coalesce(started_at, now())
   where id = p_session_id;
 
@@ -396,7 +398,8 @@ begin
         round_number = v_round + 1,
         black_card_id = v_next_black,
         judge_player_id = v_next_judge,
-        used_black_card_ids = array_append(v_used_black, v_next_black)
+        used_black_card_ids = array_append(v_used_black, v_next_black),
+        answers_submitted_count = 0
     where id = p_session_id;
 
     for v_player in select id from ruin_story_players where session_id = p_session_id loop
@@ -611,3 +614,41 @@ insert into ruin_story_white_cards (text, category) values
 ('شخص يقول «أي شيء يناسبكم» ثم يرفض كل الاقتراحات', 'food'),
 ('واحد يطلب نفس طلبك لأنه «شكله حلو»', 'food'),
 ('خويك اللي يراجع تقييم المطعم قبل لا يجلس', 'food');
+
+-- ----------------------------------------------------------------------------
+-- SUBMIT ANSWER — inserts the answer and atomically bumps
+-- answers_submitted_count on the session row in one transaction, so the
+-- count can never drift out of sync with the real number of answers.
+-- Routes the "someone submitted" signal through ruin_story_sessions
+-- (openly readable, already realtime-subscribed by every client)
+-- instead of relying on realtime for ruin_story_answers itself — that
+-- table's SELECT policy only permits reading your own row (for
+-- anonymity), and Supabase Realtime respects RLS, so a client never
+-- receives a change notification for a row it isn't allowed to SELECT.
+-- security definer, but checks p_player_id genuinely belongs to the
+-- caller first, since it bypasses RLS internally.
+-- ----------------------------------------------------------------------------
+create or replace function ruin_story_submit_answer(p_session_id uuid, p_round_number int, p_player_id uuid, p_card_id uuid)
+returns jsonb
+language plpgsql
+security definer
+as $$
+begin
+  if not exists (select 1 from ruin_story_players where id = p_player_id and user_id = auth.uid()) then
+    return jsonb_build_object('error', 'Not your player');
+  end if;
+
+  insert into ruin_story_answers (session_id, round_number, player_id, card_id)
+  values (p_session_id, p_round_number, p_player_id, p_card_id)
+  on conflict (session_id, round_number, player_id) do nothing;
+
+  update ruin_story_sessions
+  set answers_submitted_count = answers_submitted_count + 1
+  where id = p_session_id;
+
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+revoke execute on function ruin_story_submit_answer(uuid, int, uuid, uuid) from public;
+grant execute on function ruin_story_submit_answer(uuid, int, uuid, uuid) to authenticated, anon;
