@@ -453,6 +453,7 @@ export default function RuinStorySessionPage() {
             sortedByScore={sortedByScore}
             t={t}
             ar={ar}
+            isHost={isHost}
             onPlayAgainSameRoom={handlePlayAgainSameRoom}
           />
         )}
@@ -491,7 +492,7 @@ function PlayerStatusStrip({ session, players }: { session: RuinStorySessionRow;
 }
 
 function RevealScreen({
-  session, players, roundResult, sortedByScore, t, ar, onPlayAgainSameRoom,
+  session, players, roundResult, sortedByScore, t, ar, isHost, onPlayAgainSameRoom,
 }: {
   session: RuinStorySessionRow;
   players: RuinStoryPlayerRow[];
@@ -499,9 +500,11 @@ function RevealScreen({
   sortedByScore: RuinStoryPlayerRow[];
   t: Record<string, string>;
   ar: boolean;
+  isHost: boolean;
   onPlayAgainSameRoom: () => void;
 }) {
   const [cardText, setCardText] = useState<string>("");
+  const [advancing, setAdvancing] = useState(false);
   const winner = players.find((p) => p.id === roundResult.winning_player_id);
   const isGameOver = session.status === "completed";
 
@@ -509,6 +512,20 @@ function RevealScreen({
     supabase.from("ruin_story_white_cards").select("text").eq("id", roundResult.winning_card_id).maybeSingle()
       .then(({ data }) => setCardText(data?.text || ""));
   }, [roundResult.winning_card_id]);
+
+  // Manual fallback for the automatic reveal→answering transition,
+  // which has been unreliable — same update the automatic polling
+  // already attempts (phase='reveal' guard included), just triggered by
+  // a tap instead of waiting on a timer. Host-only, matching the same
+  // pattern as the clue-phase "انتقل للتصويت" override in المحتال: a
+  // visible, deliberate manual control for exactly the case where
+  // normal automatic progression doesn't happen on its own.
+  async function handleNextRound() {
+    if (advancing) return;
+    setAdvancing(true);
+    await supabase.from("ruin_story_sessions").update({ phase: "answering" }).eq("id", session.id).eq("phase", "reveal");
+    setAdvancing(false);
+  }
 
   if (!isGameOver) {
     return (
@@ -518,7 +535,7 @@ function RevealScreen({
           <p className="font-display" style={{ fontSize: 18, fontWeight: 800, marginBottom: 6 }}>{winner?.avatar_emoji} {winner?.nickname}</p>
           <p className="font-body" style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-soft)" }}>{cardText}</p>
         </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: isHost ? 20 : 0 }}>
           {sortedByScore.map((p) => (
             <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 999, background: "var(--ring)" }}>
               <span>{p.avatar_emoji}</span>
@@ -526,6 +543,20 @@ function RevealScreen({
             </div>
           ))}
         </div>
+        {isHost && (
+          <button
+            onClick={handleNextRound}
+            disabled={advancing}
+            className="font-display"
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%",
+              padding: 15, fontSize: 14, borderRadius: 999, border: "none", color: "#fff",
+              background: `linear-gradient(135deg, ${CRIMSON}, #C9302C)`, opacity: advancing ? 0.6 : 1,
+            }}
+          >
+            {advancing ? t.loading : (ar ? "الجولة التالية \u2192" : "Next Round \u2192")}
+          </button>
+        )}
       </div>
     );
   }
