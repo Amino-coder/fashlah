@@ -261,16 +261,32 @@ export default function RuinStorySessionPage() {
   }
 
   // reveal → answering, after a brief pause, only if the game isn't
-  // actually over. Any client can flip this; the guarded WHERE clause
-  // (phase='reveal' specifically) keeps a race from double-firing.
-  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // actually over. A repeating interval check rather than a single
+  // setTimeout — the same "belt and suspenders" reasoning as the
+  // answering→judging polling fallback above: a one-shot timer has more
+  // ways to silently never fire (a missed cleanup edge case, a tab
+  // backgrounding and the browser throttling/dropping the timer, etc.)
+  // than a check that just keeps re-verifying every second until it
+  // succeeds. Any client can flip this; the guarded WHERE clause
+  // (phase='reveal' specifically) keeps a race between multiple
+  // clients' checks from double-firing.
+  const revealEnteredAtRef = useRef<number | null>(null);
   useEffect(() => {
     if (session?.status === "in_progress" && session?.phase === "reveal") {
-      revealTimerRef.current = setTimeout(() => {
-        supabase.from("ruin_story_sessions").update({ phase: "answering" }).eq("id", session.id).eq("phase", "reveal");
-      }, REVEAL_PAUSE_MS);
+      if (revealEnteredAtRef.current === null) revealEnteredAtRef.current = Date.now();
+    } else {
+      revealEnteredAtRef.current = null;
     }
-    return () => { if (revealTimerRef.current) clearTimeout(revealTimerRef.current); };
+  }, [session?.status, session?.phase]);
+
+  useEffect(() => {
+    if (session?.status !== "in_progress" || session?.phase !== "reveal") return;
+    const id = setInterval(() => {
+      if (revealEnteredAtRef.current !== null && Date.now() - revealEnteredAtRef.current >= REVEAL_PAUSE_MS) {
+        supabase.from("ruin_story_sessions").update({ phase: "answering" }).eq("id", session.id).eq("phase", "reveal");
+      }
+    }, 1000);
+    return () => clearInterval(id);
   }, [session?.status, session?.phase, session?.id]);
 
   async function handlePlayAgainSameRoom() {
