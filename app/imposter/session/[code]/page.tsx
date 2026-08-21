@@ -118,23 +118,40 @@ export default function ImposterSessionPage() {
   // whichever update lands first changes turn_player_id, so the second
   // one's WHERE clause no longer matches anything and silently no-ops. ----
   const advancingRef = useRef(false);
-  const advanceTurn = useCallback(async () => {
+  const advanceTurn = useCallback(async (isManualClick: boolean) => {
     if (!session || advancingRef.current) return;
     advancingRef.current = true;
     try {
-      // Re-fetch the current turn_player_id fresh rather than trusting
-      // this closure's `session` state — if a tap happens right as a
-      // realtime update is still propagating to this client, the local
-      // `session.turn_player_id` could be one step behind the real
-      // database value, making the guard below silently match zero
-      // rows (no error, just no effect) — exactly the "تم does nothing,
-      // only the timer eventually works" symptom, since by the time the
-      // timer fires, local state has had time to catch up on its own.
-      const { data: fresh } = await supabase.from("imposter_sessions").select("turn_player_id").eq("id", session.id).maybeSingle();
-      const currentTurnPlayerId = fresh?.turn_player_id ?? session.turn_player_id;
+      // Re-fetch fresh rather than trusting this closure's `session`
+      // state — if a tap happens right as a realtime update is still
+      // propagating to this client, local state could be one step
+      // behind the real database value.
+      const { data: fresh } = await supabase.from("imposter_sessions").select("turn_player_id, turn_started_at").eq("id", session.id).maybeSingle();
+      if (!fresh) return;
+
+      // THE ACTUAL FIX for both "skips a player" and "تم only works for
+      // the host": every device independently watches its own clock and
+      // fires this same timeout check. If one device's clock notices
+      // the 20s expiry a little late, the fresh-fetch above means it
+      // correctly sees whatever turn is CURRENTLY active — but without
+      // this check, it would blindly advance that too, even if a
+      // DIFFERENT device already correctly advanced the turn moments
+      // earlier and the new turn has barely started. That's the double
+      // -advance that skips a player. It also explains "تم doesn't work
+      // for non-host": a real player's legitimate click loses this same
+      // race — the turn already moved on underneath them by the time
+      // their own update's guard evaluates, so it silently matches zero
+      // rows. A manual click is always honored immediately, regardless
+      // of elapsed time — only a timeout-triggered call needs this
+      // extra verification, since only that path can fire based on a
+      // stale/wrong belief that time is up.
+      if (!isManualClick) {
+        const elapsed = (Date.now() - new Date(fresh.turn_started_at).getTime()) / 1000;
+        if (elapsed < TURN_SECONDS - 0.5) return; // this device's timer fired on stale state — the real turn hasn't actually expired
+      }
 
       const order = sortedPlayers.map((p) => p.id);
-      const idx = order.indexOf(currentTurnPlayerId || "");
+      const idx = order.indexOf(fresh.turn_player_id || "");
       const nextId = idx >= 0 && idx < order.length - 1 ? order[idx + 1] : null;
 
       if (nextId) {
@@ -142,13 +159,13 @@ export default function ImposterSessionPage() {
           .from("imposter_sessions")
           .update({ turn_player_id: nextId, turn_started_at: new Date().toISOString() })
           .eq("id", session.id)
-          .eq("turn_player_id", currentTurnPlayerId);
+          .eq("turn_player_id", fresh.turn_player_id);
       } else {
         await supabase
           .from("imposter_sessions")
           .update({ phase: "voting" })
           .eq("id", session.id)
-          .eq("turn_player_id", currentTurnPlayerId);
+          .eq("turn_player_id", fresh.turn_player_id);
       }
     } finally {
       advancingRef.current = false;
@@ -175,7 +192,7 @@ export default function ImposterSessionPage() {
 
   useEffect(() => {
     if (session?.status === "in_progress" && session?.phase === "clue" && remaining <= 0) {
-      advanceTurn();
+      advanceTurn(false);
     }
   }, [remaining, session?.status, session?.phase, advanceTurn]);
 
@@ -387,7 +404,7 @@ export default function ImposterSessionPage() {
                   {isImposter ? t.imposterHint : t.giveClueHint}
                 </p>
                 <button
-                  onClick={advanceTurn}
+                  onClick={() => advanceTurn(true)}
                   className="font-display"
                   style={{
                     width: "100%", padding: 16, fontSize: 16, borderRadius: 999, border: "none",
