@@ -12,6 +12,7 @@ export interface ImposterSessionRow {
   word_id: string | null;
   imposter_player_id: string | null;
   turn_player_id: string | null;
+  turns_taken: number;
   turn_started_at: string | null;
   used_word_ids: string[];
   created_at: string;

@@ -2,8 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 /**
- * Advances the clue-phase turn to the next player (or into voting if
- * the current player was last), or verifies+advances a timeout.
+ * Advances the clue-phase turn — normally to the next player, wrapping
+ * back to the first once everyone's had a turn, since each player now
+ * gets TWO clue-turns per round before voting starts automatically
+ * (turns_taken tracks total individual turns given so far this round,
+ * across both passes — not position within a single lap). The host's
+ * "انتقل للتصويت" button is a completely separate, unconditional path
+ * (see handleHostSkipToVoting in the session page) and keeps working at
+ * any point regardless of turns_taken, exactly as before.
  *
  * Runs via the service-role client, deliberately — this used to be a
  * direct client-side update gated by imposter_sessions' player-update
@@ -28,7 +34,7 @@ export async function POST(req: NextRequest) {
     // one network round-trip removed from the critical path for the
     // common case (a normal manual click), not just the RLS change.
     const [{ data: session, error: sessErr }, { data: players, error: playersErr }] = await Promise.all([
-      admin.from("imposter_sessions").select("turn_player_id, turn_started_at, status, phase").eq("id", sessionId).maybeSingle(),
+      admin.from("imposter_sessions").select("turn_player_id, turn_started_at, turns_taken, status, phase").eq("id", sessionId).maybeSingle(),
       admin.from("imposter_players").select("id, turn_order").eq("session_id", sessionId).order("turn_order", { ascending: true }),
     ]);
     if (sessErr) throw sessErr;
@@ -53,24 +59,33 @@ export async function POST(req: NextRequest) {
     }
 
     const order = (players || []).map((p) => p.id);
-    const idx = order.indexOf(session.turn_player_id || "");
-    const nextId = idx >= 0 && idx < order.length - 1 ? order[idx + 1] : null;
+    if (order.length === 0) return NextResponse.json({ ok: true, skipped: "no players" });
 
-    if (nextId) {
+    const newTurnsTaken = (session.turns_taken ?? 0) + 1;
+    const totalTurnsNeeded = order.length * 2;
+
+    if (newTurnsTaken >= totalTurnsNeeded) {
+      // Everyone's had their second turn — move to voting, same as the
+      // host's manual override would, just triggered automatically.
       const { error: updErr } = await admin
         .from("imposter_sessions")
-        .update({ turn_player_id: nextId, turn_started_at: new Date().toISOString() })
+        .update({ phase: "voting", turns_taken: newTurnsTaken })
         .eq("id", sessionId)
         .eq("turn_player_id", session.turn_player_id);
       if (updErr) throw updErr;
-    } else {
-      const { error: updErr } = await admin
-        .from("imposter_sessions")
-        .update({ phase: "voting" })
-        .eq("id", sessionId)
-        .eq("turn_player_id", session.turn_player_id);
-      if (updErr) throw updErr;
+      return NextResponse.json({ ok: true, next_player_id: null });
     }
+
+    // Cyclic, not linear — order[turnsTaken % playerCount] naturally
+    // wraps back to the first player once the first pass is done,
+    // which is the whole mechanism behind "everyone goes twice."
+    const nextId = order[newTurnsTaken % order.length];
+    const { error: updErr } = await admin
+      .from("imposter_sessions")
+      .update({ turn_player_id: nextId, turn_started_at: new Date().toISOString(), turns_taken: newTurnsTaken })
+      .eq("id", sessionId)
+      .eq("turn_player_id", session.turn_player_id);
+    if (updErr) throw updErr;
 
     return NextResponse.json({ ok: true, next_player_id: nextId });
   } catch (e: any) {

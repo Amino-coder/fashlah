@@ -27,6 +27,7 @@ create table imposter_sessions (
   imposter_player_id uuid, -- references imposter_players(id), added as a real FK once that table exists below
   turn_player_id    uuid,  -- whose turn it currently is during the clue phase
   turn_started_at   timestamptz,
+  turns_taken       int default 0,  -- individual clue-turns given so far this round — voting auto-starts once this reaches 2x player count, unless the host ends it early
   used_word_ids     uuid[] default '{}', -- words already used THIS session (across replays) — the actual "don't repeat until exhausted" guarantee
   created_at        timestamptz default now(),
   started_at        timestamptz,
@@ -274,6 +275,7 @@ begin
       imposter_player_id = v_imposter_id,
       turn_player_id = v_first_player_id,
       turn_started_at = now(),
+      turns_taken = 0,
       used_word_ids = array_append(v_used_words, v_word_id),
       phase = 'reveal_word',
       status = 'in_progress',
