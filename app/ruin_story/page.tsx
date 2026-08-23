@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Users } from "lucide-react";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
+import { HelpButton } from "@/components/HowToPlay";
 import { RuinStoryArt } from "@/components/art/GameArt";
 import { RUIN_STORY_STR, RuinStoryLang } from "@/lib/ruin-story-i18n";
 import { usePrefs } from "@/lib/usePrefs";
@@ -20,6 +21,9 @@ export default function RuinStoryLandingPage() {
     <div dir={t.dir} className={dark ? "dark" : ""} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
       <Blobs />
       <HomeButton label={t.backHome} />
+      <div style={{ position: "fixed", top: 24, insetInlineEnd: 24, zIndex: 45 }}>
+        <HelpButton game="ruin_story" lang={lang} />
+      </div>
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
         <div className="screen-enter" style={{ textAlign: "center", marginTop: 40 }}>
           <div style={{ position: "relative", width: 140, height: 140, borderRadius: 30, overflow: "hidden", border: "3px solid var(--icon-outline)", boxShadow: "5px 5px 0 var(--icon-outline)", margin: "0 auto 20px" }}>

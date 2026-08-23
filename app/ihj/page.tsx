@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Users, Zap } from "lucide-react";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
+import { HelpButton } from "@/components/HowToPlay";
 import { usePrefs } from "@/lib/usePrefs";
 import { IHJ_STR, IhjLang } from "@/lib/ihj-i18n";
 import { IHJ_CATEGORIES } from "@/lib/ihj-categories";
@@ -21,6 +22,9 @@ export default function IhjLandingPage() {
     <div dir={t.dir} className={dark ? "dark" : ""} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
       <Blobs />
       <HomeButton label={t.backHome} href="/" />
+      <div style={{ position: "fixed", top: 24, insetInlineEnd: 24, zIndex: 45 }}>
+        <HelpButton game="ihj" lang={lang} />
+      </div>
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
         <div className="screen-enter" style={{ textAlign: "center", marginTop: 60 }}>
           <div

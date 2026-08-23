@@ -2,6 +2,7 @@
 
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
+import { HelpButton } from "@/components/HowToPlay";
 import Link from "next/link";
 import { Zap } from "lucide-react";
 import { usePrefs } from "@/lib/usePrefs";
@@ -31,6 +32,9 @@ function BidalLandingContent() {
     <div dir={t.dir} className={dark ? "dark" : ""} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
       <Blobs />
       <HomeButton label={t.backHome} href="/" />
+      <div style={{ position: "fixed", top: 24, insetInlineEnd: 24, zIndex: 45 }}>
+        <HelpButton game="bidal" lang={lang} />
+      </div>
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
         <div className="screen-enter" style={{ textAlign: "center", marginTop: 70 }}>
           <div

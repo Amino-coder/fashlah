@@ -15,7 +15,7 @@ import type { Lang } from "@/lib/i18n";
  * from memory.
  */
 
-export type GameKey = "fashlah" | "shofah" | "job" | "qaseeda" | "qissa" | "lifoo" | "mareed";
+export type GameKey = "fashlah" | "shofah" | "job" | "qaseeda" | "qissa" | "lifoo" | "mareed" | "bidal" | "ihj" | "wadak" | "ruin_story";
 
 type Step = { icon: string; title: string; body: string };
 type Content = { title: string; tagline: string; steps: Step[]; footer: string };
@@ -215,6 +215,106 @@ const CONTENT: Record<GameKey, Record<Lang, Content>> = {
       footer: "The weirdest answers usually win 👀",
     },
   },
+  bidal: {
+    ar: {
+      title: "كيف تلعب بدل الكلمة؟",
+      tagline: "بدّل حرف، كوّن كلمة جديدة، وخلّص حروفك 🔤",
+      steps: [
+        { icon: "🔤", title: "كلمة البداية", body: "تبدأ بكلمة من ٣ حروف، وعندك ١٥ حرف تحت إيدك." },
+        { icon: "👆", title: "بدّل حرف", body: "اختر حرف من حروفك وحطه مكان أي حرف في الكلمة الحالية." },
+        { icon: "✅", title: "كلمة صح بس", body: "لازم تكوّن كلمة عربية حقيقية، وإلا ما بتنقبل." },
+        { icon: "🔁", title: "كمّل", body: "كل بدلة تستخدم حرف من حروفك وتكوّن كلمة جديدة — كمّل بأكبر عدد ممكن." },
+        { icon: "🏆", title: "الهدف", body: "خلّص كل حروفك الـ١٥ قبل ما ينتهي وقتك." },
+      ],
+      footer: "فكر بالحرف قبل لا تحطه — بعض البدلات توقفك بسرعة 😅",
+    },
+    en: {
+      title: "How to play Word Swap",
+      tagline: "Swap a letter, form a new word, empty your hand 🔤",
+      steps: [
+        { icon: "🔤", title: "Starting word", body: "You begin with a 3-letter word, and 15 letters in your hand." },
+        { icon: "👆", title: "Swap a letter", body: "Pick a letter from your hand and place it over any letter in the current word." },
+        { icon: "✅", title: "Real words only", body: "It has to form an actual Arabic word, or the swap won't go through." },
+        { icon: "🔁", title: "Keep going", body: "Every swap uses one of your letters and makes a new word — chain as many as you can." },
+        { icon: "🏆", title: "The goal", body: "Empty all 15 letters from your hand before time runs out." },
+      ],
+      footer: "Think before you swap — some moves box you in fast 😅",
+    },
+  },
+  ihj: {
+    ar: {
+      title: "كيف تلعبون إنسان حيوان جماد؟",
+      tagline: "حرف واحد، خمس فئات، ومين أسرع بالكتابة 🧠",
+      steps: [
+        { icon: "🎲", title: "حرف عشوائي", body: "كل جولة يطلع لكم حرف تبدأ فيه إجاباتكم." },
+        { icon: "📋", title: "٥ فئات", body: "إنسان، حيوان، جماد، نبات، بلاد — جاوبوا على كل وحدة بكلمة تبدأ بنفس الحرف." },
+        { icon: "⏱️", title: "الوقت يجري", body: "كل اللاعبين يجاوبون بنفس الوقت، وين ما وصلتوا يُحسب." },
+        { icon: "🏆", title: "التسجيل", body: "إجابة ما حد كتبها غيرك = ١٠ نقاط. إجابة مشتركة مع غيرك = ٥ نقاط لكل واحد." },
+      ],
+      footer: "الإجابات النادرة هي اللي تفرق 👀",
+    },
+    en: {
+      title: "How to play Categories",
+      tagline: "One letter, five categories, whoever's fastest 🧠",
+      steps: [
+        { icon: "🎲", title: "A random letter", body: "Each round gives you a letter your answers need to start with." },
+        { icon: "📋", title: "5 categories", body: "Person, animal, object, plant, country — answer each with a word starting with that letter." },
+        { icon: "⏱️", title: "Time's ticking", body: "Everyone answers at the same time — whatever you've filled in when it ends counts." },
+        { icon: "🏆", title: "Scoring", body: "An answer nobody else wrote = 10 points. An answer shared with someone else = 5 points each." },
+      ],
+      footer: "The rare answers are what set you apart 👀",
+    },
+  },
+  wadak: {
+    ar: {
+      title: "كيف تلعب وش شخصيتك؟",
+      tagline: "جاوب على الأسئلة، واكتشف شخصيتك الحقيقية 🧠",
+      steps: [
+        { icon: "❓", title: "أسئلة سريعة", body: "بتجاوب على مجموعة أسئلة عن تصرفاتك وردود أفعالك." },
+        { icon: "🎯", title: "كل إجابة تحسب", body: "كل خيار تختاره يقربك من شخصية معينة." },
+        { icon: "📊", title: "النتيجة", body: "بالنهاية تشوف شخصيتك على شكل مخطط، مع وصف يناسبك." },
+        { icon: "📤", title: "شارك", body: "شارك نتيجتك مع أصحابك وشوفوا مين يشبه شخصيته." },
+      ],
+      footer: "جاوب بصراحة — النتيجة أدق كذا 👀",
+    },
+    en: {
+      title: "How to play What's Your Personality",
+      tagline: "Answer honestly, discover your real personality type 🧠",
+      steps: [
+        { icon: "❓", title: "Quick questions", body: "You'll answer a set of questions about your habits and reactions." },
+        { icon: "🎯", title: "Every answer counts", body: "Each choice you make nudges you toward a specific personality type." },
+        { icon: "📊", title: "Your result", body: "At the end you'll see your personality mapped out, with a description that fits." },
+        { icon: "📤", title: "Share it", body: "Share your result with friends and see whose type matches yours." },
+      ],
+      footer: "Answer honestly — the result is more accurate that way 👀",
+    },
+  },
+  ruin_story: {
+    ar: {
+      title: "كيف تلعبون خرب السالفة؟",
+      tagline: "٦ جولات، بطاقة سوداء، وأغرب جواب يفوز 🃏",
+      steps: [
+        { icon: "🃏", title: "٦ كروت إجابة", body: "عندك دايم ٦ كروت بيضاء، وكل جولة تختار وحدة منها." },
+        { icon: "⚫", title: "البطاقة السوداء", body: "كل جولة فيها موقف أو سؤال ناقصه كلمة — جاوب بأغرب كرت عندك." },
+        { icon: "👑", title: "دور الحكم", body: "لاعب واحد كل جولة يكون الحكم، وما يشارك بإجابة." },
+        { icon: "🕵️", title: "إجابات مجهولة", body: "الحكم يشوف كل الإجابات بدون أسماء، ويختار الأضحك." },
+        { icon: "🏆", title: "نقطة للفائز", body: "صاحب أغرب إجابة ياخذ نقطة، والحكم يتغير كل جولة." },
+      ],
+      footer: "٦ جولات بس — بعدها تشوفون الفايز الكلي 🎉",
+    },
+    en: {
+      title: "How to play Ruin the Story",
+      tagline: "6 rounds, a black card, and the weirdest answer wins 🃏",
+      steps: [
+        { icon: "🃏", title: "6 answer cards", body: "You always have 6 white cards in hand — pick one each round." },
+        { icon: "⚫", title: "The black card", body: "Every round shows a situation or question with a blank — answer it with your funniest card." },
+        { icon: "👑", title: "The judge", body: "One player each round is the judge, and doesn't submit an answer." },
+        { icon: "🕵️", title: "Anonymous answers", body: "The judge sees every submission with no names attached, and picks the funniest." },
+        { icon: "🏆", title: "A point for the winner", body: "Whoever's card wins gets a point, and the judge rotates every round." },
+      ],
+      footer: "Just 6 rounds — then you'll see the overall winner 🎉",
+    },
+  },
 };
 
 const ACCENTS: Record<GameKey, { from: string; to: string }> = {
@@ -225,6 +325,10 @@ const ACCENTS: Record<GameKey, { from: string; to: string }> = {
   qissa: { from: "#FF8A3D", to: "#E0409A" },
   lifoo: { from: "#FF5A5F", to: "#1B1030" },
   mareed: { from: "#FF2E93", to: "#7C3AED" },
+  bidal: { from: "#14B8A6", to: "#FF5A5F" },
+  ihj: { from: "#7C3AED", to: "#FF2E93" },
+  wadak: { from: "#7C3AED", to: "#FF2E93" },
+  ruin_story: { from: "#9B1C2E", to: "#C9302C" },
 };
 
 function storageKey(game: GameKey) {

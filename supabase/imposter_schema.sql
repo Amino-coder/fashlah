@@ -232,6 +232,9 @@ declare
   v_round int;
   v_player record;
   v_i int := 0;
+  v_imposter_turn_order int;
+  v_swap_id uuid;
+  v_swap_order int;
 begin
   select used_word_ids, round_number into v_used_words, v_round from imposter_sessions where id = p_session_id for update;
 
@@ -263,6 +266,22 @@ begin
     v_i := v_i + 1;
   end loop;
 
+  -- If the imposter landed first, swap them with a random other
+  -- player's slot so someone who actually knows the word always speaks
+  -- first instead — deliberately not surfaced anywhere in the UI or
+  -- the pre-game rules intro, this is a quiet game-balance decision,
+  -- not a rule players are meant to know about.
+  select turn_order into v_imposter_turn_order from imposter_players where id = v_imposter_id;
+  if v_imposter_turn_order = 0 and v_i > 1 then
+    select id, turn_order into v_swap_id, v_swap_order
+    from imposter_players
+    where session_id = p_session_id and id <> v_imposter_id
+    order by random() limit 1;
+
+    update imposter_players set turn_order = 0 where id = v_swap_id;
+    update imposter_players set turn_order = v_swap_order where id = v_imposter_id;
+  end if;
+
   select id into v_first_player_id from imposter_players
   where session_id = p_session_id
   order by turn_order asc
@@ -287,7 +306,6 @@ begin
 end;
 $$;
 
-grant execute on function imposter_start_round(uuid) to service_role;
 
 -- ============================================================================
 -- SEED — the 50 words from the spec, used exactly as given.

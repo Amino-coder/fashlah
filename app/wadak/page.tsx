@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Share2, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
+import { HelpButton } from "@/components/HowToPlay";
 import SaveResult from "@/components/auth/SaveResult";
 import RadarChart from "@/components/wadak/RadarChart";
 import { shareResultCard } from "@/components/wadak/exportResultCard";
@@ -102,6 +103,11 @@ export default function WadakPage() {
     <div dir="rtl" style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
       {stage !== "story" && <Blobs />}
       {stage !== "story" && <HomeButton label="الصفحة الرئيسية" />}
+      {stage !== "story" && (
+        <div style={{ position: "fixed", top: 24, insetInlineEnd: 24, zIndex: 45 }}>
+          <HelpButton game="wadak" lang="ar" />
+        </div>
+      )}
       <div style={{ maxWidth: 480, margin: "0 auto", padding: stage === "story" ? 0 : "24px", position: "relative", zIndex: 1 }}>
         {stage === "intro" && <IntroScreen nickname={nickname} onNicknameChange={setNickname} onStart={() => setStage("round1")} />}
 
