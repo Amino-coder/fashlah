@@ -16,7 +16,7 @@ import type { ImposterSessionRow, ImposterPlayerRow, ImposterWordRow } from "@/l
 const MAGENTA = "#D6006E";
 const PINK = "#FF2E93";
 const TURN_SECONDS = 20;
-const REVEAL_WORD_SECONDS = 10;
+const REVEAL_WORD_SECONDS = 16; // must stay comfortably longer than PreGameIntro's total stage duration (~13.4s) below, or the phase would auto-advance to "clue" while the intro overlay is still covering the real reveal — see PreGameIntro's own comment for the exact reasoning
 
 /**
  * المحتال — the one Bagdoonis game built around sequential turn-taking
@@ -48,6 +48,8 @@ export default function ImposterSessionPage() {
   const [error, setError] = useState<string | null>(null);
   const [clickPending, setClickPending] = useState(false);
   const [starting, setStarting] = useState(false);
+  const [showIntro, setShowIntro] = useState(false);
+  const introShownRef = useRef(false);
   const [now, setNow] = useState(() => Date.now());
 
   // Resets whenever the active turn changes to a different player — so
@@ -174,6 +176,20 @@ export default function ImposterSessionPage() {
     }
   }, [remaining, session?.status, session?.phase, advanceTurn]);
 
+  // Every client shows this independently, once, the first time they see
+  // a round actually begin — reveal_word is the trigger (not round_number,
+  // which keeps incrementing forever here and never resets on replay, the
+  // way خرب السالفة's does) since it's the one phase that's uniquely
+  // "a new round just started," whether this is game 1 or a play-again.
+  // Not synced tightly across devices — a few hundred ms of drift on a
+  // flavor moment like this doesn't matter, same reasoning as خرب السالفة's.
+  useEffect(() => {
+    if (session?.status === "in_progress" && session?.phase === "reveal_word" && !introShownRef.current) {
+      introShownRef.current = true;
+      setShowIntro(true);
+    }
+  }, [session?.status, session?.phase]);
+
   async function handleStart() {
     if (!session) return;
     setStarting(true);
@@ -249,6 +265,7 @@ export default function ImposterSessionPage() {
 
   async function handlePlayAgainSameRoom() {
     if (!session) return;
+    introShownRef.current = false;
     await fetch("/api/imposter-start-round", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -268,6 +285,7 @@ export default function ImposterSessionPage() {
   return (
     <div dir={t.dir} className={dark ? "dark" : ""} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
       <Blobs />
+      {showIntro && <PreGameIntro ar={ar} onDone={() => setShowIntro(false)} />}
       {(session.status === "waiting" || session.phase === "reveal") && <HomeButton label={t.backHome} href="/imposter" />}
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
         {session.status === "in_progress" && session.phase !== "reveal" && <LeaveGameButton lang={lang} />}
@@ -595,6 +613,69 @@ function RevealAndResults({
 
       {/* Line 3 — احفظ النتيجة, quiet */}
       <SaveResult game="imposter" lang={ar ? "ar" : "en"} resultSummary={resultLine} sessionCode={session.code} />
+    </div>
+  );
+}
+
+/**
+ * وحد فيكم بيكون المحتال → يعطون تلميحات بدون كشف الكلمة → تصوتون →
+ * جاهزين → 3 → 2 → 1 → يلا, then dismisses itself. Same structure and
+ * timing pattern as خرب السالفة's PreGameIntro — a pure client-side
+ * overlay, not a session phase, since there's no reason this needs to
+ * be synced tightly across players or touch the database at all.
+ *
+ * TIMING NOTE, specific to this game (خرب السالفة's own version has no
+ * equivalent concern): this overlay shows during reveal_word, which is
+ * a real, auto-advancing phase with its own fixed duration
+ * (REVEAL_WORD_SECONDS, above). If this component's total stage
+ * duration ever exceeds that constant, the underlying phase would
+ * auto-advance to "clue" while this overlay is still covering the
+ * screen — the player would never actually see their real word, since
+ * the reveal would already be over by the time the overlay dismisses.
+ * Total below is ~13.4s against a 16s window, a ~2.6s safety margin —
+ * keep it that way if either number changes.
+ */
+function PreGameIntro({ ar, onDone }: { ar: boolean; onDone: () => void }) {
+  const STAGES = [
+    { text: ar ? "وحد فيكم بيكون المحتال... وما بيعرف الكلمة! \u{1F608}" : "One of you will be the Imposter... and won't know the word! \u{1F608}", ms: 3400 },
+    { text: ar ? "كل واحد يعطي تلميح، بدون ما يكشف الكلمة نفسها" : "Everyone gives a clue, without giving the word away", ms: 3000 },
+    { text: ar ? "وفي النهاية تصوتون مين تتوقعون المحتال \u{1F5F3}\uFE0F" : "At the end, vote on who you think the Imposter is \u{1F5F3}\uFE0F", ms: 3000 },
+    { text: ar ? "جاهزين" : "Ready", ms: 1000 },
+    { text: "3", ms: 700 },
+    { text: "2", ms: 700 },
+    { text: "1", ms: 700 },
+    { text: ar ? "يلا" : "Go!", ms: 900 },
+  ];
+  const [stageIndex, setStageIndex] = useState(0);
+
+  useEffect(() => {
+    if (stageIndex >= STAGES.length) { onDone(); return; }
+    const id = setTimeout(() => setStageIndex((i) => i + 1), STAGES[stageIndex].ms);
+    return () => clearTimeout(id);
+  }, [stageIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (stageIndex >= STAGES.length) return null;
+  const stage = STAGES[stageIndex];
+  const isCountdown = ["3", "2", "1"].includes(stage.text) || stage.text === (ar ? "يلا" : "Go!");
+
+  return (
+    <div
+      dir={ar ? "rtl" : "ltr"}
+      style={{
+        position: "fixed", inset: 0, zIndex: 80, background: "linear-gradient(135deg, #17122B, #D6006E)",
+        display: "flex", alignItems: "center", justifyContent: "center", padding: 32,
+      }}
+    >
+      <p
+        key={stageIndex}
+        className="font-display pop"
+        style={{
+          fontSize: isCountdown ? 64 : 22, fontWeight: 800, color: "#fff", textAlign: "center",
+          lineHeight: 1.6, maxWidth: 340, margin: 0,
+        }}
+      >
+        {stage.text}
+      </p>
     </div>
   );
 }
