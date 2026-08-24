@@ -7,11 +7,22 @@ import HomeButton from "@/components/HomeButton";
 import { ImposterArt } from "@/components/art/GameArt";
 import { IMPOSTER_STR, ImposterLang } from "@/lib/imposter-i18n";
 import { usePrefs } from "@/lib/usePrefs";
+import PlusGate from "@/components/PlusGate";
 
 const MAGENTA = "#D6006E";
 const PINK = "#FF2E93";
 
 export default function ImposterLandingPage() {
+  const { lang, ready } = usePrefs();
+  if (!ready) return null;
+  return (
+    <PlusGate game="imposter" lang={(lang as ImposterLang) === "en" ? "en" : "ar"}>
+      <ImposterLandingContent />
+    </PlusGate>
+  );
+}
+
+function ImposterLandingContent() {
   const { lang, dark, ready } = usePrefs();
   const t = IMPOSTER_STR[lang as ImposterLang];
   const ar = lang === "ar";

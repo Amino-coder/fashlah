@@ -9,11 +9,22 @@ import { HelpButton } from "@/components/HowToPlay";
 import { QissaArt } from "@/components/art/GameArt";
 import { QISSA_STR, qissaSubtitles, QissaLang } from "@/lib/qissa-i18n";
 import { usePrefs } from "@/lib/usePrefs";
+import PlusGate from "@/components/PlusGate";
 
 const ORANGE = "#FF8A3D";
 const DEEP = "#E0409A";
 
 export default function QissaLanding() {
+  const { lang, ready } = usePrefs();
+  if (!ready) return null;
+  return (
+    <PlusGate game="qissa" lang={(lang as QissaLang) === "en" ? "en" : "ar"}>
+      <QissaLandingContent />
+    </PlusGate>
+  );
+}
+
+function QissaLandingContent() {
   const { lang, setLang, dark, setDark, ready } = usePrefs();
   const t = QISSA_STR[lang as QissaLang];
   const [subtitle, setSubtitle] = useState("");

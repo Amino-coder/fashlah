@@ -15,7 +15,7 @@ import type { Lang } from "@/lib/i18n";
  * from memory.
  */
 
-export type GameKey = "fashlah" | "shofah" | "job" | "qaseeda" | "qissa" | "lifoo" | "mareed" | "bidal" | "ihj" | "wadak" | "ruin_story";
+export type GameKey = "fashlah" | "shofah" | "job" | "qaseeda" | "qissa" | "lifoo" | "mareed" | "bidal" | "ihj" | "wadak" | "ruin_story" | "imposter" | "ibarat";
 
 type Step = { icon: string; title: string; body: string };
 type Content = { title: string; tagline: string; steps: Step[]; footer: string };
@@ -192,7 +192,6 @@ const CONTENT: Record<GameKey, Record<Lang, Content>> = {
       title: "كيف تلعبون مريض نفسي؟",
       tagline: "جولة تسخين، ٥ أسئلة، وبعدها التشخيص 🧠",
       steps: [
-        { icon: "🧠", title: "اختاروا المريض", body: "نوف ولا تركي؟ اختاروا مريض الليلة." },
         { icon: "📱", title: "جهاز لكل شخص", body: "المضيف ينشئ غرفة ويشارك الكود مع الشلة." },
         { icon: "🔥", title: "جولة التسخين", body: "٥ أسئلة سريعة، صوّتوا على بعض. للضحك بس — ما تحسب في النتيجة." },
         { icon: "✍️", title: "٥ جولات", body: "يجيكم سؤال غريب، وكل واحد يكتب رده بأغرب طريقة." },
@@ -205,7 +204,6 @@ const CONTENT: Record<GameKey, Record<Lang, Content>> = {
       title: "How to play Psych Patient",
       tagline: "A warm-up, 5 questions, then the diagnosis 🧠",
       steps: [
-        { icon: "🧠", title: "Pick tonight's patient", body: "Nouf or Turki? Pick who tonight's session is about." },
         { icon: "📱", title: "One phone each", body: "The host creates a room and shares the code with the group." },
         { icon: "🔥", title: "Warm-up round", body: "5 quick questions voting on each other. Just for laughs — it doesn't affect scoring." },
         { icon: "✍️", title: "5 rounds", body: "You'll get a weird prompt, and everyone writes the strangest answer they can." },
@@ -315,6 +313,56 @@ const CONTENT: Record<GameKey, Record<Lang, Content>> = {
       footer: "Just 6 rounds — then you'll see the overall winner 🎉",
     },
   },
+  imposter: {
+    ar: {
+      title: "كيف تلعبون المحتال؟",
+      tagline: "وحد فيكم محتال... من بيكتشفه؟ 😈",
+      steps: [
+        { icon: "📱", title: "جهاز لكل شخص", body: "المضيف ينشئ غرفة ويشارك الكود مع الشلة." },
+        { icon: "😈", title: "وحد فيكم المحتال", body: "يعرف الكل الكلمة إلا المحتال — هو ما بيعرفها أبد." },
+        { icon: "💬", title: "كل واحد يعطي تلميحين", body: "بدوركم، كل لاعب يعطي تلميح عن الكلمة، بدون ما يكشفها — ودورة ثانية بعدها." },
+        { icon: "🕵️", title: "المحتال يمثّل", body: "المحتال يحاول يعطي تلميح يقنع فيه الباقين، مع إنه ما يعرف الكلمة." },
+        { icon: "🗳️", title: "صوّتوا", body: "بعد ما يخلص الكل، تصوتون مين تتوقعون المحتال." },
+        { icon: "🎉", title: "الكشف", body: "تشوفون مين كان المحتال والكلمة — سواء لقيتوه أو لا." },
+      ],
+      footer: "التلميحات الغامضة أول شي يكشف المحتال 👀",
+    },
+    en: {
+      title: "How to play Imposter",
+      tagline: "One of you is an imposter... who'll catch them? 😈",
+      steps: [
+        { icon: "📱", title: "One phone each", body: "The host creates a room and shares the code with the group." },
+        { icon: "😈", title: "One of you is the Imposter", body: "Everyone knows the word except the Imposter — they never see it at all." },
+        { icon: "💬", title: "Everyone gives two clues", body: "Taking turns, each player gives a clue about the word without giving it away — then a second round of clues follows." },
+        { icon: "🕵️", title: "The Imposter fakes it", body: "The Imposter tries to give a convincing clue despite not knowing the word." },
+        { icon: "🗳️", title: "Vote", body: "Once everyone's gone, vote on who you think the Imposter is." },
+        { icon: "🎉", title: "The reveal", body: "See who the Imposter really was and what the word was — whether you caught them or not." },
+      ],
+      footer: "Vague clues are usually the first giveaway 👀",
+    },
+  },
+  ibarat: {
+    ar: {
+      title: "كيف تلعب عبارات؟",
+      tagline: "بطاقة إلهام يومية",
+      steps: [
+        { icon: "🎴", title: "بطاقة كل يوم", body: "افتح اللعبة وشوف عبارة أو اقتباس جديد كل يوم." },
+        { icon: "🔄", title: "اسحب كم بطاقة تبي", body: "تقدر تسحب أكثر من بطاقة، وكل مرة تجيك عبارة مختلفة عن اللي قبلها." },
+        { icon: "📤", title: "شارك", body: "أعجبتك العبارة؟ شاركها مع أصحابك مباشرة." },
+      ],
+      footer: "عبارة جديدة كل يوم 🌿",
+    },
+    en: {
+      title: "How to play Phrases",
+      tagline: "A daily card of inspiration",
+      steps: [
+        { icon: "🎴", title: "A new card daily", body: "Open the game to see a new phrase or quote each day." },
+        { icon: "🔄", title: "Draw as many as you like", body: "Pull more than one card — each draw gives you a different phrase than the last." },
+        { icon: "📤", title: "Share it", body: "Liked it? Share it straight with your friends." },
+      ],
+      footer: "A new phrase every day 🌿",
+    },
+  },
 };
 
 const ACCENTS: Record<GameKey, { from: string; to: string }> = {
@@ -329,6 +377,8 @@ const ACCENTS: Record<GameKey, { from: string; to: string }> = {
   ihj: { from: "#7C3AED", to: "#FF2E93" },
   wadak: { from: "#7C3AED", to: "#FF2E93" },
   ruin_story: { from: "#9B1C2E", to: "#C9302C" },
+  imposter: { from: "#D6006E", to: "#FF2E93" },
+  ibarat: { from: "#22C55E", to: "#14B8A6" },
 };
 
 function storageKey(game: GameKey) {

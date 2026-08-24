@@ -18,7 +18,7 @@ const GAME_LABELS: Record<string, string> = {
   ruin_story: "خرب السالفة",
 };
 
-type GameRow = { game: string; requires_plus: boolean; updated_at: string };
+type GameRow = { game: string; requires_plus: boolean; hidden: boolean; display_order: number | null; updated_at: string };
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -43,22 +43,83 @@ export default function AdminDashboard() {
     setGames(data.games);
   }
 
+  async function sendUpdates(updates: { game: string; requiresPlus?: boolean; hidden?: boolean; displayOrder?: number }[]) {
+    const res = await fetch("/api/admin/game-access", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ updates }),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || "Save failed");
+    }
+  }
+
   async function toggleGame(game: string, current: boolean) {
     setSavingGame(game);
     setError(null);
     // Optimistic — the toggle should feel instant, this is exactly the
     // "no deploy, just flip it" experience the admin panel exists for.
     setGames((gs) => gs?.map((g) => (g.game === game ? { ...g, requires_plus: !current } : g)) ?? gs);
-    const res = await fetch("/api/admin/game-access", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ game, requiresPlus: !current }),
-    });
-    if (!res.ok) {
-      const data = await res.json();
-      setError(data.error);
+    try {
+      await sendUpdates([{ game, requiresPlus: !current }]);
+    } catch (e: any) {
+      setError(e.message);
       // Revert on failure
       setGames((gs) => gs?.map((g) => (g.game === game ? { ...g, requires_plus: current } : g)) ?? gs);
+    }
+    setSavingGame(null);
+  }
+
+  async function toggleHidden(game: string, current: boolean) {
+    setSavingGame(game);
+    setError(null);
+    setGames((gs) => gs?.map((g) => (g.game === game ? { ...g, hidden: !current } : g)) ?? gs);
+    try {
+      await sendUpdates([{ game, hidden: !current }]);
+    } catch (e: any) {
+      setError(e.message);
+      setGames((gs) => gs?.map((g) => (g.game === game ? { ...g, hidden: current } : g)) ?? gs);
+    }
+    setSavingGame(null);
+  }
+
+  // Swaps this game's display_order with whichever game is immediately
+  // adjacent to it in the CURRENT rendered (already sorted) list — not
+  // with some fixed "index ± 1" that could be wrong once a game or two
+  // has null display_order sitting between real values.
+  async function moveGame(index: number, direction: "up" | "down") {
+    if (!games) return;
+    const otherIndex = direction === "up" ? index - 1 : index + 1;
+    if (otherIndex < 0 || otherIndex >= games.length) return;
+
+    const a = games[index];
+    const b = games[otherIndex];
+    // Both need a real, distinct order value to swap — if either is
+    // null (never explicitly ordered), fall back to its current
+    // position in the list so the swap always has something concrete
+    // to exchange, matching what the admin is actually looking at.
+    const aOrder = a.display_order ?? index;
+    const bOrder = b.display_order ?? otherIndex;
+
+    setSavingGame(a.game);
+    setError(null);
+    setGames((gs) => {
+      if (!gs) return gs;
+      const next = [...gs];
+      next[index] = { ...a, display_order: bOrder };
+      next[otherIndex] = { ...b, display_order: aOrder };
+      next.sort((x, y) => (x.display_order ?? 0) - (y.display_order ?? 0));
+      return next;
+    });
+    try {
+      await sendUpdates([
+        { game: a.game, displayOrder: bOrder },
+        { game: b.game, displayOrder: aOrder },
+      ]);
+    } catch (e: any) {
+      setError(e.message);
+      await loadGames(); // simplest reliable recovery from a partial-failure swap
     }
     setSavingGame(null);
   }
@@ -117,32 +178,82 @@ export default function AdminDashboard() {
 
           {games && (
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {games.map((g) => (
+              {games.map((g, i) => (
                 <div
                   key={g.game}
                   style={{
-                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
                     padding: "12px 4px", borderBottom: "1px solid rgba(255,255,255,0.08)",
+                    opacity: g.hidden ? 0.5 : 1,
                   }}
                 >
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>{GAME_LABELS[g.game] || g.game}</span>
-                  <button
-                    onClick={() => toggleGame(g.game, g.requires_plus)}
-                    disabled={savingGame === g.game}
-                    aria-pressed={g.requires_plus}
-                    style={{
-                      width: 46, height: 26, borderRadius: 999, border: "none", position: "relative",
-                      background: g.requires_plus ? "#FF5A5F" : "rgba(255,255,255,0.15)",
-                      opacity: savingGame === g.game ? 0.5 : 1, cursor: "pointer", transition: "background .15s",
-                    }}
-                  >
-                    <span
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    {/* Reorder — plain up/down buttons rather than drag
+                        handles: far more reliable on a touch admin
+                        panel, and just as fast for a list this short. */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <button
+                        onClick={() => moveGame(i, "up")}
+                        disabled={i === 0 || savingGame === g.game}
+                        aria-label="Move up"
+                        style={{
+                          width: 20, height: 16, background: "none", border: "none", color: "#fff",
+                          opacity: i === 0 ? 0.25 : 0.7, cursor: i === 0 ? "default" : "pointer", fontSize: 11, lineHeight: 1,
+                        }}
+                      >
+                        ▲
+                      </button>
+                      <button
+                        onClick={() => moveGame(i, "down")}
+                        disabled={i === games.length - 1 || savingGame === g.game}
+                        aria-label="Move down"
+                        style={{
+                          width: 20, height: 16, background: "none", border: "none", color: "#fff",
+                          opacity: i === games.length - 1 ? 0.25 : 0.7, cursor: i === games.length - 1 ? "default" : "pointer", fontSize: 11, lineHeight: 1,
+                        }}
+                      >
+                        ▼
+                      </button>
+                    </div>
+                    <span style={{ fontSize: 14, fontWeight: 600 }}>{GAME_LABELS[g.game] || g.game}</span>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                    {/* Hidden — pulled off the home page entirely, not
+                        just visually de-emphasized, matching exactly
+                        what "hide" implies. Separate from the Plus
+                        toggle below: a game can be hidden AND free, or
+                        visible AND Plus-only — the two are independent. */}
+                    <button
+                      onClick={() => toggleHidden(g.game, g.hidden)}
+                      disabled={savingGame === g.game}
+                      title={g.hidden ? "Hidden from home page — click to show" : "Visible on home page — click to hide"}
                       style={{
-                        position: "absolute", top: 3, insetInlineStart: g.requires_plus ? 23 : 3,
-                        width: 20, height: 20, borderRadius: 999, background: "#fff", transition: "inset-inline-start .15s",
+                        fontSize: 11, fontWeight: 700, background: "none", border: "1px solid rgba(255,255,255,0.25)",
+                        color: "#fff", padding: "5px 10px", borderRadius: 999, opacity: savingGame === g.game ? 0.5 : 1,
                       }}
-                    />
-                  </button>
+                    >
+                      {g.hidden ? "Hidden" : "Visible"}
+                    </button>
+
+                    <button
+                      onClick={() => toggleGame(g.game, g.requires_plus)}
+                      disabled={savingGame === g.game}
+                      aria-pressed={g.requires_plus}
+                      style={{
+                        width: 46, height: 26, borderRadius: 999, border: "none", position: "relative",
+                        background: g.requires_plus ? "#FF5A5F" : "rgba(255,255,255,0.15)",
+                        opacity: savingGame === g.game ? 0.5 : 1, cursor: "pointer", transition: "background .15s",
+                      }}
+                    >
+                      <span
+                        style={{
+                          position: "absolute", top: 3, insetInlineStart: g.requires_plus ? 23 : 3,
+                          width: 20, height: 20, borderRadius: 999, background: "#fff", transition: "inset-inline-start .15s",
+                        }}
+                      />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

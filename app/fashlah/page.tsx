@@ -9,12 +9,23 @@ import HomeButton from "@/components/HomeButton";
 import { HelpButton } from "@/components/HowToPlay";
 import { STR } from "@/lib/i18n";
 import { usePrefs } from "@/lib/usePrefs";
+import PlusGate from "@/components/PlusGate";
 
 // Same derived magenta as the home page — midpoint of the Bagdoonis
 // wordmark gradient (#FF2E93 -> #7C3AED).
 const MAGENTA = "#BE34C0";
 
 export default function BagdoonisHome() {
+  const { lang, ready } = usePrefs();
+  if (!ready) return null;
+  return (
+    <PlusGate game="fashlah" lang={lang}>
+      <FashlahContent />
+    </PlusGate>
+  );
+}
+
+function FashlahContent() {
   const { lang, setLang, dark, setDark, ready } = usePrefs();
   const t = STR[lang];
 

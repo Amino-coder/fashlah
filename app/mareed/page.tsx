@@ -9,6 +9,7 @@ import { HelpButton } from "@/components/HowToPlay";
 import { MareedArt } from "@/components/art/GameArt";
 import { MAREED_STR, mareedSubtitles, MareedLang } from "@/lib/mareed-i18n";
 import { usePrefs } from "@/lib/usePrefs";
+import PlusGate from "@/components/PlusGate";
 
 // Mareed gets its own accent identity — warm rose/wine, distinct from
 // Fashlah's pink/purple — so the two games feel visually separate even
@@ -17,6 +18,16 @@ const ROSE = "#FF2E93";
 const WINE = "#7C3AED";
 
 export default function MareedLanding() {
+  const { lang, ready } = usePrefs();
+  if (!ready) return null;
+  return (
+    <PlusGate game="mareed" lang={(lang as MareedLang) === "en" ? "en" : "ar"}>
+      <MareedLandingContent />
+    </PlusGate>
+  );
+}
+
+function MareedLandingContent() {
   const { lang, setLang, dark, setDark, ready } = usePrefs();
   const t = MAREED_STR[lang as MareedLang];
   const [subtitle, setSubtitle] = useState("");

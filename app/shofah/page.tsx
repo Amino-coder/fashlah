@@ -11,6 +11,7 @@ import { ShofahArt } from "@/components/art/GameArt";
 import ShemaghGuy from "@/components/shofah/ShemaghGuy";
 import { SHOFAH_STR, shofahSubtitles, ShofahLang } from "@/lib/shofah-i18n";
 import { usePrefs } from "@/lib/usePrefs";
+import PlusGate from "@/components/PlusGate";
 
 // Shofah gets its own accent identity — warm rose/wine, distinct from
 // Fashlah's pink/purple — so the two games feel visually separate even
@@ -19,6 +20,16 @@ const ROSE = "#FF2E93";
 const WINE = "#7C3AED";
 
 export default function ShofahLanding() {
+  const { lang, ready } = usePrefs();
+  if (!ready) return null;
+  return (
+    <PlusGate game="shofah" lang={(lang as ShofahLang) === "en" ? "en" : "ar"}>
+      <ShofahLandingContent />
+    </PlusGate>
+  );
+}
+
+function ShofahLandingContent() {
   const { lang, setLang, dark, setDark, ready } = usePrefs();
   const t = SHOFAH_STR[lang as ShofahLang];
   const [subtitle, setSubtitle] = useState("");

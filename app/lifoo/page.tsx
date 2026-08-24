@@ -9,6 +9,7 @@ import { HelpButton } from "@/components/HowToPlay";
 import { LifooArt } from "@/components/art/GameArt";
 import { LIFOO_STR, lifooSubtitles, LifooLang } from "@/lib/lifoo-i18n";
 import { usePrefs } from "@/lib/usePrefs";
+import PlusGate from "@/components/PlusGate";
 
 // Bright coral/purple-night identity — a party-song game, not a literary
 // one, so this deliberately does NOT borrow قصيدة's calm gold-on-navy look.
@@ -16,6 +17,16 @@ const CORAL = "#FF5A5F";
 const NAVY = "#1B1030";
 
 export default function LifooLanding() {
+  const { lang, ready } = usePrefs();
+  if (!ready) return null;
+  return (
+    <PlusGate game="lifoo" lang={(lang as LifooLang) === "en" ? "en" : "ar"}>
+      <LifooLandingContent />
+    </PlusGate>
+  );
+}
+
+function LifooLandingContent() {
   const { lang, setLang, dark, setDark, ready } = usePrefs();
   const t = LIFOO_STR[lang as LifooLang];
   const [subtitle, setSubtitle] = useState("");

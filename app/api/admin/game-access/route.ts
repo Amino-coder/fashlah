@@ -20,8 +20,9 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await getSupabaseAdmin()
     .from("game_access")
-    .select("game, requires_plus, updated_at")
-    .order("game");
+    .select("game, requires_plus, hidden, display_order, updated_at")
+    .order("display_order", { ascending: true, nullsFirst: false })
+    .order("game", { ascending: true });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   return NextResponse.json({ games: data });
@@ -37,16 +38,26 @@ export async function PATCH(req: NextRequest) {
   }
 
   try {
-    const { game, requiresPlus } = await req.json();
-    if (!game || typeof requiresPlus !== "boolean") {
-      return NextResponse.json({ error: "game and requiresPlus (boolean) are required." }, { status: 400 });
+    // A batch of {game, requiresPlus?, hidden?, displayOrder?} — every
+    // field optional, so one shape covers a single Plus/hide toggle
+    // (a 1-item batch) AND a reorder swap (a 2-item batch, since
+    // swapping two games' positions needs both rows updated together).
+    const { updates } = await req.json();
+    if (!Array.isArray(updates) || updates.length === 0) {
+      return NextResponse.json({ error: "updates (non-empty array) is required." }, { status: 400 });
     }
 
-    const { error } = await getSupabaseAdmin()
-      .from("game_access")
-      .update({ requires_plus: requiresPlus, updated_at: new Date().toISOString() })
-      .eq("game", game);
-    if (error) throw error;
+    const admin = getSupabaseAdmin();
+    for (const u of updates) {
+      if (!u.game) return NextResponse.json({ error: "Each update needs a game." }, { status: 400 });
+      const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+      if (typeof u.requiresPlus === "boolean") patch.requires_plus = u.requiresPlus;
+      if (typeof u.hidden === "boolean") patch.hidden = u.hidden;
+      if (typeof u.displayOrder === "number") patch.display_order = u.displayOrder;
+
+      const { error } = await admin.from("game_access").update(patch).eq("game", u.game);
+      if (error) throw error;
+    }
 
     return NextResponse.json({ success: true });
   } catch (e: any) {

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Instagram, Mail } from "lucide-react";
+import { HowToPlay, type GameKey } from "@/components/HowToPlay";
+import { Info, Instagram, Mail } from "lucide-react";
 import { STR } from "@/lib/i18n";
 import { SHOFAH_STR } from "@/lib/shofah-i18n";
 import { MAREED_STR } from "@/lib/mareed-i18n";
@@ -20,6 +21,7 @@ import LoginButton from "@/components/auth/LoginButton";
 import HamburgerMenu from "@/components/HamburgerMenu";
 import FavoriteButton from "@/components/FavoriteButton";
 import { getFavoriteGames, addFavorite, removeFavorite } from "@/lib/favorites";
+import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 
 /**
@@ -50,19 +52,19 @@ export default function Home() {
   const ar = lang === "ar";
 
   const entries = [
-    { href: "/bidal", title: "بدل الكلمة", sub: ar ? "بدّل حرف، واصنع كلمات جديدة 🔤" : "Swap a letter, beat the rest 🔤", Art: BidalArt, modes: ["solo"] },
-    { href: "/shofah", title: SHOFAH_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين بيتزوج أول" : "Who gets married first?", Art: ShofahArt, modes: ["group", "solo"] },
-    { href: "/ihj", title: "إنسان حيوان جماد", sub: ar ? "لعبة الطيبين - مين أسرعكم بالكتابة 🧠" : "Find the answer nobody else thinks of 🧠", Art: IhjArt, modes: ["group", "solo"] },
-    { href: "/wadak", title: "وش شخصيتك", sub: ar ? "جاوب وشوف شخصيتك الحقيقية 🧠" : "Answer and find your real personality 🧠", Art: WadakArt, modes: ["solo"] },
-    { href: "/imposter", title: `${IMPOSTER_STR[lang].gameName} - imposter`, sub: ar ? "وحد فيكم محتال... من بيكتشفه؟ 😈" : "One of you is an imposter... who'll catch them? 😈", Art: ImposterArt, modes: ["group"] },
-    { href: "/ruin_story", title: RUIN_STORY_STR[lang].gameName, sub: ar ? "كم تقدر تخرب السالفة بجواب واحد؟ 🃏" : "How badly can you ruin the story? 🃏", Art: RuinStoryArt, modes: ["group"] },
-    { href: "/fashlah", title: t.gameName, sub: ar ? "اكتشفوا أسرار شلتكم 😂" : "Uncover your group's secrets 😂", Art: FashlahArt, modes: ["group"] },
-    { href: "/mareed", title: MAREED_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين المريض النفسي فينا 🧠" : "Who's the psych patient among us? 🧠", Art: MareedArt, modes: ["group", "solo"] },
-    { href: "/qissa", title: QISSA_STR[lang].gameNameArabic, sub: ar ? "قصة توها تبدأ... وتضيع بين الكل 😂" : "A story that gets lost along the way 😂", Art: QissaArt, modes: ["group"] },
-    { href: "/job", title: JOB_STR[lang].gameNameArabic, sub: ar ? "لعبة للعاطلين 👀" : "A game for the unemployed 👀", Art: JobArt, modes: ["group"] },
-    { href: "/qaseeda", title: QASEEDA_STR[lang].gameNameArabic, sub: ar ? "اكتبوا قصيدة سوا، بيت بيت 🪶" : "Write a poem together, line by line 🪶", Art: QaseedaArt, modes: ["group"] },
-    { href: "/lifoo", title: LIFOO_STR[lang].gameNameArabic, sub: ar ? "الِّفوا أغنية سوا، سطر سطر 🎶" : "Build a song together, line by line 🎶", Art: LifooArt, modes: ["group", "solo"] },
-    { href: "/ibarat", title: "عبارات", sub: ar ? "بطاقة إلهام يومية" : "A daily card of inspiration", Art: IbaratArt, modes: ["solo"] },
+    { href: "/bidal", title: "بدل الكلمة", sub: ar ? "بدّل حرف، واصنع كلمات جديدة" : "Swap a letter, beat the rest", players: "لاعب واحد", category: "سرعة", Art: BidalArt, modes: ["solo"] },
+    { href: "/shofah", title: SHOFAH_STR[lang].gameNameArabic, sub: ar ? "مين من قروبكم بيتزوج أول" : "Who gets married first?", players: "1+ لاعب", category: "ضحك", Art: ShofahArt, modes: ["group", "solo"] },
+    { href: "/ihj", title: "إنسان حيوان جماد", sub: ar ? "لعبة الطيبين - مين أسرعكم بالكتابة" : "Find the answer nobody else thinks of", players: "1+ لاعب", category: "تنافس", Art: IhjArt, modes: ["group", "solo"] },
+    { href: "/wadak", title: "وش شخصيتك", sub: ar ? "جاوب وشوف شخصيتك الحقيقية" : "Answer and find your real personality", players: "لاعب واحد", category: "تحليل", Art: WadakArt, modes: ["solo"] },
+    { href: "/imposter", title: `${IMPOSTER_STR[lang].gameName} - imposter`, sub: ar ? "وحد فيكم محتال… من بيكتشفه؟" : "One of you is an imposter... who'll catch them?", players: "3+ لاعبين", category: "تنافس", Art: ImposterArt, modes: ["group"] },
+    { href: "/ruin_story", title: RUIN_STORY_STR[lang].gameName, sub: ar ? "كم تقدر تخرب السالفة بجواب واحد؟" : "How badly can you ruin the story?", players: "3+ لاعبين", category: "ضحك", Art: RuinStoryArt, modes: ["group"] },
+    { href: "/fashlah", title: t.gameName, sub: ar ? "اكتشفوا أسرار شلتكم" : "Uncover your group's secrets", players: "2+ لاعبين", category: "ضحك", Art: FashlahArt, modes: ["group"] },
+    { href: "/mareed", title: MAREED_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين المريض النفسي فينا" : "Who's the psych patient among us?", players: "1+ لاعب", category: "ضحك", Art: MareedArt, modes: ["group", "solo"] },
+    { href: "/qissa", title: QISSA_STR[lang].gameNameArabic, sub: ar ? "قصة توها تبدأ… وتضيع بين الكل" : "A story that gets lost along the way", players: "2+ لاعبين", category: "ضحك", Art: QissaArt, modes: ["group"] },
+    { href: "/job", title: JOB_STR[lang].gameNameArabic, sub: ar ? "لعبة للعاطلين 👀" : "A game for the unemployed 👀", players: "2+ لاعبين", category: "ضحك", Art: JobArt, modes: ["group"] },
+    { href: "/qaseeda", title: QASEEDA_STR[lang].gameNameArabic, sub: ar ? "اكتبوا قصيدة سوا، مين الشاعر فيكم" : "Write a poem together, line by line", players: "2+ لاعبين", category: "إبداع", Art: QaseedaArt, modes: ["group"] },
+    { href: "/lifoo", title: LIFOO_STR[lang].gameNameArabic, sub: ar ? "ألّفوا أغنية سوا، بعدين خلوا واحد يغنيها" : "Build a song together, line by line", players: "2+ لاعبين", category: "إبداع", Art: LifooArt, modes: ["group", "solo"] },
+    { href: "/ibarat", title: "عبارات", sub: ar ? "بطاقة إلهام يومية" : "A daily card of inspiration", players: "لاعب واحد", category: "إلهام", Art: IbaratArt, modes: ["solo"] },
   ];
 
   // الكل is the default — a new visitor should see everything the site
@@ -73,9 +75,28 @@ export default function Home() {
 
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [pendingGame, setPendingGame] = useState<string | null>(null);
+  const [openInfoGame, setOpenInfoGame] = useState<GameKey | null>(null);
+  const [gameMeta, setGameMeta] = useState<Record<string, { hidden: boolean; display_order: number | null }>>({});
 
   useEffect(() => {
     getFavoriteGames().then(setFavorites);
+  }, []);
+
+  // Admin-controlled ordering/visibility (see /admin) — a plain public
+  // read, same game_access table the Plus gate already reads, so this
+  // needs no new RLS policy or API route, just another SELECT against
+  // data that's already openly readable.
+  useEffect(() => {
+    supabase
+      .from("game_access")
+      .select("game, hidden, display_order")
+      .then(({ data }) => {
+        const meta: Record<string, { hidden: boolean; display_order: number | null }> = {};
+        for (const row of data || []) {
+          meta[row.game] = { hidden: !!row.hidden, display_order: row.display_order };
+        }
+        setGameMeta(meta);
+      });
   }, []);
 
   async function refreshFavorites() {
@@ -138,11 +159,20 @@ export default function Home() {
   // untouched (no secondary sort key invented that wasn't asked for).
   const visibleEntries = entries
     .filter((e) => mode === "all" || e.modes.includes(mode))
+    .filter((e) => !gameMeta[e.href.slice(1)]?.hidden)
     .slice()
     .sort((a, b) => {
       const aFav = favorites.has(a.href.slice(1)) ? 0 : 1;
       const bFav = favorites.has(b.href.slice(1)) ? 0 : 1;
-      return aFav - bFav;
+      if (aFav !== bFav) return aFav - bFav;
+      // Admin-controlled order (see /admin) is the tiebreaker within
+      // each favorite/non-favorite group — falls back to this array's
+      // own original position for any game not yet seeded in
+      // game_access, so a newly-added game doesn't jump to the front
+      // just because it has no explicit order set.
+      const aOrder = gameMeta[a.href.slice(1)]?.display_order ?? entries.indexOf(a);
+      const bOrder = gameMeta[b.href.slice(1)]?.display_order ?? entries.indexOf(b);
+      return aOrder - bOrder;
     });
 
   if (!ready) return null;
@@ -238,7 +268,7 @@ export default function Home() {
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 26 }}>
-          {visibleEntries.map(({ href, title, sub, Art, modes }, i) => {
+          {visibleEntries.map(({ href, title, sub, players, category, Art, modes }, i) => {
             const game = href.slice(1);
             const favorited = favorites.has(game);
             return (
@@ -295,9 +325,42 @@ export default function Home() {
                   onSignedInFavorite={() => handleSignedInFavorite(game)}
                 />
               </div>
-              <div style={{ textAlign: "center" }}>
+              <div style={{ textAlign: "center", width: "100%" }}>
                 <div className="font-display" style={{ fontSize: 17, fontWeight: 800, lineHeight: 1.15 }}>{title}</div>
                 <div className="font-body" style={{ fontSize: 10.5, fontWeight: 700, color: "var(--ink-soft)", marginTop: 2 }}>{sub}</div>
+                {/* Third line — two small metadata pills + the info
+                    button, all deliberately subtle (small text, muted
+                    background) so they read as secondary to the title
+                    and description above them, not competing for
+                    attention. The info button stops propagation/
+                    prevents default the same way FavoriteButton already
+                    does, since the whole card is a <Link> — without
+                    that, tapping it would also navigate into the game. */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, marginTop: 7 }}>
+                  <span
+                    className="font-body"
+                    style={{ fontSize: 9.5, fontWeight: 700, color: "var(--ink-soft)", background: "var(--ring)", padding: "3px 8px", borderRadius: 999, whiteSpace: "nowrap" }}
+                  >
+                    {players}
+                  </span>
+                  <span
+                    className="font-body"
+                    style={{ fontSize: 9.5, fontWeight: 700, color: "var(--ink-soft)", background: "var(--ring)", padding: "3px 8px", borderRadius: 999, whiteSpace: "nowrap" }}
+                  >
+                    {category}
+                  </span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); e.preventDefault(); setOpenInfoGame(href.slice(1) as GameKey); }}
+                    aria-label={ar ? "معلومات اللعبة" : "Game info"}
+                    style={{
+                      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                      width: 22, height: 22, borderRadius: 999, background: "var(--ring)", border: "none",
+                      color: "var(--ink-soft)",
+                    }}
+                  >
+                    <Info size={11} />
+                  </button>
+                </div>
               </div>
             </Link>
             );
@@ -351,6 +414,7 @@ export default function Home() {
           bagdoonis.app
         </p>
       </div>
+      {openInfoGame && <HowToPlay game={openInfoGame} lang={lang} onClose={() => setOpenInfoGame(null)} />}
     </div>
   );
 }

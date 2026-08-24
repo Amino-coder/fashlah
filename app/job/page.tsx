@@ -10,6 +10,7 @@ import SuitGuy from "@/components/job/SuitGuy";
 import { JobArt } from "@/components/art/GameArt";
 import { JOB_STR, jobSubtitles, JobLang } from "@/lib/job-i18n";
 import { usePrefs } from "@/lib/usePrefs";
+import PlusGate from "@/components/PlusGate";
 
 // Job gets its own accent identity — corporate blues, distinct from
 // Fashlah's pink/purple and Shofah's rose/wine — so the three games feel
@@ -18,6 +19,16 @@ const BLUE = "#2EE6A6";
 const NAVY = "#7C3AED";
 
 export default function JobLanding() {
+  const { lang, ready } = usePrefs();
+  if (!ready) return null;
+  return (
+    <PlusGate game="job" lang={(lang as JobLang) === "en" ? "en" : "ar"}>
+      <JobLandingContent />
+    </PlusGate>
+  );
+}
+
+function JobLandingContent() {
   const { lang, setLang, dark, setDark, ready } = usePrefs();
   const t = JOB_STR[lang as JobLang];
   const [subtitle, setSubtitle] = useState("");

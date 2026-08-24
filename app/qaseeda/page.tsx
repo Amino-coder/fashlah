@@ -9,6 +9,7 @@ import { HelpButton } from "@/components/HowToPlay";
 import { QaseedaArt } from "@/components/art/GameArt";
 import { QASEEDA_STR, qaseedaSubtitles, QaseedaLang } from "@/lib/qaseeda-i18n";
 import { usePrefs } from "@/lib/usePrefs";
+import PlusGate from "@/components/PlusGate";
 
 // A deliberately calmer identity than the other games' bright pink/purple —
 // warm gold over deep navy, the same premium register عبارات uses, since
@@ -17,6 +18,16 @@ const GOLD = "#D9A441";
 const NAVY = "#1B3A55";
 
 export default function QaseedaLanding() {
+  const { lang, ready } = usePrefs();
+  if (!ready) return null;
+  return (
+    <PlusGate game="qaseeda" lang={(lang as QaseedaLang) === "en" ? "en" : "ar"}>
+      <QaseedaLandingContent />
+    </PlusGate>
+  );
+}
+
+function QaseedaLandingContent() {
   const { lang, setLang, dark, setDark, ready } = usePrefs();
   const t = QASEEDA_STR[lang as QaseedaLang];
   const [subtitle, setSubtitle] = useState("");

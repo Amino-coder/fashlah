@@ -10,6 +10,7 @@ import { trackPageView, trackPageComplete, trackPageEvent, newSessionKey } from 
 import { CARD_W, CARD_H, FRONT_IMAGES } from "@/lib/ibarat-card";
 import type { Quote } from "@/lib/ibarat-quotes-types";
 import QUOTES_DATA from "@/lib/ibarat-quotes.json";
+import PlusGate from "@/components/PlusGate";
 
 const QUOTES = QUOTES_DATA as Quote[];
 
@@ -26,6 +27,14 @@ const QUOTES = QUOTES_DATA as Quote[];
 const SHUFFLE_MS = 950;
 
 export default function IbaratPage() {
+  return (
+    <PlusGate game="ibarat" lang="ar">
+      <IbaratContent />
+    </PlusGate>
+  );
+}
+
+function IbaratContent() {
   const [quote, setQuote] = useState<Quote | null>(null);
   const [frontIndex, setFrontIndex] = useState(0);
   const [shuffling, setShuffling] = useState(false);

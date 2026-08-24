@@ -8,11 +8,22 @@ import { HelpButton } from "@/components/HowToPlay";
 import { RuinStoryArt } from "@/components/art/GameArt";
 import { RUIN_STORY_STR, RuinStoryLang } from "@/lib/ruin-story-i18n";
 import { usePrefs } from "@/lib/usePrefs";
+import PlusGate from "@/components/PlusGate";
 
 const CRIMSON = "#9B1C2E";
 const GOLD = "#FFD400";
 
 export default function RuinStoryLandingPage() {
+  const { lang, ready } = usePrefs();
+  if (!ready) return null;
+  return (
+    <PlusGate game="ruin_story" lang={(lang as RuinStoryLang) === "en" ? "en" : "ar"}>
+      <RuinStoryLandingContent />
+    </PlusGate>
+  );
+}
+
+function RuinStoryLandingContent() {
   const { lang, dark, ready } = usePrefs();
   const t = RUIN_STORY_STR[lang as RuinStoryLang];
   if (!ready) return null;

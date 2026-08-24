@@ -8,11 +8,22 @@ import { HelpButton } from "@/components/HowToPlay";
 import { usePrefs } from "@/lib/usePrefs";
 import { IHJ_STR, IhjLang } from "@/lib/ihj-i18n";
 import { IHJ_CATEGORIES } from "@/lib/ihj-categories";
+import PlusGate from "@/components/PlusGate";
 
 const PURPLE = "#7C3AED";
 const PINK = "#FF2E93";
 
 export default function IhjLandingPage() {
+  const { lang, ready } = usePrefs();
+  if (!ready) return null;
+  return (
+    <PlusGate game="ihj" lang={(lang as IhjLang) === "en" ? "en" : "ar"}>
+      <IhjLandingContent />
+    </PlusGate>
+  );
+}
+
+function IhjLandingContent() {
   const { lang, dark, ready } = usePrefs();
   const t = IHJ_STR[lang as IhjLang];
   const ar = lang === "ar";

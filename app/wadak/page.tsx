@@ -14,6 +14,7 @@ import {
   REACTION_AFTER_QUESTION, DIMENSION_LABELS, type Question,
 } from "@/lib/wadak-content";
 import { scoreAnswers, shuffle, type ScoreResult } from "@/lib/wadak-engine";
+import PlusGate from "@/components/PlusGate";
 
 const TEAL = "#14B8A6";
 const INDIGO = "#4C1D95";
@@ -23,6 +24,14 @@ type Stage = "intro" | "round1" | "round2" | "round3" | "round4" | "reaction" | 
 type Selection = { questionId: string; optionId: string };
 
 export default function WadakPage() {
+  return (
+    <PlusGate game="wadak" lang="ar">
+      <WadakContent />
+    </PlusGate>
+  );
+}
+
+function WadakContent() {
   const [sessionKey] = useState(() => newSessionKey());
   useEffect(() => { trackPageView("wadak", sessionKey); }, [sessionKey]);
   const [stage, setStage] = useState<Stage>("intro");
