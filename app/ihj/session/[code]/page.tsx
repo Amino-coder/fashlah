@@ -23,6 +23,9 @@ import { trackPageEvent } from "@/lib/trackPageView";
 const PURPLE = "#7C3AED";
 const PINK = "#FF2E93";
 const MINT = "#2EE6A6";
+// Must stay >= IhjPreGameIntro's own total stage duration (~12.05s,
+// summing its STAGES array below) — see handleStart's comment for why.
+const INTRO_BUFFER_MS = 12500;
 
 export default function IhjSessionPage() {
   const params = useParams();
@@ -39,6 +42,20 @@ export default function IhjSessionPage() {
   const [starting, setStarting] = useState(false);
   const [copied, setCopied] = useState(false);
   const [now, setNow] = useState(() => Date.now());
+  const [showIntro, setShowIntro] = useState(false);
+  const introShownRef = useRef(false);
+
+  // Every client shows this independently, once, the first time round 1
+  // actually begins — same trigger shape as خرب السالفة's own pre-game
+  // intro. IHJ multiplayer has no same-room "play again" (a finished
+  // game has no replay path back to "waiting"), so unlike imposter/ruin
+  // story there's no separate reset-on-replay case to handle here.
+  useEffect(() => {
+    if (session?.status === "in_progress" && session?.current_round === 1 && !introShownRef.current) {
+      introShownRef.current = true;
+      setShowIntro(true);
+    }
+  }, [session?.status, session?.current_round]);
 
   const myPlayer = players.find((p) => p.user_id === myUserId) || null;
   const isHost = !!session && !!myUserId && session.host_user_id === myUserId;
@@ -137,9 +154,19 @@ export default function IhjSessionPage() {
     setStarting(true);
     try {
       const letter = pickNextLetter([]);
+      // phase_started_at is set INTRO_BUFFER_MS in the future rather
+      // than "now" — every player is about to see the pre-game intro
+      // overlay (~12s) covering the screen, and without this, the
+      // answering timer would start counting down underneath it,
+      // silently eating into real answering time before anyone can even
+      // see the letter. remaining briefly reads higher than
+      // time_limit_seconds while "now" hasn't caught up to this future
+      // timestamp yet, but that's invisible — the intro overlay is
+      // covering the timer display for that entire window anyway.
+      const startsAt = new Date(Date.now() + INTRO_BUFFER_MS).toISOString();
       await supabase.from("ihj_sessions").update({
         status: "in_progress", current_round: 1, current_letter: letter, used_letters: [letter],
-        round_phase: "answering", phase_started_at: new Date().toISOString(), started_at: new Date().toISOString(),
+        round_phase: "answering", phase_started_at: startsAt, started_at: new Date().toISOString(),
       }).eq("id", session.id);
     } finally {
       setStarting(false);
@@ -187,6 +214,7 @@ export default function IhjSessionPage() {
   return (
     <div dir={t.dir} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
       <Blobs />
+      {showIntro && <IhjPreGameIntro ar={ar} onDone={() => setShowIntro(false)} />}
       {(session.status === "waiting" || session.status === "completed") && <HomeButton label={t.backHome} href="/ihj" />}
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
         {session.status === "in_progress" && <LeaveGameButton lang={lang} />}
@@ -551,6 +579,58 @@ function FinalResults({ players, myPlayerId, sessionCode, t, ar }: { players: Ih
       </button>
 
       <EndGameShare game="ihj" lang={ar ? "ar" : "en"} nextGame="wadak" playAgainHref="/ihj/create" />
+    </div>
+  );
+}
+
+/**
+ * حرف عشوائي → ٥ فئات → وقت محدود → جاهزين → 3 → 2 → 1 → يلا, then
+ * dismisses itself. Same pattern as المحتال/خرب السالفة's own pre-game
+ * intros — a pure client-side overlay, not a session phase, since
+ * there's no reason this needs to be synced tightly across players or
+ * touch the database at all.
+ */
+function IhjPreGameIntro({ ar, onDone }: { ar: boolean; onDone: () => void }) {
+  const STAGES = [
+    { text: ar ? "كل جولة يطلع حرف عشوائي \u{1F3B2}" : "Each round gives everyone a random letter \u{1F3B2}", ms: 2600 },
+    { text: ar ? "الكل يجاوب بنفس الوقت على ٥ فئات: إنسان، حيوان، جماد، نبات، بلاد" : "Everyone answers at once across 5 categories: person, animal, object, plant, country", ms: 3200 },
+    { text: ar ? "إجابة ما حد كتبها = ١٠ نقاط، وإجابة مشتركة = ٥ 🏆" : "A unique answer = 10 points, a shared one = 5 🏆", ms: 2600 },
+    { text: ar ? "جاهزين" : "Ready", ms: 900 },
+    { text: "3", ms: 650 },
+    { text: "2", ms: 650 },
+    { text: "1", ms: 650 },
+    { text: ar ? "يلا" : "Go!", ms: 800 },
+  ];
+  const [stageIndex, setStageIndex] = useState(0);
+
+  useEffect(() => {
+    if (stageIndex >= STAGES.length) { onDone(); return; }
+    const id = setTimeout(() => setStageIndex((i) => i + 1), STAGES[stageIndex].ms);
+    return () => clearTimeout(id);
+  }, [stageIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (stageIndex >= STAGES.length) return null;
+  const stage = STAGES[stageIndex];
+  const isCountdown = ["3", "2", "1"].includes(stage.text) || stage.text === (ar ? "يلا" : "Go!");
+
+  return (
+    <div
+      dir={ar ? "rtl" : "ltr"}
+      style={{
+        position: "fixed", inset: 0, zIndex: 80, background: "linear-gradient(135deg, #17122B, #7C3AED)",
+        display: "flex", alignItems: "center", justifyContent: "center", padding: 32,
+      }}
+    >
+      <p
+        key={stageIndex}
+        className="font-display pop"
+        style={{
+          fontSize: isCountdown ? 64 : 22, fontWeight: 800, color: "#fff", textAlign: "center",
+          lineHeight: 1.6, maxWidth: 340, margin: 0,
+        }}
+      >
+        {stage.text}
+      </p>
     </div>
   );
 }

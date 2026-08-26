@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Share2 } from "lucide-react";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
+import LeaveGameButton from "@/components/LeaveGameButton";
 import SaveResult from "@/components/auth/SaveResult";
 import { IHJ_STR, IhjLang } from "@/lib/ihj-i18n";
 import { usePrefs } from "@/lib/usePrefs";
@@ -21,14 +22,14 @@ const PURPLE = "#7C3AED";
 const PINK = "#FF2E93";
 const MINT = "#2EE6A6";
 const ROUND_OPTIONS = [3, 5, 7, 10];
-const TIME_LIMIT_SECONDS = 60; // matches ihj_sessions.time_limit_seconds' default in supabase/ihj_schema.sql
+const TIME_LIMIT_SECONDS = 25; // was 60 — matches the shorter, punchier pace requested; no longer tied to ihj_sessions.time_limit_seconds' default, solo intentionally runs faster than multiplayer now
 
 type RoundRecord = {
   letter: string;
   answers: Record<IhjCategory, { text: string; points: number }>;
 };
 
-type Stage = "setup" | "playing" | "results";
+type Stage = "setup" | "intro" | "playing" | "results";
 
 /**
  * إنسان حيوان جماد solo — reuses the multiplayer game's actual rule set
@@ -79,6 +80,10 @@ export default function IhjSoloPage() {
   }, [phaseStartedAt, now]);
 
   function startGame() {
+    setStage("intro");
+  }
+
+  function beginPlaying() {
     const firstLetter = pickNextLetter([]);
     setUsedLetters([firstLetter]);
     setLetter(firstLetter);
@@ -186,9 +191,10 @@ export default function IhjSoloPage() {
   return (
     <div dir={t.dir} className={dark ? "dark" : ""} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)", position: "relative", overflow: "hidden" }}>
       <Blobs />
-      {stage !== "playing" && <HomeButton label={t.backHome} href="/ihj" />}
+      {stage !== "playing" && stage !== "intro" && <HomeButton label={t.backHome} href="/ihj" />}
 
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px", position: "relative", zIndex: 1 }}>
+        {stage === "playing" && <LeaveGameButton lang={lang} />}
 
         {stage === "setup" && (
           <div className="screen-enter" style={{ marginTop: 60, textAlign: "center" }}>
@@ -236,14 +242,22 @@ export default function IhjSoloPage() {
           </div>
         )}
 
+        {stage === "intro" && <IhjPreGameIntro ar={ar} onDone={beginPlaying} />}
+
         {stage === "playing" && (
           <div className="screen-enter" style={{ marginTop: 10 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+            {/* Timer, top and center — deliberately its own row, large
+                and unmissable, rather than sharing space with the round
+                counter off to the side. 25 seconds moves fast, so this
+                needs to be the first thing a glance lands on. */}
+            <div style={{ textAlign: "center", marginBottom: 4 }}>
+              <span className="font-display" style={{ fontSize: 40, fontWeight: 800, color: remaining <= 10 ? "#E63946" : PURPLE, lineHeight: 1 }}>
+                {remaining}
+              </span>
+            </div>
+            <div style={{ textAlign: "center", marginBottom: 10 }}>
               <span className="font-body" style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)" }}>
                 {t.roundOf} {round}/{totalRounds}
-              </span>
-              <span className="font-mono" style={{ fontSize: 18, fontWeight: 800, color: remaining <= 10 ? "#E63946" : PURPLE }}>
-                {remaining}
               </span>
             </div>
 
@@ -379,6 +393,58 @@ export default function IhjSoloPage() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/**
+ * حرف عشوائي → ٥ فئات → ٢٥ ثانية بس → جاهزين → 3 → 2 → 1 → يلا, then
+ * calls onDone. Same structure and timing pattern as المحتال/خرب
+ * السالفة's own pre-game intros — rendered as a normal stage here
+ * rather than a fixed-position overlay, since solo has no underlying
+ * multiplayer state that needs to stay mounted underneath it.
+ */
+function IhjPreGameIntro({ ar, onDone }: { ar: boolean; onDone: () => void }) {
+  const STAGES = [
+    { text: ar ? "كل جولة يطلع لك حرف عشوائي \u{1F3B2}" : "Each round gives you a random letter \u{1F3B2}", ms: 2600 },
+    { text: ar ? "جاوب على ٥ فئات تبدأ بنفس الحرف: إنسان، حيوان، جماد، نبات، بلاد" : "Answer 5 categories starting with it: person, animal, object, plant, country", ms: 3200 },
+    { text: ar ? "بس عندك ٢٥ ثانية! \u{23F1}\uFE0F" : "But you only get 25 seconds! \u{23F1}\uFE0F", ms: 2200 },
+    { text: ar ? "جاهزين" : "Ready", ms: 900 },
+    { text: "3", ms: 650 },
+    { text: "2", ms: 650 },
+    { text: "1", ms: 650 },
+    { text: ar ? "يلا" : "Go!", ms: 800 },
+  ];
+  const [stageIndex, setStageIndex] = useState(0);
+
+  useEffect(() => {
+    if (stageIndex >= STAGES.length) { onDone(); return; }
+    const id = setTimeout(() => setStageIndex((i) => i + 1), STAGES[stageIndex].ms);
+    return () => clearTimeout(id);
+  }, [stageIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (stageIndex >= STAGES.length) return null;
+  const stage = STAGES[stageIndex];
+  const isCountdown = ["3", "2", "1"].includes(stage.text) || stage.text === (ar ? "يلا" : "Go!");
+
+  return (
+    <div
+      dir={ar ? "rtl" : "ltr"}
+      style={{
+        position: "fixed", inset: 0, zIndex: 80, background: "linear-gradient(135deg, #17122B, #7C3AED)",
+        display: "flex", alignItems: "center", justifyContent: "center", padding: 32,
+      }}
+    >
+      <p
+        key={stageIndex}
+        className="font-display pop"
+        style={{
+          fontSize: isCountdown ? 64 : 22, fontWeight: 800, color: "#fff", textAlign: "center",
+          lineHeight: 1.6, maxWidth: 340, margin: 0,
+        }}
+      >
+        {stage.text}
+      </p>
     </div>
   );
 }
