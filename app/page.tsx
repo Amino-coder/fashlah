@@ -53,17 +53,17 @@ export default function Home() {
 
   const entries = [
     { href: "/bidal", title: "بدل الكلمة", sub: ar ? "بدّل حرف، واصنع كلمات جديدة" : "Swap a letter, beat the rest", players: "لاعب واحد", category: "سرعة", Art: BidalArt, modes: ["solo"] },
-    { href: "/shofah", title: SHOFAH_STR[lang].gameNameArabic, sub: ar ? "مين من قروبكم بيتزوج أول" : "Who gets married first?", players: "1+ لاعب", category: "ضحك", Art: ShofahArt, modes: ["group", "solo"] },
-    { href: "/ihj", title: "إنسان حيوان جماد", sub: ar ? "لعبة الطيبين - مين أسرعكم بالكتابة" : "Find the answer nobody else thinks of", players: "1+ لاعب", category: "تنافس", Art: IhjArt, modes: ["group", "solo"] },
+    { href: "/shofah", title: SHOFAH_STR[lang].gameNameArabic, sub: ar ? "مين من قروبكم بيتزوج أول" : "Who gets married first?", players: "👥 1+", category: "ضحك", Art: ShofahArt, modes: ["group", "solo"] },
+    { href: "/ihj", title: "إنسان حيوان جماد", sub: ar ? "لعبة الطيبين - مين أسرعكم بالكتابة" : "Find the answer nobody else thinks of", players: "👥 1+", category: "تنافس", Art: IhjArt, modes: ["group", "solo"] },
     { href: "/wadak", title: "وش شخصيتك", sub: ar ? "جاوب وشوف شخصيتك الحقيقية" : "Answer and find your real personality", players: "لاعب واحد", category: "تحليل", Art: WadakArt, modes: ["solo"] },
-    { href: "/imposter", title: `${IMPOSTER_STR[lang].gameName} - imposter`, sub: ar ? "وحد فيكم محتال… من بيكتشفه؟" : "One of you is an imposter... who'll catch them?", players: "3+ لاعبين", category: "تنافس", Art: ImposterArt, modes: ["group"] },
-    { href: "/ruin_story", title: RUIN_STORY_STR[lang].gameName, sub: ar ? "كم تقدر تخرب السالفة بجواب واحد؟" : "How badly can you ruin the story?", players: "3+ لاعبين", category: "ضحك", Art: RuinStoryArt, modes: ["group"] },
-    { href: "/fashlah", title: t.gameName, sub: ar ? "اكتشفوا أسرار شلتكم" : "Uncover your group's secrets", players: "2+ لاعبين", category: "ضحك", Art: FashlahArt, modes: ["group"] },
-    { href: "/mareed", title: MAREED_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين المريض النفسي فينا" : "Who's the psych patient among us?", players: "1+ لاعب", category: "ضحك", Art: MareedArt, modes: ["group", "solo"] },
-    { href: "/qissa", title: QISSA_STR[lang].gameNameArabic, sub: ar ? "قصة توها تبدأ… وتضيع بين الكل" : "A story that gets lost along the way", players: "2+ لاعبين", category: "ضحك", Art: QissaArt, modes: ["group"] },
-    { href: "/job", title: JOB_STR[lang].gameNameArabic, sub: ar ? "لعبة للعاطلين 👀" : "A game for the unemployed 👀", players: "2+ لاعبين", category: "ضحك", Art: JobArt, modes: ["group"] },
-    { href: "/qaseeda", title: QASEEDA_STR[lang].gameNameArabic, sub: ar ? "اكتبوا قصيدة سوا، مين الشاعر فيكم" : "Write a poem together, line by line", players: "2+ لاعبين", category: "إبداع", Art: QaseedaArt, modes: ["group"] },
-    { href: "/lifoo", title: LIFOO_STR[lang].gameNameArabic, sub: ar ? "ألّفوا أغنية سوا، بعدين خلوا واحد يغنيها" : "Build a song together, line by line", players: "2+ لاعبين", category: "إبداع", Art: LifooArt, modes: ["group", "solo"] },
+    { href: "/imposter", title: `${IMPOSTER_STR[lang].gameName} - imposter`, sub: ar ? "وحد فيكم محتال… من بيكتشفه؟" : "One of you is an imposter... who'll catch them?", players: "👥 3+", category: "تنافس", Art: ImposterArt, modes: ["group"] },
+    { href: "/ruin_story", title: RUIN_STORY_STR[lang].gameName, sub: ar ? "كم تقدر تخرب السالفة بجواب واحد؟" : "How badly can you ruin the story?", players: "👥 3+", category: "ضحك", Art: RuinStoryArt, modes: ["group"] },
+    { href: "/fashlah", title: t.gameName, sub: ar ? "اكتشفوا أسرار شلتكم" : "Uncover your group's secrets", players: "👥 2+", category: "ضحك", Art: FashlahArt, modes: ["group"] },
+    { href: "/mareed", title: MAREED_STR[lang].gameNameArabic, sub: ar ? "خلّنا نشوف مين المريض النفسي فينا" : "Who's the psych patient among us?", players: "👥 1+", category: "ضحك", Art: MareedArt, modes: ["group", "solo"] },
+    { href: "/qissa", title: QISSA_STR[lang].gameNameArabic, sub: ar ? "قصة توها تبدأ… وتضيع بين الكل" : "A story that gets lost along the way", players: "👥 2+", category: "ضحك", Art: QissaArt, modes: ["group"] },
+    { href: "/job", title: JOB_STR[lang].gameNameArabic, sub: ar ? "لعبة للعاطلين 👀" : "A game for the unemployed 👀", players: "👥 2+", category: "ضحك", Art: JobArt, modes: ["group"] },
+    { href: "/qaseeda", title: QASEEDA_STR[lang].gameNameArabic, sub: ar ? "اكتبوا قصيدة سوا، مين الشاعر فيكم" : "Write a poem together, line by line", players: "👥 2+", category: "إبداع", Art: QaseedaArt, modes: ["group"] },
+    { href: "/lifoo", title: LIFOO_STR[lang].gameNameArabic, sub: ar ? "ألّفوا أغنية سوا، بعدين خلوا واحد يغنيها" : "Build a song together, line by line", players: "👥 2+", category: "إبداع", Art: LifooArt, modes: ["group", "solo"] },
     { href: "/ibarat", title: "عبارات", sub: ar ? "بطاقة إلهام يومية" : "A daily card of inspiration", players: "لاعب واحد", category: "إلهام", Art: IbaratArt, modes: ["solo"] },
   ];
 
