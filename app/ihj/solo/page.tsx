@@ -23,6 +23,24 @@ const PINK = "#FF2E93";
 const MINT = "#2EE6A6";
 const ROUND_OPTIONS = [3, 5, 7, 10];
 const TIME_LIMIT_SECONDS = 25; // was 60 — matches the shorter, punchier pace requested; no longer tied to ihj_sessions.time_limit_seconds' default, solo intentionally runs faster than multiplayer now
+const TRANSITION_MS = 1700;
+
+// One picked at random between rounds — enough variety that it doesn't
+// feel like the same canned message every single round.
+const TRANSITION_MESSAGES_AR = [
+  "تعجبنا السرعة \u26A1",
+  "متأكد كلها إجابات حقيقية؟ \u{1F602}",
+  "الجولة التالية",
+  "يلا نشوف جولة جديدة",
+  "استعد للحرف الجاي \u{1F440}",
+];
+const TRANSITION_MESSAGES_EN = [
+  "Impressive speed \u26A1",
+  "Are those all real answers? \u{1F602}",
+  "Next round",
+  "Let's see what's next",
+  "Get ready for the next letter \u{1F440}",
+];
 
 type RoundRecord = {
   letter: string;
@@ -97,6 +115,8 @@ export default function IhjSoloPage() {
     trackPageEvent("ihj_solo", "started", sessionKey);
   }
 
+  const [transitionMessage, setTransitionMessage] = useState<string | null>(null);
+
   function submitRound(finalDraft: Record<IhjCategory, string>) {
     const answers = {} as RoundRecord["answers"];
     for (const c of IHJ_CATEGORIES) {
@@ -107,6 +127,21 @@ export default function IhjSoloPage() {
     setRecords(nextRecords);
 
     if (round < totalRounds) {
+      const pool = ar ? TRANSITION_MESSAGES_AR : TRANSITION_MESSAGES_EN;
+      setTransitionMessage(pool[Math.floor(Math.random() * pool.length)]);
+    } else {
+      finishGame(nextRecords);
+    }
+  }
+
+  // Advances to the actual next round once the transition message has
+  // had its moment on screen. phaseStartedAt is deliberately set HERE,
+  // not back in submitRound — the same reasoning as the pre-game intro's
+  // INTRO_BUFFER_MS fix: the 25s timer shouldn't start counting down
+  // while this transition screen is still covering the letter/inputs.
+  useEffect(() => {
+    if (!transitionMessage) return;
+    const id = setTimeout(() => {
       const nextLetter = pickNextLetter(usedLetters);
       setUsedLetters((u) => [...u, nextLetter]);
       setLetter(nextLetter);
@@ -115,10 +150,10 @@ export default function IhjSoloPage() {
       setSubmittedLocally(false);
       setPhaseStartedAt(Date.now());
       setNow(Date.now());
-    } else {
-      finishGame(nextRecords);
-    }
-  }
+      setTransitionMessage(null);
+    }, TRANSITION_MS);
+    return () => clearTimeout(id);
+  }, [transitionMessage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (stage !== "playing" || submittedLocally) return;
@@ -244,7 +279,28 @@ export default function IhjSoloPage() {
 
         {stage === "intro" && <IhjPreGameIntro ar={ar} onDone={beginPlaying} />}
 
-        {stage === "playing" && (
+        {stage === "playing" && transitionMessage && (
+          <div className="screen-enter" style={{ marginTop: 10, textAlign: "center" }}>
+            <div style={{ textAlign: "center", marginBottom: 18 }}>
+              <span className="font-body" style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)" }}>
+                {t.roundOf} {round}/{totalRounds}
+              </span>
+            </div>
+            <div
+              className="card pop"
+              style={{
+                padding: "40px 24px", display: "flex", alignItems: "center", justifyContent: "center",
+                minHeight: 160, background: `linear-gradient(135deg, ${PURPLE}, ${PINK})`,
+              }}
+            >
+              <p className="font-display" style={{ fontSize: 22, fontWeight: 800, color: "#fff", margin: 0 }}>
+                {transitionMessage}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {stage === "playing" && !transitionMessage && (
           <div className="screen-enter" style={{ marginTop: 10 }}>
             {/* Timer, top and center — deliberately its own row, large
                 and unmissable, rather than sharing space with the round
