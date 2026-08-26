@@ -27,7 +27,12 @@ const LETTER_WEIGHTS: Record<string, number> = {
   "ا": 10, "ل": 9, "م": 8, "ن": 8, "ر": 8, "ب": 7, "ت": 7, "ك": 6, "و": 8,
   "ي": 7, "ع": 6, "س": 6, "ه": 5, "د": 6, "ج": 5, "ح": 5, "ص": 4, "ق": 6,
   "ف": 5, "ط": 3, "ذ": 2, "ز": 4, "ش": 4, "ض": 2, "غ": 2, "ظ": 1, "خ": 3,
-  "ث": 2, "ء": 2,
+  "ث": 2,
+  // "ء" removed deliberately — it almost never produces a usable move
+  // (very few genuine 3-letter words take a bare hamza in a position a
+  // single-letter swap can reach), so drawing it was mostly a dead
+  // tile. The word bank (bidal-words.ts) excludes every word that would
+  // require it, to match.
 };
 
 const WEIGHTED_POOL: string[] = Object.entries(LETTER_WEIGHTS).flatMap(([letter, weight]) =>
