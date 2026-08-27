@@ -186,19 +186,30 @@ export default function Home() {
       <Blobs />
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "22px 20px 48px", position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-          {/* DOM order here is deliberately [username, install, hamburger] —
-              under the page's natural RTL flow, a plain (non-reversed)
-              flex row places the FIRST DOM child at the physical RIGHT
-              and the LAST at the physical LEFT (RTL's "start"/"end" are
-              swapped from LTR's). So this order alone is what actually
-              produces username-right / install-center / hamburger-left
-              on screen — no forced dir="ltr" trick needed, which matters
+          {/* Two groups, not three evenly-spaced items — that's what
+              was leaving ثبت بقدونس stranded alone in the visual middle
+              of the row instead of anchored to a corner. Now it's its
+              own single flex child pinned to one edge, while account +
+              hamburger sit together as a second, inner group pinned to
+              the other edge.
+
+              DOM order here is deliberately [install, innerGroup] where
+              innerGroup is [account, hamburger] — under the page's
+              natural RTL flow, a plain (non-reversed) flex row places
+              the FIRST DOM child at the physical RIGHT and the LAST at
+              the physical LEFT (RTL's "start"/"end" are swapped from
+              LTR's), and the same rule applies one level down inside
+              innerGroup too. So this order alone is what actually
+              produces install-right / account-then-hamburger-left on
+              screen — no forced dir="ltr" trick needed, which matters
               because forcing ltr on an ancestor would also flip the
               default text-alignment of any plain Arabic text rendered
               inside either dropdown, not just the intended layout order. */}
-          <LoginButton lang={lang} />
           <InstallBagdoonisButton lang={lang} />
-          <HamburgerMenu lang={lang} setLang={setLang} dark={dark} setDark={setDark} />
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <LoginButton lang={lang} />
+            <HamburgerMenu lang={lang} setLang={setLang} dark={dark} setDark={setDark} />
+          </div>
         </div>
 
         <div style={{ textAlign: "center", marginTop: 64 }}>
