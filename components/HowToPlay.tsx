@@ -15,7 +15,7 @@ import type { Lang } from "@/lib/i18n";
  * from memory.
  */
 
-export type GameKey = "fashlah" | "shofah" | "job" | "qaseeda" | "qissa" | "lifoo" | "mareed" | "bidal" | "ihj" | "wadak" | "ruin_story" | "imposter" | "ibarat";
+export type GameKey = "fashlah" | "shofah" | "job" | "qaseeda" | "qissa" | "lifoo" | "mareed" | "bidal" | "ihj" | "wadak" | "ruin_story" | "imposter" | "ibarat" | "trivia";
 
 type Step = { icon: string; title: string; body: string };
 type Content = { title: string; tagline: string; steps: Step[]; footer: string };
@@ -363,6 +363,30 @@ const CONTENT: Record<GameKey, Record<Lang, Content>> = {
       footer: "A new phrase every day 🌿",
     },
   },
+  trivia: {
+    ar: {
+      title: "كيف تلعب سؤال وجواب؟",
+      tagline: "أسئلة سريعة، وأسرعكم بالإجابة يفوز \u26A1",
+      steps: [
+        { icon: "\u2753", title: "اختر إجابة", body: "اختر الإجابة الصحيحة من بين 4 خيارات." },
+        { icon: "\u2705", title: "إجابة وحدة صح", body: "كل سؤال له إجابة صحيحة واحدة بس." },
+        { icon: "\u23F1\uFE0F", title: "بسرعة!", body: "حاول تجاوب قبل انتهاء الوقت — كل ما جاوبت أسرع، نقاط أكثر." },
+        { icon: "\u{1F4A1}", title: "اعرف السبب", body: "بعد كل سؤال بتشوف الإجابة الصحيحة مع تفسير قصير." },
+      ],
+      footer: "اختر فئاتك المفضلة وشوف وش تعرف \u{1F9E0}",
+    },
+    en: {
+      title: "How to play Q&A Trivia",
+      tagline: "Fast questions, fastest answer wins \u26A1",
+      steps: [
+        { icon: "\u2753", title: "Pick an answer", body: "Choose the correct answer out of 4 choices." },
+        { icon: "\u2705", title: "Only one is right", body: "Every question has exactly one correct answer." },
+        { icon: "\u23F1\uFE0F", title: "Be quick!", body: "Try to answer before time runs out — the faster you answer, the more points you earn." },
+        { icon: "\u{1F4A1}", title: "Learn why", body: "After each question you'll see the correct answer with a short explanation." },
+      ],
+      footer: "Pick your favorite categories and see what you know \u{1F9E0}",
+    },
+  },
 };
 
 const ACCENTS: Record<GameKey, { from: string; to: string }> = {
@@ -379,6 +403,7 @@ const ACCENTS: Record<GameKey, { from: string; to: string }> = {
   ruin_story: { from: "#9B1C2E", to: "#C9302C" },
   imposter: { from: "#D6006E", to: "#FF2E93" },
   ibarat: { from: "#22C55E", to: "#14B8A6" },
+  trivia: { from: "#3B82F6", to: "#1E40AF" },
 };
 
 function storageKey(game: GameKey) {

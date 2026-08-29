@@ -16,6 +16,7 @@ const GAME_LABELS: Record<string, string> = {
   ibarat: "عبارات",
   imposter: "المحتال",
   ruin_story: "خرب السالفة",
+  trivia: "سؤال وجواب",
 };
 
 type GameRow = { game: string; requires_plus: boolean; hidden: boolean; display_order: number | null; updated_at: string };

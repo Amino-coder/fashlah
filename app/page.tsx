@@ -15,7 +15,7 @@ import { LIFOO_STR } from "@/lib/lifoo-i18n";
 import { usePrefs } from "@/lib/usePrefs";
 import Blobs from "@/components/Blobs";
 import Mascot from "@/components/Mascot";
-import { FashlahArt, ShofahArt, JobArt, IbaratArt, QaseedaArt, QissaArt, WadakArt, BidalArt, IhjArt, LifooArt, MareedArt, ImposterArt, RuinStoryArt } from "@/components/art/GameArt";
+import { FashlahArt, ShofahArt, JobArt, IbaratArt, QaseedaArt, QissaArt, WadakArt, BidalArt, IhjArt, LifooArt, MareedArt, ImposterArt, RuinStoryArt, TriviaArt } from "@/components/art/GameArt";
 import InstallBagdoonisButton from "@/components/pwa/InstallBagdoonisButton";
 import LoginButton from "@/components/auth/LoginButton";
 import HamburgerMenu from "@/components/HamburgerMenu";
@@ -65,6 +65,7 @@ export default function Home() {
     { href: "/qaseeda", title: QASEEDA_STR[lang].gameNameArabic, sub: ar ? "اكتبوا قصيدة سوا، مين الشاعر فيكم" : "Write a poem together, line by line", players: "👥 2+", category: "إبداع", Art: QaseedaArt, modes: ["group"] },
     { href: "/lifoo", title: LIFOO_STR[lang].gameNameArabic, sub: ar ? "ألّفوا أغنية سوا، بعدين خلوا واحد يغنيها" : "Build a song together, line by line", players: "👥 2+", category: "إبداع", Art: LifooArt, modes: ["group", "solo"] },
     { href: "/ibarat", title: "عبارات", sub: ar ? "بطاقة إلهام يومية" : "A daily card of inspiration", players: "لاعب واحد", category: "إلهام", Art: IbaratArt, modes: ["solo"] },
+    { href: "/trivia", title: "سؤال وجواب", sub: ar ? "أسئلة سريعة، وأسرعكم بالإجابة يفوز" : "Fast questions, fastest answer wins", players: "1+ لاعب", category: "تنافس", Art: TriviaArt, modes: ["group", "solo"] },
   ];
 
   // الكل is the default — a new visitor should see everything the site

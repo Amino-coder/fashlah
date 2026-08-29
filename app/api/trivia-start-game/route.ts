@@ -10,6 +10,13 @@ import { selectTriviaQuestions } from "@/lib/trivia-engine";
  * Used for solo too, for one canonical selection path rather than
  * duplicating the logic client-side.
  */
+// Must stay >= the session page's PreGameIntro total stage duration —
+// this is what stops the first question's answering timer from
+// silently ticking down underneath the pre-game intro overlay before
+// anyone can actually see the question, the same class of bug found
+// and fixed in المحتال and إنسان حيوان جماد's own pre-game intros.
+const INTRO_BUFFER_MS = 7500;
+
 export async function POST(req: NextRequest) {
   try {
     const { sessionId } = await req.json();
@@ -33,7 +40,7 @@ export async function POST(req: NextRequest) {
         question_ids: questionIds,
         current_question_index: 0,
         phase: "answering",
-        phase_started_at: new Date().toISOString(),
+        phase_started_at: new Date(Date.now() + INTRO_BUFFER_MS).toISOString(),
         status: "in_progress",
         started_at: new Date().toISOString(),
       })

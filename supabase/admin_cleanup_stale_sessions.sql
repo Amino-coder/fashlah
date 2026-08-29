@@ -64,7 +64,7 @@ begin
   foreach tbl in array array[
     'sessions', 'shofah_sessions', 'job_sessions', 'qaseeda_sessions',
     'qissa_sessions', 'bidal_sessions', 'lifoo_sessions', 'ihj_sessions',
-    'mareed_sessions', 'imposter_sessions', 'ruin_story_sessions'
+    'mareed_sessions', 'imposter_sessions', 'ruin_story_sessions', 'trivia_sessions'
   ]
   loop
     select pg_get_constraintdef(oid) ilike '%''cancelled''%'
@@ -216,6 +216,16 @@ begin
   set status = 'cancelled', ended_at = now()
   where status = 'in_progress'
     and coalesce(started_at, created_at) < now() - interval '2 hours';
+
+  -- سؤال وجواب
+  update trivia_sessions
+  set status = 'cancelled', ended_at = now()
+  where status = 'waiting' and created_at < now() - interval '3 hours';
+
+  update trivia_sessions
+  set status = 'cancelled', ended_at = now()
+  where status = 'in_progress'
+    and coalesce(phase_started_at, started_at, created_at) < now() - interval '2 hours';
 end;
 $$;
 
