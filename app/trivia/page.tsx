@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Users, Zap, Check } from "lucide-react";
+import { Users, Zap } from "lucide-react";
 import { supabase, ensureUser, generateRoomCode } from "@/lib/supabase";
 import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
@@ -35,24 +35,11 @@ function TriviaSetupContent() {
   const [emoji, setEmoji] = useState(() => TRIVIA_AVATARS[Math.floor(Math.random() * TRIVIA_AVATARS.length)]);
   const [questionCount, setQuestionCount] = useState<5 | 10 | 15>(10);
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard" | "mixed">("mixed");
-  const [categories, setCategories] = useState<string[]>([...TRIVIA_CATEGORIES]);
+  const [category, setCategory] = useState<string>(TRIVIA_CATEGORIES[0]);
   const [loading, setLoading] = useState<"group" | "solo" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   if (!ready) return null;
-
-  function toggleCategory(cat: string) {
-    setCategories((cur) => {
-      if (cur.includes(cat)) {
-        // Never allow zero categories selected — falls back to
-        // re-selecting the one just removed rather than leaving the
-        // game with nothing to draw questions from.
-        const next = cur.filter((c) => c !== cat);
-        return next.length === 0 ? cur : next;
-      }
-      return [...cur, cat];
-    });
-  }
 
   async function createSession(mode: "group" | "solo") {
     setLoading(mode);
@@ -69,7 +56,7 @@ function TriviaSetupContent() {
           .from("trivia_sessions")
           .insert({
             code, host_user_id: userId, lang,
-            question_count: questionCount, difficulty, categories,
+            question_count: questionCount, difficulty, categories: [category],
             status: "waiting",
           })
           .select()
@@ -196,28 +183,19 @@ function TriviaSetupContent() {
           <p className="font-body" style={{ fontSize: 12, fontWeight: 800, color: "var(--ink-soft)", marginBottom: 8 }}>{t.categories}</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 28 }}>
             {TRIVIA_CATEGORIES.map((cat) => {
-              const selected = categories.includes(cat);
+              const selected = category === cat;
               return (
                 <button
                   key={cat}
-                  onClick={() => toggleCategory(cat)}
+                  onClick={() => setCategory(cat)}
                   className="font-body"
                   style={{
-                    display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px",
-                    borderRadius: 14, fontSize: 13.5, fontWeight: 700,
+                    padding: "12px 16px", borderRadius: 14, fontSize: 13.5, fontWeight: 700, textAlign: ar ? "right" : "left",
                     border: selected ? `2.5px solid ${INDIGO}` : "2px solid var(--ring)",
-                    background: selected ? `${INDIGO}18` : "var(--card)", color: "var(--ink)",
+                    background: selected ? `${INDIGO}18` : "var(--card)", color: selected ? INDIGO : "var(--ink)",
                   }}
                 >
-                  <span>{ar ? cat : TRIVIA_CATEGORY_LABELS_EN[cat] || cat}</span>
-                  <span
-                    style={{
-                      width: 20, height: 20, borderRadius: 6, border: selected ? "none" : "2px solid var(--ring)",
-                      background: selected ? INDIGO : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                    }}
-                  >
-                    {selected && <Check size={13} color="#fff" strokeWidth={3} />}
-                  </span>
+                  {ar ? cat : TRIVIA_CATEGORY_LABELS_EN[cat] || cat}
                 </button>
               );
             })}

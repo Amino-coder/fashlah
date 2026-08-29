@@ -1,6 +1,6 @@
 export type TriviaLang = "ar" | "en";
 
-export const TRIVIA_AVATARS = ["\u{1F9E0}", "\u{1F4DA}", "\u{1F3AF}", "\u{1F52E}", "\u{26A1}", "\u{1F3C6}", "\u{1F914}", "\u{1F440}"];
+export const TRIVIA_AVATARS = ["\u{1F9E0}", "\u{1F4DA}", "\u{1F3AF}", "\u{1F52E}", "\u{26A1}", "\u{1F3C6}"];
 
 export const TRIVIA_CATEGORY_LABELS_EN: Record<string, string> = {
   "معلومات عامة": "General Knowledge",
@@ -48,6 +48,7 @@ export const TRIVIA_STR: Record<TriviaLang, Record<string, string>> = {
     correctAnswerIs: "الإجابة الصحيحة",
     submitAnswer: "أجب",
     waitingOthers: "تم! ننتظر الباقين...",
+    movingOn: "تم! جاري الانتقال للسؤال التالي...",
     submitted: "تم اختيار إجابتك",
     finalResults: "النتيجة النهائية",
     winner: "الفائز",
@@ -96,6 +97,7 @@ export const TRIVIA_STR: Record<TriviaLang, Record<string, string>> = {
     correctAnswerIs: "Correct answer",
     submitAnswer: "Answer",
     waitingOthers: "Done! Waiting for everyone else...",
+    movingOn: "Done! Moving to the next question...",
     submitted: "Your answer is in",
     finalResults: "Final Results",
     winner: "Winner",

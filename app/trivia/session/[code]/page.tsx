@@ -8,6 +8,7 @@ import HomeButton from "@/components/HomeButton";
 import LeaveGameButton from "@/components/LeaveGameButton";
 import ShareInvite from "@/components/ShareInvite";
 import SaveResult from "@/components/auth/SaveResult";
+import { shareTriviaResultCard, shareTriviaSoloResultCard } from "@/components/trivia/exportResultCard";
 import { trackPageEvent } from "@/lib/trackPageView";
 import { TRIVIA_STR, TRIVIA_CATEGORY_LABELS_EN, TriviaLang } from "@/lib/trivia-i18n";
 import { TRIVIA_QUESTIONS, TriviaOption } from "@/lib/trivia-questions";
@@ -303,7 +304,9 @@ export default function TriviaSessionPage() {
             {mySubmittedId ? (
               <div className="card pop" style={{ padding: 22, textAlign: "center" }}>
                 <p className="font-display" style={{ fontSize: 15, fontWeight: 800, marginBottom: 4 }}>{t.submitted}</p>
-                <p className="font-body" style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ink-soft)" }}>{t.waitingOthers}</p>
+                <p className="font-body" style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ink-soft)" }}>
+                  {isSolo ? t.movingOn : t.waitingOthers}
+                </p>
               </div>
             ) : (
               <>
@@ -341,6 +344,7 @@ export default function TriviaSessionPage() {
         {/* ---------------- REVEAL ---------------- */}
         {session.status === "in_progress" && session.phase === "reveal" && currentQuestion && (
           <RevealScreen
+            key={session.current_question_index}
             session={session}
             players={sortedByScore}
             question={currentQuestion}
@@ -389,6 +393,15 @@ function RevealScreen({
 }) {
   const correctOption = question.options.find((o) => o.id === question.correctAnswerId)!;
   const isLastQuestion = session.current_question_index >= session.question_ids.length - 1;
+  // Guards against exactly the bug a double-click on this button caused:
+  // the endpoint honors a manual click immediately regardless of which
+  // phase it currently sees, so a second click landing right after the
+  // first one's transition (reveal → next question's answering) would
+  // force ANOTHER transition on top of it — skipping that new
+  // question's entire answering phase before anyone could even see it.
+  // A plain client-side disable-after-first-click is what actually
+  // stops a human from physically triggering that.
+  const [clickPending, setClickPending] = useState(false);
 
   return (
     <div className="screen-enter" style={{ marginTop: 10 }}>
@@ -476,14 +489,20 @@ function RevealScreen({
           arbitrary score manipulation. */}
       {isHost && (
         <button
-          onClick={onNextQuestion}
+          onClick={async () => {
+            if (clickPending) return;
+            setClickPending(true);
+            await onNextQuestion();
+          }}
+          disabled={clickPending}
           className="font-body"
           style={{
             display: "block", width: "100%", padding: 13, fontSize: 13, fontWeight: 800,
             borderRadius: 999, border: "2px solid var(--ring)", color: "var(--ink)", background: "var(--card)",
+            opacity: clickPending ? 0.6 : 1, cursor: clickPending ? "default" : "pointer",
           }}
         >
-          {isLastQuestion ? (ar ? "\u{1F3C1} إنهاء اللعبة" : "\u{1F3C1} Finish Game") : `\u2192 ${t.nextQuestion}`}
+          {clickPending ? t.loading : isLastQuestion ? (ar ? "\u{1F3C1} إنهاء اللعبة" : "\u{1F3C1} Finish Game") : `\u2192 ${t.nextQuestion}`}
         </button>
       )}
     </div>
@@ -502,12 +521,24 @@ function ResultsScreen({
   ar: boolean;
 }) {
   const [correctCount, setCorrectCount] = useState<number | null>(null);
+  const [correctByQuestion, setCorrectByQuestion] = useState<boolean[] | null>(null);
+  const [shareState, setShareState] = useState<"idle" | "working" | "shared" | "downloaded" | "failed">("idle");
 
   useEffect(() => {
     if (!isSolo || !myPlayer) return;
-    supabase.from("trivia_answers").select("is_correct").eq("session_id", session.id).eq("player_id", myPlayer.id)
-      .then(({ data }) => setCorrectCount((data || []).filter((a) => a.is_correct).length));
-  }, [isSolo, myPlayer, session.id]);
+    supabase.from("trivia_answers").select("question_index, is_correct").eq("session_id", session.id).eq("player_id", myPlayer.id)
+      .then(({ data }) => {
+        const rows = data || [];
+        setCorrectCount(rows.filter((a) => a.is_correct).length);
+        // Build the full per-question array in order — a question the
+        // player never got to answer (e.g. ran out of time on the very
+        // last one) counts as incorrect, same as it does for scoring.
+        const total = session.question_ids.length;
+        const byIndex = new Array(total).fill(false);
+        for (const row of rows) { if (row.is_correct) byIndex[row.question_index] = true; }
+        setCorrectByQuestion(byIndex);
+      });
+  }, [isSolo, myPlayer, session.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const total = session.question_ids.length;
   const topScore = players[0]?.score ?? 0;
@@ -518,6 +549,22 @@ function ResultsScreen({
     : coWinners.length > 1
     ? (ar ? `تعادل! ${coWinners.map((p) => p.nickname).join(" و ")} بـ ${topScore} نقطة` : `Tie! ${coWinners.map((p) => p.nickname).join(" & ")} with ${topScore} points`)
     : (ar ? `\u{1F3C6} ${coWinners[0]?.nickname} فاز بـ ${topScore} نقطة!` : `\u{1F3C6} ${coWinners[0]?.nickname} won with ${topScore} points!`);
+
+  async function handleShareCard() {
+    setShareState("working");
+    try {
+      const result = isSolo && correctByQuestion
+        ? await shareTriviaSoloResultCard({ correctCount: correctCount ?? 0, totalQuestions: total, score: myPlayer?.score ?? 0, correctByQuestion })
+        : await shareTriviaResultCard(players);
+      if (result === "shared") { trackPageEvent("trivia", "share_result_native"); setShareState("shared"); }
+      else if (result === "downloaded") { trackPageEvent("trivia", "share_result_downloaded"); setShareState("downloaded"); }
+      else if (result === "cancelled") setShareState("idle");
+      else setShareState("failed");
+    } catch {
+      setShareState("failed");
+    }
+    setTimeout(() => setShareState("idle"), 2500);
+  }
 
   return (
     <div className="screen-enter" style={{ marginTop: 20, textAlign: "center", paddingBottom: 30 }}>
@@ -552,23 +599,23 @@ function ResultsScreen({
       )}
 
       <button
-        onClick={async () => {
-          const text = [resultLine, "\u25AC".repeat(10), ar ? "جربوها مع شلتكم \u{1F447}" : "Try it with your friends \u{1F447}", window.location.origin].join("\n");
-          if (typeof navigator !== "undefined" && navigator.share) {
-            try { await navigator.share({ text }); trackPageEvent("trivia", "share_result_native"); return; } catch { return; }
-          }
-          window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
-          trackPageEvent("trivia", "share_result_whatsapp");
-        }}
+        onClick={handleShareCard}
+        disabled={shareState === "working"}
         className="font-display"
         style={{
           display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%",
           padding: "14px 20px", borderRadius: 999, border: "none", cursor: "pointer",
           background: `linear-gradient(135deg, ${INDIGO}, ${NAVY})`, color: "#fff", fontWeight: 800, fontSize: 15,
-          boxShadow: "0 10px 26px rgba(0,0,0,0.2)", marginBottom: 12,
+          boxShadow: "0 10px 26px rgba(0,0,0,0.2)", marginBottom: 12, opacity: shareState === "working" ? 0.7 : 1,
         }}
       >
-        {"\u{1F4E4}"} {ar ? "شارك نتيجتك" : "Share Results"}
+        {"\u{1F4E4}"} {
+          shareState === "working" ? "..." :
+          shareState === "shared" ? (ar ? "تم!" : "Shared!") :
+          shareState === "downloaded" ? (ar ? "انحفظت الصورة!" : "Image saved!") :
+          shareState === "failed" ? (ar ? "صار خطأ" : "Something went wrong") :
+          (ar ? "شارك نتيجتك" : "Share Results")
+        }
       </button>
 
       <SaveResult game="trivia" lang={ar ? "ar" : "en"} resultSummary={resultLine} sessionCode={session.code} />
