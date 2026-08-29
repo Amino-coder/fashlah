@@ -283,3 +283,17 @@ export function RuinStoryArt({ size = 120 }: P) {
   );
 }
 
+/* ─── سؤال وجواب — a brain on bold indigo/blue, quick-thinking trivia energy ─── */
+export function TriviaArt({ size = 120 }: P) {
+  const INDIGO = "#3B82F6";
+  const GOLD = "#FFD400";
+  return (
+    <Tile bg={INDIGO}>
+      <Confetti a={GOLD} b={CREAM} />
+      <text x="100" y="100" textAnchor="middle" dominantBaseline="central" fontSize="92">
+        {"\u{1F9E0}"}
+      </text>
+    </Tile>
+  );
+}
+
