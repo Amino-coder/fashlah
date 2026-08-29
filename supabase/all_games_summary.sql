@@ -35,6 +35,8 @@ with multiplayer_totals as (
   select 'المحتال', created_at, status = 'completed' from imposter_sessions
   union all
   select 'خرب السالفة', created_at, status = 'completed' from ruin_story_sessions
+  union all
+  select 'سؤال وجواب', created_at, status = 'completed' from trivia_sessions
 ),
 multiplayer_summary as (
   select

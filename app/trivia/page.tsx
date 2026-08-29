@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Users, Zap } from "lucide-react";
 import { supabase, ensureUser, generateRoomCode } from "@/lib/supabase";
@@ -8,7 +9,7 @@ import Blobs from "@/components/Blobs";
 import HomeButton from "@/components/HomeButton";
 import { HelpButton } from "@/components/HowToPlay";
 import PlusGate from "@/components/PlusGate";
-import { TRIVIA_STR, TRIVIA_AVATARS, TRIVIA_CATEGORY_LABELS_EN, TriviaLang } from "@/lib/trivia-i18n";
+import { TRIVIA_STR, TRIVIA_AVATARS, TRIVIA_CATEGORY_LABELS_EN, TRIVIA_CATEGORY_META, TriviaLang } from "@/lib/trivia-i18n";
 import { TRIVIA_CATEGORIES } from "@/lib/trivia-questions";
 import { usePrefs } from "@/lib/usePrefs";
 
@@ -184,18 +185,20 @@ function TriviaSetupContent() {
           <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 28 }}>
             {TRIVIA_CATEGORIES.map((cat) => {
               const selected = category === cat;
+              const meta = TRIVIA_CATEGORY_META[cat];
               return (
                 <button
                   key={cat}
                   onClick={() => setCategory(cat)}
                   className="font-body"
                   style={{
-                    padding: "12px 16px", borderRadius: 14, fontSize: 13.5, fontWeight: 700, textAlign: ar ? "right" : "left",
-                    border: selected ? `2.5px solid ${INDIGO}` : "2px solid var(--ring)",
-                    background: selected ? `${INDIGO}18` : "var(--card)", color: selected ? INDIGO : "var(--ink)",
+                    display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderRadius: 14, fontSize: 13.5, fontWeight: 700, textAlign: ar ? "right" : "left",
+                    border: selected ? `2.5px solid ${meta.color}` : "2px solid var(--ring)",
+                    background: selected ? `${meta.color}18` : "var(--card)", color: selected ? meta.color : "var(--ink)",
                   }}
                 >
-                  {ar ? cat : TRIVIA_CATEGORY_LABELS_EN[cat] || cat}
+                  <span style={{ fontSize: 18 }}>{meta.emoji}</span>
+                  <span>{ar ? cat : TRIVIA_CATEGORY_LABELS_EN[cat] || cat}</span>
                 </button>
               );
             })}
@@ -232,6 +235,14 @@ function TriviaSetupContent() {
               <Zap size={16} /> {loading === "solo" ? t.loading : t.playSolo}
             </button>
           </div>
+
+          <Link
+            href="/trivia/join"
+            className="font-body"
+            style={{ display: "block", textAlign: "center", marginTop: 16, padding: 10, fontSize: 13, fontWeight: 700, color: "var(--ink-soft)", textDecoration: "underline" }}
+          >
+            {ar ? "عندك كود؟ انضم لغرفة" : "Have a code? Join a room"}
+          </Link>
         </div>
       </div>
     </div>

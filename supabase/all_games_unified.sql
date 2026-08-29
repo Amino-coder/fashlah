@@ -4,7 +4,9 @@
 --
 -- Multiplayer games (real session rows, one row per session created):
 --   فشلة، شوفة، مين بيتوظف، قصيدة، قصة، الِّفوا أغنية، إنسان حيوان جماد،
---   مريض نفسي، المحتال، خرب السالفة
+--   مريض نفسي، المحتال، خرب السالفة، سؤال وجواب (solo mode also uses a
+--   real session row here, just with one player — unlike the page_views-
+--   based solo games below)
 --
 -- Solo games (no session table — page_views 'view'/'complete' pairs,
 -- one row per visit; 'completed' means that visit's session_key has a
@@ -98,6 +100,13 @@ with multiplayer as (
     (select count(*) from ruin_story_players p where p.session_id = s.id),
     (select string_agg(p.nickname, ', ') from ruin_story_players p where p.session_id = s.id)
   from ruin_story_sessions s
+  where s.created_at >= (date_trunc('month', now() AT TIME ZONE 'Asia/Riyadh') AT TIME ZONE 'Asia/Riyadh')
+
+  union all
+  select 'سؤال وجواب', 'multiplayer', s.status, (s.created_at AT TIME ZONE 'Asia/Riyadh'),
+    (select count(*) from trivia_players p where p.session_id = s.id),
+    (select string_agg(p.nickname, ', ') from trivia_players p where p.session_id = s.id)
+  from trivia_sessions s
   where s.created_at >= (date_trunc('month', now() AT TIME ZONE 'Asia/Riyadh') AT TIME ZONE 'Asia/Riyadh')
 ),
 

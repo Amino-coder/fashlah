@@ -53,6 +53,11 @@ select 'ruin_story', s.id, s.code, s.status, (s.created_at AT TIME ZONE 'Asia/Ri
   (select string_agg(p.nickname, ', ') from ruin_story_players p where p.session_id = s.id)
 from ruin_story_sessions s where s.status in ('waiting','in_progress')
 union all
+select 'trivia', s.id, s.code, s.status, (s.created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh,
+  (select count(*) from trivia_players p where p.session_id = s.id),
+  (select string_agg(p.nickname, ', ') from trivia_players p where p.session_id = s.id)
+from trivia_sessions s where s.status in ('waiting','in_progress')
+union all
 -- بدل الكلمة is fully local now (no session/player rows at all — see
 -- app/bidal/solo/page.tsx) so, same as وش شخصيتك and شوفة solo below,
 -- "active" here means opened in the last hour with no matching

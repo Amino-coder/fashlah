@@ -11,6 +11,18 @@ export const TRIVIA_CATEGORY_LABELS_EN: Record<string, string> = {
   "معلومات دينية": "Religious Knowledge",
 };
 
+/** A distinct emoji + color per category — used on the setup screen's
+ *  category picker so the six options are visually distinguishable at
+ *  a glance, not just six identically-styled text rows. */
+export const TRIVIA_CATEGORY_META: Record<string, { emoji: string; color: string }> = {
+  "معلومات عامة": { emoji: "\u{1F30D}", color: "#14B8A6" },
+  "تاريخ": { emoji: "\u{1F4DC}", color: "#D9A441" },
+  "كورة": { emoji: "\u26BD", color: "#22C55E" },
+  "أفلام ومسلسلات": { emoji: "\u{1F3AC}", color: "#7C3AED" },
+  "ألعاب فيديو": { emoji: "\u{1F3AE}", color: "#FF2E93" },
+  "معلومات دينية": { emoji: "\u{1F54C}", color: "#0EA5A4" },
+};
+
 export const TRIVIA_STR: Record<TriviaLang, Record<string, string>> = {
   ar: {
     dir: "rtl",

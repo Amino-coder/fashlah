@@ -109,6 +109,17 @@ create policy "trivia_players_self_update" on trivia_players for update using (u
 -- correctness.
 create policy "trivia_answers_read" on trivia_answers for select using (true);
 
+-- Needed for "play again" (same room) to clear every answer row from
+-- the previous game before resetting current_question_index back to
+-- 0 — without this, stale rows from the old game's own question 0
+-- collide with the (session_id, question_index, player_id) unique
+-- constraint and confuse the auto-advance "has everyone answered"
+-- check for the new game. Scoped the same as insert: any player in
+-- the session, not host-only.
+create policy "trivia_answers_own_session_delete" on trivia_answers for delete using (
+  exists (select 1 from trivia_players p where p.session_id = trivia_answers.session_id and p.user_id = auth.uid())
+);
+
 -- ----------------------------------------------------------------------------
 -- REALTIME
 -- ----------------------------------------------------------------------------

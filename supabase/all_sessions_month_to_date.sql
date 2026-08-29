@@ -69,6 +69,11 @@ select 'ruin_story', s.id, s.code, s.status, (s.created_at AT TIME ZONE 'Asia/Ri
   (select string_agg(p.nickname, ', ') from ruin_story_players p where p.session_id = s.id)
 from ruin_story_sessions s where s.created_at >= (date_trunc('month', now() AT TIME ZONE 'Asia/Riyadh') AT TIME ZONE 'Asia/Riyadh')
 union all
+select 'trivia', s.id, s.code, s.status, (s.created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh,
+  (select count(*) from trivia_players p where p.session_id = s.id),
+  (select string_agg(p.nickname, ', ') from trivia_players p where p.session_id = s.id)
+from trivia_sessions s where s.created_at >= (date_trunc('month', now() AT TIME ZONE 'Asia/Riyadh') AT TIME ZONE 'Asia/Riyadh')
+union all
 select 'wadak', v.id, null::text,
   case when exists (
     select 1 from page_views c

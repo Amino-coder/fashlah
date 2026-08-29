@@ -191,6 +191,18 @@ export default function TriviaSessionPage() {
     }
   }
 
+  // If the player selected an option but never actually clicked
+  // submit, and the timer runs out, record that selection rather than
+  // nothing — matches how the rest of the game treats "ran out of
+  // time" as still meaningful (the scoring endpoint itself computes
+  // whatever speed bonus is left, which by definition is ~0 this
+  // close to the limit, but correctness still counts).
+  useEffect(() => {
+    if (session?.status === "in_progress" && session?.phase === "answering" && remaining <= 0 && selectedOptionId && !mySubmittedId) {
+      handleSubmit();
+    }
+  }, [remaining, session?.status, session?.phase, selectedOptionId, mySubmittedId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   async function handleHostNextQuestion() {
     if (!session) return;
     await fetch("/api/trivia-advance-phase", {
@@ -212,6 +224,17 @@ export default function TriviaSessionPage() {
     if (!session) return;
     introShownRef.current = false;
     await supabase.from("trivia_players").update({ score: 0 }).eq("session_id", session.id);
+    // Clear every answer row from the previous game before resetting —
+    // "play again" reuses this same session_id and resets
+    // current_question_index back to 0, and without this, the OLD
+    // question-0 answer rows are still sitting there. That silently
+    // breaks two things at once: the unique constraint rejects new
+    // submissions for question 0 as "already answered," and the
+    // auto-advance check (which counts existing answer rows for the
+    // current question_index) sees those stale rows and immediately
+    // thinks everyone's already answered — skipping the entire
+    // answering phase before anyone gets a real chance to answer.
+    await supabase.from("trivia_answers").delete().eq("session_id", session.id);
     await supabase
       .from("trivia_sessions")
       .update({ status: "waiting", current_question_index: 0, phase: "answering", question_ids: [], ended_at: null })
@@ -351,6 +374,7 @@ export default function TriviaSessionPage() {
             answers={currentAnswers}
             myAnswerRow={myAnswerRow}
             isHost={isHost}
+            isSolo={isSolo}
             adjustingPlayer={adjustingPlayer}
             onAdjustPoints={handleAdjustPoints}
             onNextQuestion={handleHostNextQuestion}
@@ -377,7 +401,7 @@ export default function TriviaSessionPage() {
 }
 
 function RevealScreen({
-  session, players, question, answers, myAnswerRow, isHost, adjustingPlayer, onAdjustPoints, onNextQuestion, t, ar,
+  session, players, question, answers, myAnswerRow, isHost, isSolo, adjustingPlayer, onAdjustPoints, onNextQuestion, t, ar,
 }: {
   session: TriviaSessionRow;
   players: TriviaPlayerRow[];
@@ -385,6 +409,7 @@ function RevealScreen({
   answers: TriviaAnswerRow[];
   myAnswerRow?: TriviaAnswerRow;
   isHost: boolean;
+  isSolo: boolean;
   adjustingPlayer: string | null;
   onAdjustPoints: (playerId: string, delta: 1 | -1) => void;
   onNextQuestion: () => void;
@@ -454,7 +479,7 @@ function RevealScreen({
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span className="font-display" style={{ fontSize: 14, fontWeight: 800, color: INDIGO }}>{p.score}</span>
-                {isHost && (
+                {isHost && !isSolo && (
                   <div style={{ display: "flex", gap: 4 }}>
                     <button
                       onClick={() => onAdjustPoints(p.id, -1)}

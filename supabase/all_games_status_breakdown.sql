@@ -49,6 +49,8 @@ with multiplayer as (
   select 'المحتال', status, created_at from imposter_sessions where created_at >= ('2026-08-05'::date AT TIME ZONE 'Asia/Riyadh')
   union all
   select 'خرب السالفة', status, created_at from ruin_story_sessions where created_at >= ('2026-08-05'::date AT TIME ZONE 'Asia/Riyadh')
+  union all
+  select 'سؤال وجواب', status, created_at from trivia_sessions where created_at >= ('2026-08-05'::date AT TIME ZONE 'Asia/Riyadh')
 ),
 multiplayer_summary as (
   select

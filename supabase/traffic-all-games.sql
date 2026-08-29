@@ -5,7 +5,7 @@
 --
 -- Real sessions (queries 1-2 below): every game's MULTIPLAYER sessions —
 -- فشلة، شوفة، مين بيتوظف، قصيدة، قصة، الِّفوا أغنية، إنسان حيوان جماد،
--- مريض نفسي، المحتال، خرب السالفة.
+-- مريض نفسي، المحتال، خرب السالفة، سؤال وجواب.
 --
 -- بدل الكلمة is NOT in queries 1-2 anymore. It used to be — this file
 -- originally documented a bidal_sessions.mode split between 'solo' and
@@ -46,6 +46,8 @@ with all_sessions as (
   select 'imposter', id, code, status, (created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh from imposter_sessions
   union all
   select 'ruin_story', id, code, status, (created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh from ruin_story_sessions
+  union all
+  select 'trivia', id, code, status, (created_at AT TIME ZONE 'Asia/Riyadh') as created_at_riyadh from trivia_sessions
 )
 select * from all_sessions
 order by created_at_riyadh desc;
@@ -73,6 +75,8 @@ with all_sessions as (
   select 'imposter', created_at from imposter_sessions
   union all
   select 'ruin_story', created_at from ruin_story_sessions
+  union all
+  select 'trivia', created_at from trivia_sessions
 )
 select
   game,
